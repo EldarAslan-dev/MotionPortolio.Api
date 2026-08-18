@@ -1,0 +1,164 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using MotionPortfolio.Api.Data;
+using MotionPortfolio.Api.Models;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. Verilənlər Bazası
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// 2. JWT Authentication & Authorization
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "super_secret_key_motion_portfolio_2026_secure";
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
+builder.Services.AddAuthorization();
+
+// 3. Servislər, Controller-lər və SignalR
+builder.Services.AddSingleton<MotionPortfolio.Api.Services.RabbitMqService>();
+builder.Services.AddHostedService<MotionPortfolio.Api.Services.InquiryConsumerService>();
+builder.Services.AddSignalR();
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+// Qlobal xəta idarəetməsi (Server səviyyəsində qoruma)
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = "Serverdə gözlənilməz xəta baş verdi. Zəhmət olmasa bir az sonra yenidən yoxlayın." });
+    });
+});
+
+// Verilənlər Bazası və Cədvəllərin yoxlanması / yaradılması
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    
+    bool connected = false;
+    int retries = 15;
+    while (retries > 0 && !connected)
+    {
+        try
+        {
+            db.Database.EnsureCreated();
+            connected = true;
+        }
+        catch
+        {
+            retries--;
+            Thread.Sleep(2000); // 2 saniyə gözləyib yenidən yoxlayır
+        }
+    }
+
+    if (connected)
+    {
+        db.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='StudioProfiles' and xtype='U')
+            CREATE TABLE StudioProfiles (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                DesignerName NVARCHAR(MAX) NOT NULL DEFAULT 'Motion Designer',
+                Bio NVARCHAR(MAX) NOT NULL DEFAULT '3D & Motion Artist Studio',
+                AvatarUrl NVARCHAR(MAX) NOT NULL DEFAULT '',
+                InstagramUrl NVARCHAR(MAX) NOT NULL DEFAULT '',
+                AnnouncementText NVARCHAR(MAX) NOT NULL DEFAULT '',
+                ShowAnnouncement BIT NOT NULL DEFAULT 1,
+                NotesJson NVARCHAR(MAX) NOT NULL DEFAULT '[]'
+            );
+
+            -- Story-lər cədvəlinin avtomatik yaradılması
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Stories' and xtype='U')
+            CREATE TABLE Stories (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                Title NVARCHAR(MAX) NOT NULL DEFAULT '',
+                MediaUrl NVARCHAR(MAX) NOT NULL DEFAULT '',
+                MediaType NVARCHAR(MAX) NOT NULL DEFAULT 'image',
+                CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+            );
+
+            -- Testimonials (Müştəri Rəyləri) cədvəlinin yaradılması
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Testimonials' and xtype='U')
+            CREATE TABLE Testimonials (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                ClientName NVARCHAR(MAX) NOT NULL DEFAULT '',
+                Company NVARCHAR(MAX) NOT NULL DEFAULT '',
+                Comment NVARCHAR(MAX) NOT NULL DEFAULT '',
+                Rating INT NOT NULL DEFAULT 5
+            );
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'SelectedProjectTitle' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD SelectedProjectTitle NVARCHAR(MAX) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'Status' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD Status NVARCHAR(MAX) NOT NULL DEFAULT 'Yeni';
+
+            -- Sifariş nömrəsi və təhvil verilən fayl üçün sütunlar
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'OrderNumber' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD OrderNumber NVARCHAR(MAX) NOT NULL DEFAULT 'ORD-2026-001';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'DeliveredFileUrl' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD DeliveredFileUrl NVARCHAR(MAX) NULL;
+        ");
+    }
+}
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
+
+app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// Sıralama vacibdir: Authentication əvvəl, sonra Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.MapHub<MotionPortfolio.Api.Hubs.NotificationHub>("/notificationHub");
+
+// Avtomatik Admin Hesabının Yaradılması
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        if (db.Database.CanConnect())
+        {
+            db.Database.EnsureCreated();
+            if (!db.Users.Any(u => u.Username == "admin"))
+            {
+                db.Users.Add(new User
+                {
+                    Username = "admin",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                    Role = "Admin"
+                });
+                db.SaveChanges();
+            }
+        }
+    }
+    catch (Exception)
+    {
+        // Bağlantı həmən qurulmasa ötürür
+    }
+}
+
+app.Run();

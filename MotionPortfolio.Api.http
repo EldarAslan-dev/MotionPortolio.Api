@@ -1,0 +1,79 @@
+@MotionPortfolio_Api_HostAddress = http://localhost:5118
+
+### 1. Yeni Layihə Əlavə Et (POST)
+POST {{MotionPortfolio_Api_HostAddress}}/api/projects
+Content-Type: application/json
+
+{
+  "title": "Cyberpunk 3D Brand Intro",
+  "description": "Futuristic 3D motion graphics made with Cinema4D and Redshift.",
+  "videoUrl": "https://assets.mixkit.co/videos/preview/mixkit-futuristic-city-31835-large.mp4",
+  "thumbnailUrl": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071",
+  "category": "3D Motion"
+}
+
+###
+
+### 2. Bütün Layihələri Bazadan Oxu (GET)
+GET {{MotionPortfolio_Api_HostAddress}}/api/projects
+
+### 3. Müştəri Sifariş Müraciəti Göndər (POST + RabbitMQ)
+POST {{MotionPortfolio_Api_HostAddress}}/api/inquiries
+Content-Type: application/json
+
+{
+  "clientName": "Elvin Memmedov",
+  "clientEmail": "elvin@example.com",
+  "budget": "$1500 - $3000",
+  "message": "Brendimiz üçün 30 saniyəlik 3D reklam çarxı hazırlamaq istəyirik."
+}
+
+###
+
+### 4. Bütün Müraciətləri Gətir (GET)
+GET {{MotionPortfolio_Api_HostAddress}}/api/inquiries
+
+### Layihə 2: 2D Motion Explainer
+POST http://localhost:5118/api/projects
+Content-Type: application/json
+
+{
+  "title": "Fintech App Explainer Video",
+  "description": "Clean and dynamic 2D vector animation made with After Effects.",
+  "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  "thumbnailUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71",
+  "category": "2D Explainer"
+}
+
+###
+
+### Layihə 3: 3D Product Commercial
+POST http://localhost:5118/api/projects
+Content-Type: application/json
+
+{
+  "title": "Cosmetics 3D Fluid Simulation",
+  "description": "High-end product visualization with fluid dynamics in Blender.",
+  "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+  "thumbnailUrl": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9",
+  "category": "3D Commercial"
+}
+### 5. İlk Admin Hesabını Yarat (POST)
+POST {{MotionPortfolio_Api_HostAddress}}/api/auth/register-admin
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Password123!"
+}
+
+###
+
+### 6. Admin Girişi Et və JWT Token Al (POST)
+POST {{MotionPortfolio_Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Password123!"
+}

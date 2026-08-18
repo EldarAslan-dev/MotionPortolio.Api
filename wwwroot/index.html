@@ -1,0 +1,1392 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Motion Studio | Creative Portfolio</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+      :root {
+        --bg-color: #080a11;
+        --card-bg: #111422;
+        --text-color: #e2e8f0;
+        --text-muted: #94a3b8;
+        --border-color: rgba(255, 255, 255, 0.08);
+        --header-bg: linear-gradient(135deg, #131726, #1e1b4b);
+        --modal-bg: #131726;
+      }
+
+      [data-theme="light"] {
+        --bg-color: #f8fafc;
+        --card-bg: #ffffff;
+        --text-color: #1e293b;
+        --text-muted: #64748b;
+        --border-color: rgba(0, 0, 0, 0.08);
+        --header-bg: linear-gradient(135deg, #e2e8f0, #c7d2fe);
+        --modal-bg: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        padding: 16px;
+        transition:
+          background 0.3s,
+          color 0.3s;
+        position: relative;
+        min-height: 100vh;
+      }
+      .wrapper {
+        max-width: 760px;
+        margin: 0 auto;
+        padding-bottom: 90px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* Bütün bloklar axıcı şəkildə alt-alta düzülür */
+      }
+
+      .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
+      .btn-custom {
+        background: #1e1b4b;
+        border: 1px solid #6366f1;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-primary-custom {
+        background: #6366f1;
+      }
+
+      .studio-header {
+        background: var(--header-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 22px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+      }
+
+      .story-ring-container {
+        position: relative;
+        width: 82px;
+        height: 82px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        padding: 3px;
+        flex-shrink: 0;
+      }
+
+      .story-ring-container.has-stories {
+        background: linear-gradient(
+          45deg,
+          #f09433,
+          #e6683c,
+          #dc2743,
+          #cc2366,
+          #bc1888
+        );
+        animation: rotateRing 6s linear infinite;
+      }
+
+      .story-ring-container.seen-stories {
+        background: #4b5563;
+      }
+
+      @keyframes rotateRing {
+        0% {
+          filter: hue-rotate(0deg);
+        }
+        100% {
+          filter: hue-rotate(360deg);
+        }
+      }
+
+      .avatar-img {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--bg-color);
+        display: block;
+      }
+
+      .profile-info h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-color);
+      }
+      .profile-info p {
+        color: #818cf8;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+        width: 100%;
+      }
+      .card h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #818cf8;
+        margin-bottom: 16px;
+      }
+
+      /* Bütün layihələr alt-alta axıcı sıralanır */
+      .projects-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+      }
+
+      .project-card {
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .project-card video {
+        width: 100%;
+        height: auto;
+        max-height: 320px;
+        object-fit: contain;
+        background: #000;
+        display: block;
+      }
+
+      .project-body {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+      }
+      .project-cat {
+        display: inline-block;
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        align-self: flex-start;
+      }
+      .project-body h3 {
+        font-size: 1.1rem;
+        color: var(--text-color);
+      }
+      .project-body p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+      }
+      .btn-order-project {
+        width: 100%;
+        padding: 11px;
+        background: #6366f1;
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.88rem;
+        margin-top: 4px;
+        transition: background 0.2s;
+      }
+      .btn-order-project:hover {
+        background: #4f46e5;
+      }
+
+      .orbit-testimonials-wrapper {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        padding: 10px 0;
+        mask-image: linear-gradient(
+          to right,
+          transparent,
+          black 10%,
+          black 90%,
+          transparent
+        );
+        -webkit-mask-image: linear-gradient(
+          to right,
+          transparent,
+          black 10%,
+          black 90%,
+          transparent
+        );
+      }
+      .orbit-track {
+        display: flex;
+        gap: 20px;
+        width: max-content;
+        animation: orbitScroll 30s linear infinite;
+      }
+      .orbit-track:hover {
+        animation-play-state: paused;
+      }
+      @keyframes orbitScroll {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .orbit-item {
+        background: rgba(17, 20, 34, 0.6);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 14px 18px;
+        border-radius: 12px;
+        min-width: 260px;
+        max-width: 320px;
+      }
+      .orbit-stars {
+        color: #f59e0b;
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+      }
+      .orbit-text {
+        font-size: 0.85rem;
+        color: var(--text-color);
+        margin-bottom: 6px;
+        line-height: 1.4;
+      }
+      .orbit-author {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+
+      /* Həmişə sağ altdan sabit qalan Çat Düyməsi */
+      .floating-chat-btn {
+        position: fixed;
+        bottom: 22px;
+        right: 22px;
+        width: 58px;
+        height: 58px;
+        background: #6366f1;
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        cursor: pointer;
+        z-index: 99999;
+        transition: transform 0.2s;
+        border: none;
+        position: fixed;
+      }
+      .floating-chat-btn:hover {
+        transform: scale(1.08);
+      }
+
+      /* Qırmızı bildiriş nöqtəsi */
+      .chat-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 14px;
+        height: 14px;
+        background: #ef4444;
+        border: 2px solid var(--bg-color);
+        border-radius: 50%;
+        display: none;
+      }
+
+      /* Mobil və Kompüter üçün Sabit Canlı Dəstək Pəncərəsi */
+      #client-chat-card {
+        position: fixed !important;
+        bottom: 90px !important;
+        right: 16px !important;
+        left: 16px !important;
+        max-width: 420px;
+        margin-left: auto;
+        z-index: 99998;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100000;
+        padding: 16px;
+      }
+      .modal-box {
+        background: var(--modal-bg);
+        border: 1px solid var(--border-color);
+        padding: 24px;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 400px;
+        position: relative;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      }
+      .close-modal {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.4rem;
+        cursor: pointer;
+      }
+      .close-modal:hover {
+        color: var(--text-color);
+      }
+
+      .story-modal-box {
+        background: #000;
+        border: 1px solid #333;
+        width: 100%;
+        max-width: 360px;
+        height: 520px;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .story-bars {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+      .story-bar {
+        flex: 1;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .story-bar-fill {
+        width: 0%;
+        height: 100%;
+        background: #fff;
+        transition: width linear;
+      }
+      .story-header-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 2;
+      }
+      .story-header-info img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .story-header-info span {
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+      .story-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 2;
+      }
+      .story-nav-btns {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        z-index: 2;
+      }
+      .story-nav-btns button {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .form-group {
+        margin-bottom: 12px;
+      }
+      label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 11px 14px;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-size: 0.9rem;
+        font-family: inherit;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+      }
+      .btn-submit {
+        width: 100%;
+        padding: 12px;
+        background: #6366f1;
+        color: #fff;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 4px;
+      }
+      .btn-submit:hover {
+        background: #4f46e5;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Qeydiyyat Modalı -->
+    <div id="register-modal" class="modal" style="display: none">
+      <div class="modal-box">
+        <h2
+          style="
+            color: var(--text-color);
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+          "
+        >
+          👋 Motion Studio-ya Xoş Gəldiniz
+        </h2>
+        <p
+          style="
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 14px;
+          "
+        >
+          Dəstək və xidmətlərdən yararlanmaq üçün zəhmət olmasa qeydiyyatdan
+          keçin.
+        </p>
+        <form id="register-form">
+          <div class="form-group">
+            <label>Adınız:</label>
+            <input
+              type="text"
+              id="reg-name"
+              placeholder="Məs: Anar Məmmədov"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Email Adresiniz:</label>
+            <input
+              type="email"
+              id="reg-email"
+              placeholder="ornek@mail.com"
+              required
+            />
+          </div>
+          <button type="submit" id="submit-reg" class="btn-submit">
+            Qeydiyyatı Tamamla
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="wrapper">
+      <div class="top-bar">
+        <button
+          class="btn-custom btn-primary-custom"
+          onclick="openInquiryModal('Ümumi Əməkdaşlıq')"
+        >
+          🤝 Əməkdaşlıq Et
+        </button>
+        <button
+          class="btn-custom"
+          onclick="toggleTheme()"
+          id="theme-toggle-btn"
+        >
+          ☀️ İşıqlı
+        </button>
+      </div>
+
+      <div class="studio-header">
+        <div
+          id="story-ring-wrapper"
+          class="story-ring-container"
+          onclick="openStoryModal()"
+          title="Story-lərə Bax"
+        >
+          <img
+            id="header-avatar"
+            class="avatar-img"
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+            alt="Avatar"
+          />
+        </div>
+        <div class="profile-info">
+          <h1 id="header-name">Motion Studio</h1>
+          <p id="header-bio">3D & Motion Artist Studio</p>
+          <p
+            id="client-id-display"
+            style="font-size: 0.75rem; color: #34d399; margin-top: 4px"
+          ></p>
+        </div>
+      </div>
+
+      <!-- Tək Mərkəzi Canlı Dəstək Paneli -->
+      <div
+        id="client-chat-card"
+        class="card"
+        style="display: none; border: 2px solid #6366f1"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+          "
+        >
+          <span style="font-weight: 700; color: #818cf8; font-size: 0.95rem"
+            >💬 Canlı Dəstək</span
+          >
+          <button
+            onclick="closeClientChat()"
+            style="
+              background: none;
+              border: none;
+              color: #ef4444;
+              font-size: 1.2rem;
+              cursor: pointer;
+              font-weight: bold;
+              padding: 0 8px;
+            "
+            title="Bağla"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div
+          style="
+            height: 190px;
+            overflow-y: auto;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          "
+          id="client-general-chat-box"
+        >
+          <p
+            style="
+              color: var(--text-muted);
+              text-align: center;
+              margin-top: 60px;
+              font-size: 0.85rem;
+            "
+          >
+            Canlı dəstəyə xoş gəldiniz! Sualınızı verə bilərsiniz.
+          </p>
+        </div>
+
+        <div id="delivered-file-container" style="margin-bottom: 10px"></div>
+
+        <div style="display: flex; gap: 8px">
+          <input
+            type="text"
+            id="general-msg-input"
+            placeholder="Mesajınızı yazın..."
+            onkeypress="handleGeneralChatKey(event)"
+          />
+          <button
+            onclick="sendGeneralMessage()"
+            style="
+              padding: 0 16px;
+              background: #10b981;
+              color: #fff;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 0.85rem;
+            "
+          >
+            Göndər
+          </button>
+        </div>
+      </div>
+
+      <!-- Alt-alta axıcı Vitrin -->
+      <div class="card">
+        <h2>🎬 Portfel / Animasiya Vitrini</h2>
+        <div id="projects-container" class="projects-grid">
+          <p style="color: var(--text-muted)">Layihələr yüklənir...</p>
+        </div>
+      </div>
+
+      <div class="orbit-testimonials-wrapper">
+        <div class="orbit-track" id="orbit-testimonials-track"></div>
+      </div>
+    </div>
+
+    <!-- Üzən Çat Düyməsi + Qırmızı Nöqtə -->
+    <button
+      id="floating-chat-trigger"
+      class="floating-chat-btn"
+      onclick="toggleFloatingChat()"
+      title="Canlı Dəstək"
+    >
+      💬
+      <span id="client-chat-badge" class="chat-badge"></span>
+    </button>
+
+    <!-- Rəy Modalı -->
+    <div id="review-modal" class="modal">
+      <div class="modal-box">
+        <button
+          class="close-modal"
+          onclick="
+            document.getElementById('review-modal').style.display = 'none'
+          "
+        >
+          &times;
+        </button>
+        <h2>⭐ Təcrübənizi Qiymətləndirin</h2>
+        <form id="review-form" style="margin-top: 14px">
+          <div class="form-group">
+            <label>Adınız:</label
+            ><input type="text" id="review-name" required />
+          </div>
+          <div class="form-group">
+            <label>Şirkət / Vəzifə:</label
+            ><input type="text" id="review-comp" placeholder="İstəyə bağlı" />
+          </div>
+          <div class="form-group">
+            <label>Ulduz (1 - 5):</label>
+            <select id="review-rating">
+              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+              <option value="4">⭐⭐⭐⭐ (4)</option>
+              <option value="3">⭐⭐⭐ (3)</option>
+              <option value="2">⭐⭐ (2)</option>
+              <option value="1">⭐ (1)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rəyiniz:</label
+            ><textarea
+              id="review-comment"
+              rows="3"
+              required
+              placeholder="Xidmət haqqında fikirləriniz..."
+            ></textarea>
+          </div>
+          <button type="submit" class="btn-submit">Rəyi Göndər</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Story Modal -->
+    <div id="story-modal" class="modal" onclick="closeStoryOnBg(event)">
+      <div class="story-modal-box">
+        <div class="story-bars" id="story-bars-container"></div>
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <div class="story-header-info">
+            <img
+              id="story-avatar-img"
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+              alt="Avatar"
+            />
+            <span id="story-studio-name">Motion Studio</span>
+          </div>
+          <button
+            class="close-modal"
+            style="position: static"
+            onclick="closeStoryModal()"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="story-content" id="story-content-area"></div>
+        <div class="story-nav-btns">
+          <button onclick="prevStory()">Geri</button>
+          <button onclick="nextStory()">İrəli</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sifariş Modalı -->
+    <div
+      id="inquiry-modal"
+      class="modal"
+      onclick="closeInquiryModalOnBg(event)"
+    >
+      <div class="modal-box">
+        <button class="close-modal" onclick="closeInquiryModal()">
+          &times;
+        </button>
+        <h2
+          style="
+            color: var(--text-color);
+            font-size: 1.25rem;
+            margin-bottom: 14px;
+          "
+        >
+          🤝 Əməkdaşlıq Sifarişi
+        </h2>
+        <form id="inquiry-form">
+          <div class="form-group">
+            <label>Seçilən Stil / Layihə:</label
+            ><input
+              type="text"
+              id="selected-project"
+              readonly
+              style="color: #818cf8"
+            />
+          </div>
+          <div class="form-group">
+            <label>🎬 Layihə Növü / Paket:</label>
+            <select id="calc-package" onchange="calculateBudget()">
+              <option value="150">
+                Standart Reels / TikTok Şablonu ($150)
+              </option>
+              <option value="350">3D Motion Kommersiya ($350)</option>
+              <option value="600">Kompleks Studio Layihəsi ($600)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>💡 Təxmini Hesablanan Qiymət:</label
+            ><input
+              type="text"
+              id="auto-budget"
+              readonly
+              style="color: #34d399; font-weight: bold"
+            />
+          </div>
+          <div class="form-group">
+            <label>✍️ Sizin Təklif Etdiyiniz Büdcə:</label
+            ><input
+              type="text"
+              id="client-budget"
+              placeholder="Məs: $300"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Layihə Haqqında Qeydlər:</label
+            ><textarea
+              id="client-message"
+              rows="3"
+              placeholder="İstəklərinizi qeyd edin..."
+              required
+            ></textarea>
+          </div>
+          <button type="submit" id="submit-inquiry" class="btn-submit">
+            Sifarişi Göndər
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = `${window.location.protocol}//${window.location.hostname}:5118/api`;
+      let storiesData = [];
+      let currentStoryIndex = 0;
+      let storyTimer = null;
+      let clientId = localStorage.getItem("clientId") || null;
+      let clientName = localStorage.getItem("clientName") || "";
+      let clientEmail = localStorage.getItem("clientEmail") || ""; // Düzəldildi
+      let chatConnection = null;
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+          document.getElementById("theme-toggle-btn").innerText = "🌙 Tünd";
+        }
+
+        if (!clientId) {
+          document.getElementById("register-modal").style.display = "flex";
+        } else {
+          document.getElementById("client-id-display").innerText =
+            `Müştəri ID: ${clientId}`;
+        }
+
+        loadPublicProfile();
+        loadPublicProjects();
+        loadPublicStories();
+        loadPublicTestimonials();
+
+        document.getElementById("floating-chat-trigger").style.display = "flex";
+        initSignalRConnections();
+      });
+
+      document
+        .getElementById("register-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("submit-reg");
+          btn.disabled = true;
+          btn.innerText = "Qeydiyyat olunur...";
+
+          const name = document.getElementById("reg-name").value.trim();
+          const email = document.getElementById("reg-email").value.trim();
+
+          try {
+            const res = await fetch(`${API_BASE}/inquiries/register`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ clientName: name, clientEmail: email }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              clientId = data.clientId;
+              clientName = data.clientName;
+              clientEmail = data.clientEmail;
+
+              localStorage.setItem("clientId", clientId);
+              localStorage.setItem("clientName", clientName);
+              localStorage.setItem("clientEmail", clientEmail);
+
+              document.getElementById("client-id-display").innerText =
+                `Müştəri ID: ${clientId}`;
+              document.getElementById("register-modal").style.display = "none";
+              alert(`Qeydiyyat uğurla tamamlandı! Sizin ID: ${clientId}`);
+            } else {
+              alert("Qeydiyyat zamanı xəta baş verdi.");
+            }
+          } catch (err) {
+            alert("Serverlə əlaqə qurulmadı.");
+          } finally {
+            btn.disabled = false;
+            btn.innerText = "Qeydiyyatı Tamamla";
+          }
+        });
+
+      function toggleTheme() {
+        const html = document.documentElement;
+        const btn = document.getElementById("theme-toggle-btn");
+        if (html.getAttribute("data-theme") === "light") {
+          html.removeAttribute("data-theme");
+          localStorage.setItem("theme", "dark");
+          btn.innerText = "☀️ İşıqlı";
+        } else {
+          html.setAttribute("data-theme", "light");
+          localStorage.setItem("theme", "light");
+          btn.innerText = "🌙 Tünd";
+        }
+      }
+
+      function playNotificationSound() {
+        try {
+          const audio = new Audio(
+            "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3",
+          );
+          audio.volume = 0.5;
+          audio.play().catch((e) => {});
+        } catch (e) {}
+      }
+
+      async function loadPublicStories() {
+        try {
+          const res = await fetch(`${API_BASE}/stories`);
+          if (res.ok) {
+            const allStories = await res.json();
+            const now = new Date();
+            storiesData = allStories.filter((s) => {
+              if (!s.createdAt) return true;
+              const storyDate = new Date(s.createdAt);
+              return (now - storyDate) / (1000 * 60 * 60) <= 24;
+            });
+            updateStoryRingStatus();
+          }
+        } catch (err) {}
+      }
+
+      function updateStoryRingStatus() {
+        const ringWrapper = document.getElementById("story-ring-wrapper");
+        const lastSeenTime = localStorage.getItem("lastSeenStoryTime");
+        const hasUnseen = storiesData.some(
+          (s) =>
+            !s.createdAt ||
+            !lastSeenTime ||
+            new Date(s.createdAt) > new Date(lastSeenTime),
+        );
+        ringWrapper.classList.remove("has-stories", "seen-stories");
+        if (storiesData.length > 0) {
+          ringWrapper.classList.add(hasUnseen ? "has-stories" : "seen-stories");
+        } else {
+          ringWrapper.classList.add("seen-stories");
+        }
+      }
+
+      async function loadPublicProfile() {
+        try {
+          const res = await fetch(`${API_BASE}/profile`);
+          const prof = await res.json();
+          if (prof.avatarUrl) {
+            const serverOrigin = `${window.location.protocol}//${window.location.hostname}:5118`;
+            const fullAvatarUrl = prof.avatarUrl.startsWith("http")
+              ? prof.avatarUrl
+              : `${serverOrigin}${prof.avatarUrl}`;
+            document.getElementById("header-avatar").src = fullAvatarUrl;
+            document.getElementById("story-avatar-img").src = fullAvatarUrl;
+          }
+          const name = prof.designerName || "Motion Studio";
+          document.getElementById("header-name").innerText = name;
+          document.getElementById("story-studio-name").innerText = name;
+          document.getElementById("header-bio").innerText =
+            prof.bio || "3D & Motion Artist Studio";
+        } catch (err) {}
+      }
+
+      async function loadPublicProjects() {
+        try {
+          const res = await fetch(`${API_BASE}/projects`);
+          const projects = await res.json();
+          const container = document.getElementById("projects-container");
+          container.innerHTML = "";
+          if (projects.length === 0) {
+            container.innerHTML =
+              '<p style="color: var(--text-muted);">Hələ heç bir layihə paylaşılmayıb.</p>';
+            return;
+          }
+          projects.forEach((p) => {
+            const card = document.createElement("div");
+            card.className = "project-card";
+            card.innerHTML = `
+              <video src="${p.videoUrl}" controls muted loop></video>
+              <div class="project-body">
+                <span class="project-cat">${p.category}</span>
+                <h3>${p.title}</h3>
+                <p>${p.description}</p>
+                <button class="btn-order-project" onclick="openInquiryModal('${p.title.replace(/'/g, "\\'")}')">🎯 Bu Stil İlə Sifariş Ver</button>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        } catch (err) {}
+      }
+
+      async function loadPublicTestimonials() {
+        try {
+          const res = await fetch(`${API_BASE}/testimonials`);
+          if (!res.ok) return;
+          const testimonials = await res.json();
+          const track = document.getElementById("orbit-testimonials-track");
+          track.innerHTML = "";
+          if (testimonials.length === 0) return;
+
+          [...testimonials, ...testimonials].forEach((t) => {
+            const stars =
+              "★".repeat(t.rating || 5) + "☆".repeat(5 - (t.rating || 5));
+            const div = document.createElement("div");
+            div.className = "orbit-item";
+            div.innerHTML = `
+              <div class="orbit-stars">${stars}</div>
+              <div class="orbit-text">"${t.comment}"</div>
+              <div class="orbit-author">— ${t.clientName} ${t.company ? "(" + t.company + ")" : ""}</div>
+            `;
+            track.appendChild(div);
+          });
+        } catch (err) {}
+      }
+
+      async function openStoryModal() {
+        await loadPublicStories();
+        if (!storiesData || storiesData.length === 0) {
+          alert("Aktiv story mövcud deyil!");
+          return;
+        }
+        currentStoryIndex = 0;
+        document.getElementById("story-modal").style.display = "flex";
+        renderStoryBars();
+        showStory(currentStoryIndex);
+      }
+
+      function closeStoryModal() {
+        document.getElementById("story-modal").style.display = "none";
+        clearTimeout(storyTimer);
+        if (storiesData.length > 0) {
+          localStorage.setItem("lastSeenStoryTime", new Date().toISOString());
+          updateStoryRingStatus();
+        }
+      }
+
+      function closeStoryOnBg(e) {
+        if (e.target.id === "story-modal") closeStoryModal();
+      }
+
+      function renderStoryBars() {
+        const container = document.getElementById("story-bars-container");
+        container.innerHTML = "";
+        storiesData.forEach((_, idx) => {
+          const bar = document.createElement("div");
+          bar.className = "story-bar";
+          bar.innerHTML = `<div class="story-bar-fill" id="story-bar-${idx}"></div>`;
+          container.appendChild(bar);
+        });
+      }
+
+      function showStory(index) {
+        clearTimeout(storyTimer);
+        const contentArea = document.getElementById("story-content-area");
+        const story = storiesData[index];
+        const url = story.mediaUrl || "";
+        let mediaHtml =
+          story.mediaType === "video" || url.endsWith(".mp4")
+            ? `<video src="${url}" autoplay muted style="width:100%; height:300px; object-fit:cover; border-radius:12px;"></video>`
+            : `<img src="${url}" alt="Story" style="width:100%; height:300px; object-fit:cover; border-radius:12px;" />`;
+
+        contentArea.innerHTML = `${mediaHtml}<h3 style="color:#fff; font-size:1.1rem; margin-top:10px;">${story.title || ""}</h3>`;
+
+        storiesData.forEach((_, idx) => {
+          const fill = document.getElementById(`story-bar-${idx}`);
+          if (!fill) return;
+          if (idx < index) fill.style.width = "100%";
+          else if (idx === index) {
+            fill.style.width = "0%";
+            setTimeout(() => (fill.style.transition = "width 6s linear"), 50);
+            setTimeout(() => (fill.style.width = "100%"), 100);
+          } else {
+            fill.style.width = "0%";
+            fill.style.transition = "none";
+          }
+        });
+
+        storyTimer = setTimeout(() => nextStory(), 6000);
+      }
+
+      function nextStory() {
+        if (currentStoryIndex < storiesData.length - 1) {
+          currentStoryIndex++;
+          showStory(currentStoryIndex);
+        } else {
+          closeStoryModal();
+        }
+      }
+
+      function prevStory() {
+        if (currentStoryIndex > 0) {
+          currentStoryIndex--;
+          showStory(currentStoryIndex);
+        }
+      }
+
+      function openInquiryModal(projectTitle) {
+        if (!clientId) {
+          alert("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+          document.getElementById("register-modal").style.display = "flex";
+          return;
+        }
+        document.getElementById("selected-project").value = projectTitle;
+        document.getElementById("inquiry-modal").style.display = "flex";
+        calculateBudget();
+      }
+
+      function closeInquiryModal() {
+        document.getElementById("inquiry-modal").style.display = "none";
+      }
+      function closeInquiryModalOnBg(e) {
+        if (e.target.id === "inquiry-modal") closeInquiryModal();
+      }
+
+      function calculateBudget() {
+        const select = document.getElementById("calc-package");
+        const basePrice = select.value;
+        document.getElementById("auto-budget").value =
+          `$${basePrice} (Təxmini Standart Qiymət)`;
+        document.getElementById("client-budget").value = `$${basePrice}`;
+      }
+
+      document
+        .getElementById("inquiry-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("submit-inquiry");
+          btn.disabled = true;
+          btn.innerText = "Göndürülür...";
+
+          const payload = {
+            clientId: clientId,
+            clientName: clientName,
+            clientEmail: clientEmail,
+            selectedProjectTitle:
+              document.getElementById("selected-project").value,
+            budget: document.getElementById("client-budget").value,
+            message: document.getElementById("client-message").value,
+          };
+
+          try {
+            const res = await fetch(`${API_BASE}/inquiries`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              alert(
+                "Sifarişiniz uğurla göndərildi! Canlı dəstək vasitəsilə izləyə bilərsiniz.",
+              );
+              document.getElementById("inquiry-form").reset();
+              closeInquiryModal();
+              toggleFloatingChat(true);
+
+              if (
+                data &&
+                data.data &&
+                data.data.orderNumber &&
+                chatConnection
+              ) {
+                chatConnection.invoke("JoinOrderGroup", data.data.orderNumber);
+              }
+            } else {
+              alert("Xəta baş verdi.");
+            }
+          } catch (err) {
+            alert("Serverlə əlaqə qurulmadı.");
+          } finally {
+            btn.disabled = false;
+            btn.innerText = "Sifarişi Göndər";
+          }
+        });
+
+      function initSignalRConnections() {
+        if (chatConnection) return;
+
+        const hubUrl = `${window.location.protocol}//${window.location.hostname}:5118/notificationHub`;
+        chatConnection = new signalR.HubConnectionBuilder()
+          .withUrl(hubUrl)
+          .withAutomaticReconnect()
+          .build();
+
+        chatConnection.on("ReceiveGeneralMessage", (sender, content) => {
+          if (sender === "Admin") {
+            playNotificationSound();
+            appendGeneralMessage("Admin", content);
+
+            const chatCard = document.getElementById("client-chat-card");
+            if (!chatCard || chatCard.style.display === "none") {
+              const badge = document.getElementById("client-chat-badge");
+              if (badge) badge.style.display = "block";
+            }
+          }
+        });
+
+        chatConnection.on("ReceiveStatusUpdate", (status) => {
+          if (status === "Tamamlandı") {
+            playNotificationSound();
+            const fileContainer = document.getElementById(
+              "delivered-file-container",
+            );
+            if (fileContainer) {
+              fileContainer.innerHTML = `
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 10px; border-radius: 8px; text-align: center;">
+                  <p style="color: #10b981; font-weight: bold; margin-bottom: 6px; font-size: 0.85rem;">🎉 Sifarişiniz Tamamlandı!</p>
+                  <button onclick="document.getElementById('review-modal').style.display='flex'" style="background: #f59e0b; padding: 6px 12px; font-size: 0.8rem; border:none; border-radius:6px; cursor:pointer; color:#fff;">⭐ Rəy Bildir</button>
+                </div>
+              `;
+            }
+          }
+        });
+
+        chatConnection
+          .start()
+          .then(async () => {
+            chatConnection.invoke("JoinGeneralSupport");
+
+            try {
+              const res = await fetch(`${API_BASE}/inquiries`);
+              if (res.ok) {
+                const inquiries = await res.json();
+                const myInquiry = inquiries.find(
+                  (i) => i.clientId === clientId,
+                );
+                if (myInquiry && myInquiry.orderNumber) {
+                  chatConnection.invoke(
+                    "JoinOrderGroup",
+                    myInquiry.orderNumber,
+                  );
+                  if (myInquiry.status === "Tamamlandı") {
+                    const fileContainer = document.getElementById(
+                      "delivered-file-container",
+                    );
+                    if (fileContainer) {
+                      fileContainer.innerHTML = `
+                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 10px; border-radius: 8px; text-align: center;">
+                          <p style="color: #10b981; font-weight: bold; margin-bottom: 6px; font-size: 0.85rem;">🎉 Sifarişiniz Tamamlandı!</p>
+                          <button onclick="document.getElementById('review-modal').style.display='flex'" style="background: #f59e0b; padding: 6px 12px; font-size: 0.8rem; border:none; border-radius:6px; cursor:pointer; color:#fff;">⭐ Rəy Bildir</button>
+                        </div>
+                      `;
+                    }
+                  }
+                }
+              }
+            } catch (e) {}
+          })
+          .catch((err) => console.error(err));
+      }
+
+      function appendGeneralMessage(sender, content) {
+        const chatBox = document.getElementById("client-general-chat-box");
+        if (!chatBox) return;
+        if (chatBox.querySelector("p")) chatBox.innerHTML = "";
+
+        const msgDiv = document.createElement("div");
+        const isAdmin = sender === "Admin";
+
+        msgDiv.style.alignSelf = isAdmin ? "flex-start" : "flex-end";
+        msgDiv.style.background = isAdmin ? "#1e1b4b" : "#10b981";
+        msgDiv.style.padding = "8px 12px";
+        msgDiv.style.borderRadius = "8px";
+        msgDiv.style.maxWidth = "80%";
+        msgDiv.style.fontSize = "0.85rem";
+        msgDiv.innerHTML = `<strong>${isAdmin ? "Admin" : "Siz"}:</strong> ${content}`;
+
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      function closeClientChat() {
+        document.getElementById("client-chat-card").style.display = "none";
+      }
+
+      function toggleFloatingChat(forceOpen = false) {
+        if (!clientId) {
+          alert("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+          document.getElementById("register-modal").style.display = "flex";
+          return;
+        }
+        const card = document.getElementById("client-chat-card");
+        if (forceOpen || card.style.display === "none") {
+          card.style.display = "block";
+          const badge = document.getElementById("client-chat-badge");
+          if (badge) badge.style.display = "none";
+        } else {
+          card.style.display = "none";
+        }
+      }
+
+      function sendGeneralMessage() {
+        const input = document.getElementById("general-msg-input");
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendGeneralMessage("Client", text);
+
+        const clientIdentifier = clientName
+          ? `${clientName} (${clientId})`
+          : clientId || "Müştəri";
+
+        chatConnection
+          .invoke("SendGeneralMessage", text, "Client", clientIdentifier)
+          .then(() => {
+            input.value = "";
+          })
+          .catch((err) => console.error("Mesaj göndərmə xətası:", err));
+      }
+
+      function handleGeneralChatKey(e) {
+        if (e.key === "Enter") sendGeneralMessage();
+      }
+
+      document
+        .getElementById("review-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const payload = {
+            clientName: document.getElementById("review-name").value,
+            company: document.getElementById("review-comp").value,
+            rating: parseInt(document.getElementById("review-rating").value),
+            comment: document.getElementById("review-comment").value,
+          };
+
+          try {
+            const res = await fetch(`${API_BASE}/testimonials`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            if (res.ok) {
+              alert("Rəyiniz üçün təşəkkür edirik!");
+              document.getElementById("review-modal").style.display = "none";
+              document.getElementById("review-form").reset();
+              loadPublicTestimonials();
+            }
+          } catch (err) {}
+        });
+    </script>
+  </body>
+</html>

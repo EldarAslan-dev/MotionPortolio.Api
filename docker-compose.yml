@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  # 1. SQL Server Bazası
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: motion_sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Your_Strong_Password123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/opt/mssql-tools18/bin/sqlcmd",
+          "-S",
+          "localhost",
+          "-U",
+          "sa",
+          "-P",
+          "Your_Strong_Password123!",
+          "-Q",
+          "SELECT 1",
+          "-C",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # 2. RabbitMQ Mesaj Sistemi
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: motion_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  # 3. .NET Web API & Frontend Tətbiqi
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: motion_api
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=motion_sqlserver,1433;Database=MotionPortfolioDb;User Id=sa;Password=Your_Strong_Password123!;TrustServerCertificate=True;
+      - RabbitMQ__Host=rabbitmq
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5118:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    volumes:
+      - uploads_data:/app/wwwroot/uploads
+
+volumes:
+  sql_data:
+  uploads_data:
+  rabbitmq_data:
