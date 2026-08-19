@@ -58,7 +58,7 @@ public class ProjectsController : ControllerBase
 
     // POST: api/projects (Yeni layihə əlavə edir - Yalnız Admin)
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Project>> CreateProject([FromBody] Project project)
     {
         if (project == null || string.IsNullOrEmpty(project.Title) || string.IsNullOrEmpty(project.VideoUrl))
@@ -82,7 +82,7 @@ public class ProjectsController : ControllerBase
 
     // DELETE: api/projects/5 (Yalnız Admin)
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProject(int id)
     {
         try
@@ -106,7 +106,7 @@ public class ProjectsController : ControllerBase
 
     // PUT: api/projects/5 (Yalnız Admin)
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProject(int id, [FromBody] Project updatedProject)
     {
         if (updatedProject == null)

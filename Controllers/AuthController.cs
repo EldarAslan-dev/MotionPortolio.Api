@@ -96,6 +96,61 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = "Şifrə uğurla dəyişdirildi!" });
     }
+
+    // --- KOMANDA (STAFF) İDARƏETMƏSİ (Yalnız Admin) ---
+
+    // Yeni komanda üzvü hesabı yaradır. Bu istifadəçi "Staff" rolu ilə
+    // yalnız team.html panelinə giriş əldə edir, admin panelinə yox.
+    [HttpPost("staff")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreateStaff([FromBody] LoginDto model)
+    {
+        if (string.IsNullOrWhiteSpace(model.Username) || string.IsNullOrWhiteSpace(model.Password))
+            return BadRequest(new { message = "İstifadəçi adı və şifrə mütləqdir." });
+
+        if (await _context.Users.AnyAsync(u => u.Username == model.Username))
+            return BadRequest(new { message = "Bu istifadəçi adı artıq mövcuddur." });
+
+        var staff = new User
+        {
+            Username = model.Username,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+            Role = "Staff"
+        };
+
+        _context.Users.Add(staff);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Komanda üzvü uğurla əlavə edildi!", id = staff.Id, username = staff.Username });
+    }
+
+    // Bütün komanda üzvlərinin siyahısı (təyinat üçün açılan siyahıda istifadə olunur).
+    [HttpGet("staff")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetStaffList()
+    {
+        var staff = await _context.Users
+            .Where(u => u.Role == "Staff")
+            .Select(u => new { u.Id, u.Username })
+            .ToListAsync();
+
+        return Ok(staff);
+    }
+
+    // Komanda üzvünü tamamilə silir. Admin hesabları bu yolla silinə bilməz.
+    [HttpDelete("staff/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteStaff(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null || user.Role != "Staff")
+            return NotFound(new { message = "Komanda üzvü tapılmadı." });
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Komanda üzvü silindi." });
+    }
 }
 
 // Şifrə dəyişmək üçün tələb olunan model

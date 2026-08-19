@@ -933,6 +933,9 @@
       let clientName = localStorage.getItem("clientName") || "";
       let clientEmail = localStorage.getItem("clientEmail") || ""; // Düzəldildi
       let chatConnection = null;
+      // Admin komanda üzvü ilə birbaşa danışmağa icazə verəndə (sifariş üzrə çat) aktivləşir
+      let orderChatEnabled = false;
+      let myOrderNumber = null;
 
       window.addEventListener("DOMContentLoaded", () => {
         const savedTheme = localStorage.getItem("theme");
@@ -1325,6 +1328,8 @@
           .build();
 
         chatConnection.on("ReceiveGeneralMessage", (sender, content) => {
+          // Sifariş çatı aktivdirsə, bu ümumi dəstək kanalı istifadə olunmur.
+          if (orderChatEnabled) return;
           if (sender === "Admin") {
             playNotificationSound();
             appendGeneralMessage("Admin", content);
@@ -1337,9 +1342,20 @@
           }
         });
 
-        // Sayta qayıdanda köhnə (admin panel bağlı olanda göndərilmiş daxil
-        // olmaqla) bütün mesaj tarixçəsini bazadan yükləyir.
-        loadChatHistory();
+        // Sifariş üzrə çat: admin komanda üzvünü müştəri ilə görüşdürəndə işə düşür.
+        chatConnection.on("ReceiveMessage", (msg) => {
+          if (!orderChatEnabled || msg.orderNumber !== myOrderNumber) return;
+          if (msg.sender === "Client") return; // özümüzün göndərdiyimizi artıq göstərmişik
+
+          playNotificationSound();
+          appendGeneralMessage(msg.sender, msg.content, msg.sender);
+
+          const chatCard = document.getElementById("client-chat-card");
+          if (!chatCard || chatCard.style.display === "none") {
+            const badge = document.getElementById("client-chat-badge");
+            if (badge) badge.style.display = "block";
+          }
+        });
 
         chatConnection.on("ReceiveStatusUpdate", (status) => {
           if (status === "Tamamlandı") {
@@ -1368,17 +1384,20 @@
             }
 
             try {
-              const res = await fetch(`${API_BASE}/inquiries`);
+              const res = await fetch(`${API_BASE}/inquiries/mine/${clientId}`);
               if (res.ok) {
-                const inquiries = await res.json();
-                const myInquiry = inquiries.find(
-                  (i) => i.clientId === clientId,
-                );
+                const myInquiry = await res.json();
                 if (myInquiry && myInquiry.orderNumber) {
-                  chatConnection.invoke(
-                    "JoinOrderGroup",
-                    myInquiry.orderNumber,
-                  );
+                  myOrderNumber = myInquiry.orderNumber;
+                  chatConnection.invoke("JoinOrderGroup", myOrderNumber);
+
+                  // Admin komanda üzvü ilə birbaşa danışmağa icazə veribsə,
+                  // mesajlar admin panelinə yox, birbaşa sifariş çatına gedir.
+                  orderChatEnabled = !!myInquiry.clientChatEnabled;
+                  if (orderChatEnabled) {
+                    loadOrderChatHistory(myOrderNumber);
+                  }
+
                   if (myInquiry.status === "Tamamlandı") {
                     const fileContainer = document.getElementById(
                       "delivered-file-container",
@@ -1395,6 +1414,11 @@
                 }
               }
             } catch (e) {}
+
+            // Sifariş çatı aktiv deyilsə (defolt), ümumi dəstək tarixçəsi göstərilir.
+            if (!orderChatEnabled) {
+              loadChatHistory();
+            }
           })
           .catch((err) => console.error(err));
       }
@@ -1423,13 +1447,13 @@
         } catch (e) {}
       }
 
-      function appendGeneralMessage(sender, content) {
+      function appendGeneralMessage(sender, content, label) {
         const chatBox = document.getElementById("client-general-chat-box");
         if (!chatBox) return;
         if (chatBox.querySelector("p")) chatBox.innerHTML = "";
 
         const msgDiv = document.createElement("div");
-        const isAdmin = sender === "Admin";
+        const isAdmin = sender !== "Client";
 
         msgDiv.style.alignSelf = isAdmin ? "flex-start" : "flex-end";
         msgDiv.style.background = isAdmin ? "#1e1b4b" : "#10b981";
@@ -1437,10 +1461,25 @@
         msgDiv.style.borderRadius = "8px";
         msgDiv.style.maxWidth = "80%";
         msgDiv.style.fontSize = "0.85rem";
-        msgDiv.innerHTML = `<strong>${isAdmin ? "Admin" : "Siz"}:</strong> ${content}`;
+        msgDiv.innerHTML = `<strong>${isAdmin ? label || "Admin" : "Siz"}:</strong> ${content}`;
 
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      async function loadOrderChatHistory(orderNumber) {
+        try {
+          const res = await fetch(`${API_BASE}/messages/${orderNumber}`);
+          if (!res.ok) return;
+          const messages = await res.json();
+          if (!Array.isArray(messages) || messages.length === 0) return;
+
+          const chatBox = document.getElementById("client-general-chat-box");
+          if (chatBox) chatBox.innerHTML = "";
+          messages.forEach((m) =>
+            appendGeneralMessage(m.sender, m.content, m.sender),
+          );
+        } catch (e) {}
       }
 
       function closeClientChat() {
@@ -1476,14 +1515,22 @@
 
         appendGeneralMessage("Client", text);
 
-        chatConnection
-          .invoke(
-            "SendGeneralMessage",
-            clientId,
-            clientName || clientId,
-            "Client",
-            text,
-          )
+        const sendPromise = orderChatEnabled
+          ? chatConnection.invoke(
+              "SendMessageToGroup",
+              myOrderNumber,
+              text,
+              "Client",
+            )
+          : chatConnection.invoke(
+              "SendGeneralMessage",
+              clientId,
+              clientName || clientId,
+              "Client",
+              text,
+            );
+
+        sendPromise
           .then(() => {
             input.value = "";
           })

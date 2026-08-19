@@ -168,6 +168,7 @@ C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\bin\Debug\net10.0\MotionPortf
 C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\bin\Debug\net10.0\BCrypt-Net-Next.dll
 C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
-C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\obj\Debug\net10.0\compressed\4rnc4q6eih-{0}-z6g2op8lt4-z6g2op8lt4.gz
-C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\obj\Debug\net10.0\compressed\pno7xyv9s7-{0}-2y737kiben-2y737kiben.gz
 C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\obj\Debug\net10.0\MotionPortfolio.Api.sourcelink.json
+C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\obj\Debug\net10.0\compressed\pno7xyv9s7-{0}-crk83ainn1-crk83ainn1.gz
+C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\obj\Debug\net10.0\compressed\fkg90lud4p-{0}-wp4nks337o-wp4nks337o.gz
+C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\obj\Debug\net10.0\compressed\4rnc4q6eih-{0}-hoy3gza0vn-hoy3gza0vn.gz

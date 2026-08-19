@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Komanda Paneli - Motion Studio</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+      :root {
+        --bg-color: #080a11;
+        --card-bg: #111422;
+        --text-color: #e2e8f0;
+        --text-muted: #94a3b8;
+        --border-color: rgba(255, 255, 255, 0.08);
+        --accent: #6366f1;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        padding: 16px;
+        min-height: 100vh;
+      }
+      .wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      input,
+      textarea,
+      button,
+      select {
+        font-family: inherit;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: #0d1019;
+        color: var(--text-color);
+        padding: 10px 12px;
+      }
+      button {
+        background: var(--accent);
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        font-weight: 600;
+        transition: opacity 0.2s;
+      }
+      button:hover {
+        opacity: 0.85;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .header h1 {
+        font-size: 1.2rem;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .badge-new {
+        background: rgba(99, 102, 241, 0.2);
+        color: #a5b4fc;
+      }
+      .badge-progress {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+      }
+      .badge-done {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+      }
+      .modal {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+      .modal-box {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 30px;
+        width: 100%;
+        max-width: 360px;
+      }
+      .modal-box input {
+        width: 100%;
+        margin-bottom: 14px;
+      }
+      .job-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .chat-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 220px;
+        overflow-y: auto;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px 0;
+      }
+      .chat-msg {
+        max-width: 80%;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+      }
+      .chat-msg.mine {
+        align-self: flex-end;
+        background: var(--accent);
+      }
+      .chat-msg.theirs {
+        align-self: flex-start;
+        background: #10b981;
+      }
+      .chat-input-row {
+        display: flex;
+        gap: 8px;
+      }
+      .chat-input-row input {
+        flex: 1;
+      }
+      #toast-container {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .toast {
+        background: var(--accent);
+        color: #fff;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toast-container"></div>
+
+    <div id="login-modal" class="modal">
+      <div class="modal-box">
+        <h2 style="text-align: center; margin-bottom: 18px">
+          Komanda Girişi
+        </h2>
+        <input type="text" id="staff-user" placeholder="İstifadəçi adı" />
+        <input type="password" id="staff-pass" placeholder="Şifrə" />
+        <button style="width: 100%" onclick="handleLogin()">Daxil ol</button>
+        <p
+          id="login-error"
+          style="color: #ef4444; font-size: 0.8rem; margin-top: 10px; text-align: center; display: none;"
+        >
+          İstifadəçi adı, şifrə yanlışdır və ya bu hesab komanda hesabı deyil.
+        </p>
+      </div>
+    </div>
+
+    <div class="wrapper" id="dashboard" style="display: none">
+      <div class="header">
+        <h1>👥 Komanda Paneli — <span id="staff-name-label"></span></h1>
+        <button onclick="handleLogout()" style="background: #dc2626">
+          Çıxış
+        </button>
+      </div>
+
+      <div class="card">
+        <p style="color: var(--text-muted); font-size: 0.85rem">
+          Burada yalnız sizə təyin olunan işlər görünür. Müştərinin adı və
+          əlaqə məlumatları paylaşılmır — hazır faylı yükləyin, admin
+          yoxlayıb müştəriyə çatdıracaq.
+        </p>
+      </div>
+
+      <div id="jobs-container"></div>
+    </div>
+
+    <script>
+      const API_BASE = "/api";
+      let staffToken = localStorage.getItem("staffToken") || null;
+      let staffUsername = localStorage.getItem("staffUsername") || "";
+      let chatConnection = null;
+      let jobs = [];
+      const joinedOrderGroups = new Set();
+
+      if (staffToken) {
+        showDashboard();
+      }
+
+      function showToast(msg) {
+        const container = document.getElementById("toast-container");
+        const el = document.createElement("div");
+        el.className = "toast";
+        el.innerText = msg;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+      }
+
+      async function handleLogin() {
+        const username = document.getElementById("staff-user").value.trim();
+        const password = document.getElementById("staff-pass").value;
+        const errorEl = document.getElementById("login-error");
+        errorEl.style.display = "none";
+
+        try {
+          const res = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          if (!res.ok) {
+            errorEl.style.display = "block";
+            return;
+          }
+          const data = await res.json();
+
+          // Bu panelə yalnız Staff rolu ilə giriş olunmalıdır - Admin da
+          // texniki olaraq login ola bilər, amma /inquiries/staff sadəcə
+          // özünə təyin olunanları qaytaracaq (Admin adına heç nə təyin
+          // olunmayıbsa boş siyahı görünəcək).
+          staffToken = data.token;
+          staffUsername = username;
+          localStorage.setItem("staffToken", staffToken);
+          localStorage.setItem("staffUsername", staffUsername);
+          showDashboard();
+        } catch (err) {
+          errorEl.innerText = "Serverlə əlaqə qurulmadı.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      function handleLogout() {
+        localStorage.removeItem("staffToken");
+        localStorage.removeItem("staffUsername");
+        location.reload();
+      }
+
+      function showDashboard() {
+        document.getElementById("login-modal").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        document.getElementById("staff-name-label").innerText = staffUsername;
+        loadJobs();
+        startSignalR();
+      }
+
+      async function loadJobs() {
+        try {
+          const res = await fetch(`${API_BASE}/inquiries/staff`, {
+            headers: { Authorization: `Bearer ${staffToken}` },
+          });
+          if (res.status === 401 || res.status === 403) {
+            handleLogout();
+            return;
+          }
+          jobs = await res.json();
+          renderJobs();
+        } catch (e) {}
+      }
+
+      function statusBadge(status) {
+        if (status === "Tamamlandı")
+          return `<span class="badge badge-done">Tamamlandı</span>`;
+        if (status === "İcrada")
+          return `<span class="badge badge-progress">İcrada</span>`;
+        return `<span class="badge badge-new">Yeni</span>`;
+      }
+
+      function renderJobs() {
+        const container = document.getElementById("jobs-container");
+        container.innerHTML = "";
+
+        if (jobs.length === 0) {
+          container.innerHTML = `<div class="card" style="text-align:center; color:var(--text-muted);">Hələ sizə təyin olunan iş yoxdur.</div>`;
+          return;
+        }
+
+        jobs.forEach((j) => {
+          const card = document.createElement("div");
+          card.className = "card";
+
+          let fileSection;
+          if (j.staffFileUrl && j.staffFileReady) {
+            fileSection = `<p style="color:#fbbf24; font-size:0.85rem;">⏳ Fayl göndərildi, admin təsdiqini gözləyir.</p>`;
+          } else if (j.staffFileUrl && !j.staffFileReady) {
+            fileSection = `<p style="color:#34d399; font-size:0.85rem;">✅ Təsdiqləndi və müştəriyə çatdırıldı.</p>`;
+          } else {
+            fileSection = `
+              <div class="job-row">
+                <input type="file" id="file-${j.id}" />
+                <button onclick="uploadStaffFile(${j.id})">📤 Hazır faylı göndər</button>
+              </div>
+            `;
+          }
+
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <strong style="color:#34d399;">${j.orderNumber}</strong>
+              ${statusBadge(j.status)}
+            </div>
+            <p style="font-size:0.85rem; margin-bottom:4px;"><strong>Stil:</strong> ${j.selectedProjectTitle || "Ümumi"}</p>
+            <p style="font-size:0.85rem; margin-bottom:4px;"><strong>Büdcə:</strong> ${j.budget}</p>
+            <p style="font-size:0.85rem; margin-bottom:10px; color:var(--text-muted);"><strong>Brief:</strong> ${j.message}</p>
+            ${fileSection}
+            ${
+              j.clientChatEnabled
+                ? `
+              <div style="margin-top:14px;">
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">💬 Müştəri ilə birbaşa danışa bilərsiniz:</p>
+                <div class="chat-box" id="chat-box-${j.orderNumber}"></div>
+                <div class="chat-input-row">
+                  <input type="text" id="chat-input-${j.orderNumber}" placeholder="Mesaj yazın..." onkeydown="if(event.key==='Enter') sendOrderChat('${j.orderNumber}')" />
+                  <button onclick="sendOrderChat('${j.orderNumber}')">Göndər</button>
+                </div>
+              </div>
+            `
+                : ""
+            }
+          `;
+          container.appendChild(card);
+
+          if (j.clientChatEnabled) {
+            joinOrderChat(j.orderNumber);
+          }
+        });
+      }
+
+      async function uploadStaffFile(id) {
+        const fileInput = document.getElementById(`file-${id}`);
+        if (!fileInput.files[0]) {
+          alert("Zəhmət olmasa fayl seçin.");
+          return;
+        }
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+        try {
+          const res = await fetch(`${API_BASE}/inquiries/${id}/staff-deliver`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${staffToken}` },
+            body: formData,
+          });
+          if (res.ok) {
+            showToast("Fayl admin təsdiqinə göndərildi!");
+            loadJobs();
+          } else {
+            alert("Fayl yüklənərkən xəta baş verdi.");
+          }
+        } catch (e) {
+          alert("Serverlə əlaqə qurulmadı.");
+        }
+      }
+
+      function startSignalR() {
+        if (chatConnection) return;
+        chatConnection = new signalR.HubConnectionBuilder()
+          .withUrl("/notificationHub")
+          .withAutomaticReconnect()
+          .build();
+
+        chatConnection.on("ReceiveNewAssignment", () => {
+          showToast("📥 Sizə yeni iş təyin olundu!");
+          loadJobs();
+        });
+
+        chatConnection.on("ReceiveMessage", (msg) => {
+          const box = document.getElementById(`chat-box-${msg.orderNumber}`);
+          if (!box) return;
+          if (msg.sender === "Client") {
+            appendChatMsg(box, msg.content, false);
+          }
+        });
+
+        chatConnection
+          .start()
+          .then(() => {
+            chatConnection.invoke("JoinStaffGroup", staffUsername);
+            joinedOrderGroups.forEach((orderNumber) =>
+              chatConnection.invoke("JoinOrderGroup", orderNumber),
+            );
+          })
+          .catch((err) => console.error(err));
+      }
+
+      async function joinOrderChat(orderNumber) {
+        if (joinedOrderGroups.has(orderNumber)) return;
+        joinedOrderGroups.add(orderNumber);
+        if (chatConnection && chatConnection.state === "Connected") {
+          chatConnection.invoke("JoinOrderGroup", orderNumber);
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/messages/${orderNumber}`);
+          if (!res.ok) return;
+          const messages = await res.json();
+          const box = document.getElementById(`chat-box-${orderNumber}`);
+          if (!box) return;
+          messages.forEach((m) =>
+            appendChatMsg(box, m.content, m.sender !== "Client"),
+          );
+        } catch (e) {}
+      }
+
+      function appendChatMsg(box, content, mine) {
+        const div = document.createElement("div");
+        div.className = `chat-msg ${mine ? "mine" : "theirs"}`;
+        div.innerText = content;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function sendOrderChat(orderNumber) {
+        const input = document.getElementById(`chat-input-${orderNumber}`);
+        const text = input.value.trim();
+        if (!text || !chatConnection) return;
+
+        const box = document.getElementById(`chat-box-${orderNumber}`);
+        if (box) appendChatMsg(box, text, true);
+
+        chatConnection
+          .invoke("SendMessageToGroup", orderNumber, text, staffUsername)
+          .then(() => {
+            input.value = "";
+          })
+          .catch((err) => console.error(err));
+      }
+    </script>
+  </body>
+</html>

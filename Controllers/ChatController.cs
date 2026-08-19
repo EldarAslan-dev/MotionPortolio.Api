@@ -50,7 +50,7 @@ public class MessagesController : ControllerBase
     // Admin panelindəki "Söhbətlər" siyahısı: bütün müştərilər + son mesaj.
     // ChatClients cədvəlindən oxunur ki, mesajlar silinsə belə müştəri siyahıda qalsın.
     [HttpGet("conversations")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetConversations()
     {
         var clients = await _context.ChatClients
@@ -83,7 +83,7 @@ public class MessagesController : ControllerBase
     // (ChatClients qeydi) saxlanılır ki, söhbət siyahısından itməsin və
     // yeni mesajlaşma davam edə bilsin.
     [HttpDelete("client/{clientId}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ClearClientMessages(string clientId)
     {
         if (string.IsNullOrWhiteSpace(clientId))
@@ -109,7 +109,7 @@ public class MessagesController : ControllerBase
     // (həm mesajları, həm də ChatClients qeydini). Müştəri yenidən
     // mesaj yazarsa, söhbət avtomatik yenidən yaranacaq.
     [HttpDelete("client/{clientId}/full")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteClientCompletely(string clientId)
     {
         if (string.IsNullOrWhiteSpace(clientId))

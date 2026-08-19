@@ -30,4 +30,21 @@ public class Inquiry
     public string? DeliveredFileUrl { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // --- KOMANDA (STAFF) SİSTEMİ ---
+
+    // İşin təyin olunduğu komanda üzvünün istifadəçi adı (User.Username).
+    // Boşdursa, iş hələ heç kimə təyin edilməyib.
+    public string? AssignedStaffUsername { get; set; }
+
+    // Komanda üzvünün yüklədiyi fayl - birbaşa müştəriyə getmir,
+    // əvvəlcə admin yoxlayıb təsdiqləməlidir (DeliveredFileUrl-ə köçürülür).
+    public string? StaffFileUrl { get; set; }
+
+    // Komanda üzvü faylı yükləyib və admin təsdiqini gözləyir.
+    public bool StaffFileReady { get; set; }
+
+    // Admin komanda üzvü ilə müştərini birbaşa çatda görüşdürübsə true olur.
+    // Standart olaraq bağlıdır - bütün əlaqə admin üzərindən keçir.
+    public bool ClientChatEnabled { get; set; }
 }

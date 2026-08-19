@@ -9,4 +9,9 @@ public class ChatClient
     public string ClientName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime LastMessageAt { get; set; } = DateTime.UtcNow;
+
+    // Avtomatik salamlama mesajı bu müştəriyə göndərilibmi?
+    // Bazada saxlanılır ki, admin paneli bağlı olsa, bir neçə tabda açıq olsa
+    // və ya səhifə yenilənsə belə salamlama YALNIZ BİR DƏFƏ getsin.
+    public bool AutoReplySent { get; set; }
 }

@@ -115,6 +115,19 @@ using (var scope = app.Services.CreateScope())
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'DeliveredFileUrl' AND Object_ID = Object_ID(N'Inquiries'))
             ALTER TABLE Inquiries ADD DeliveredFileUrl NVARCHAR(MAX) NULL;
 
+            -- Komanda (staff) sistemi üçün sütunlar
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AssignedStaffUsername' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD AssignedStaffUsername NVARCHAR(200) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'StaffFileUrl' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD StaffFileUrl NVARCHAR(MAX) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'StaffFileReady' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD StaffFileReady BIT NOT NULL DEFAULT 0;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'ClientChatEnabled' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD ClientChatEnabled BIT NOT NULL DEFAULT 0;
+
             -- Müştəri şəxsiyyəti cədvəli: mesajlar silinsə belə bu qalır,
             -- ona görə admin panelindəki söhbətlər siyahısından müştəri itmir
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ChatClients' and xtype='U')
@@ -124,6 +137,10 @@ using (var scope = app.Services.CreateScope())
                 CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
                 LastMessageAt DATETIME2 NOT NULL DEFAULT GETDATE()
             );
+
+            -- Avtomatik salamlamanın hər müştəriyə yalnız bir dəfə getməsi üçün bayraq
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AutoReplySent' AND Object_ID = Object_ID(N'ChatClients'))
+            ALTER TABLE ChatClients ADD AutoReplySent BIT NOT NULL DEFAULT 0;
 
             -- Ümumi dəstək çatının (offline mesajlaşma) mesajları
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Messages' and xtype='U')
@@ -136,6 +153,16 @@ using (var scope = app.Services.CreateScope())
                 Content NVARCHAR(MAX) NOT NULL DEFAULT '',
                 SentAt DATETIME2 NOT NULL DEFAULT GETDATE()
             );
+        ");
+
+        // Köhnə müştərilər: onlara artıq admin cavabı gedibsə, salamlama
+        // yenidən getməsin. (Ayrı sorğu, çünki yuxarıda sütun yeni əlavə olunur.)
+        db.Database.ExecuteSqlRaw(@"
+            UPDATE ChatClients
+            SET AutoReplySent = 1
+            WHERE AutoReplySent = 0
+              AND EXISTS (SELECT 1 FROM Messages m
+                          WHERE m.ClientId = ChatClients.ClientId AND m.Sender = 'Admin');
         ");
     }
 }
