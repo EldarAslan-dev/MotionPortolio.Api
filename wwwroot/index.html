@@ -65,6 +65,14 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .top-bar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
       }
       .btn-custom {
         background: #1e1b4b;
@@ -79,6 +87,36 @@
       }
       .btn-primary-custom {
         background: #6366f1;
+      }
+
+      /* Müştəri ID rozeti: admin/studiya məlumatından tamamilə ayrı,
+         sağ yuxarıda öz başına duran kiçik bir "kart". */
+      .client-badge {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        background: rgba(52, 211, 153, 0.1);
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        color: #34d399;
+        padding: 7px 12px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s;
+      }
+      .client-badge:hover {
+        background: rgba(52, 211, 153, 0.18);
+      }
+      .client-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #34d399;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
       }
 
       .studio-header {
@@ -578,13 +616,25 @@
         >
           🤝 Əməkdaşlıq Et
         </button>
-        <button
-          class="btn-custom"
-          onclick="toggleTheme()"
-          id="theme-toggle-btn"
-        >
-          ☀️ İşıqlı
-        </button>
+        <div class="top-bar-right">
+          <div
+            id="client-badge"
+            class="client-badge"
+            style="display: none"
+            onclick="copyClientId()"
+            title="Sizin unikal müştəri identifikatorunuz — kopyalamaq üçün klikləyin"
+          >
+            <span class="client-badge-dot"></span>
+            <span id="client-badge-text"></span>
+          </div>
+          <button
+            class="btn-custom"
+            onclick="toggleTheme()"
+            id="theme-toggle-btn"
+          >
+            ☀️ İşıqlı
+          </button>
+        </div>
       </div>
 
       <div class="studio-header">
@@ -604,10 +654,6 @@
         <div class="profile-info">
           <h1 id="header-name">Motion Studio</h1>
           <p id="header-bio">3D & Motion Artist Studio</p>
-          <p
-            id="client-id-display"
-            style="font-size: 0.75rem; color: #34d399; margin-top: 4px"
-          ></p>
         </div>
       </div>
 
@@ -900,8 +946,7 @@
         // istəyəndə (openInquiryModal / toggleFloatingChat / sendGeneralMessage)
         // qeydiyyat tələb olunur.
         if (clientId) {
-          document.getElementById("client-id-display").innerText =
-            `Müştəri ID: ${clientId}`;
+          showClientBadge(clientId);
         }
 
         loadPublicProfile();
@@ -941,8 +986,7 @@
               localStorage.setItem("clientName", clientName);
               localStorage.setItem("clientEmail", clientEmail);
 
-              document.getElementById("client-id-display").innerText =
-                `Müştəri ID: ${clientId}`;
+              showClientBadge(clientId);
               document.getElementById("register-modal").style.display = "none";
               alert(`Qeydiyyat uğurla tamamlandı! Sizin ID: ${clientId}`);
             } else {
@@ -955,6 +999,33 @@
             btn.innerText = "Qeydiyyatı Tamamla";
           }
         });
+
+      function showClientBadge(id) {
+        const badge = document.getElementById("client-badge");
+        const text = document.getElementById("client-badge-text");
+        if (!badge || !text) return;
+        text.innerText = id;
+        badge.style.display = "flex";
+      }
+
+      function copyClientId() {
+        if (!clientId) return;
+        const text = document.getElementById("client-badge-text");
+        const finish = () => {
+          if (!text) return;
+          const original = clientId;
+          text.innerText = "Kopyalandı! ✓";
+          setTimeout(() => (text.innerText = original), 1200);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(clientId)
+            .then(finish)
+            .catch(() => {});
+        } else {
+          finish();
+        }
+      }
 
       function toggleTheme() {
         const html = document.documentElement;

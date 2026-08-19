@@ -104,4 +104,37 @@ public class MessagesController : ControllerBase
             return StatusCode(500, new { message = "Mesajlar silinərkən xəta baş verdi.", error = ex.Message });
         }
     }
+
+    // Admin: bir müştərini söhbətlər siyahısından TAMAMİLƏ silir
+    // (həm mesajları, həm də ChatClients qeydini). Müştəri yenidən
+    // mesaj yazarsa, söhbət avtomatik yenidən yaranacaq.
+    [HttpDelete("client/{clientId}/full")]
+    [Authorize]
+    public async Task<IActionResult> DeleteClientCompletely(string clientId)
+    {
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            return BadRequest(new { message = "Müştəri ID mütləqdir." });
+        }
+
+        try
+        {
+            var messages = _context.Messages.Where(m => m.ClientId == clientId);
+            _context.Messages.RemoveRange(messages);
+
+            var chatClient = await _context.ChatClients.FindAsync(clientId);
+            if (chatClient != null)
+            {
+                _context.ChatClients.Remove(chatClient);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Söhbət tamamilə silindi." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Söhbət silinərkən xəta baş verdi.", error = ex.Message });
+        }
+    }
 }
