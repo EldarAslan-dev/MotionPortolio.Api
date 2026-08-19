@@ -7,32 +7,37 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Motion Studio | Professional Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;700;900&family=Anton&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Anton&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-    <!-- GSAP & ScrollTrigger (Kart effekti üçün) -->
+    <!-- GSAP & ScrollTrigger (pinned project stack) -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 
     <style>
       :root {
-        --bg-color: #030014;
-        --card-bg: #0b0919;
+        --bg-color: #05070d;
+        --card-bg: #0d0f16;
         --text-color: #f8fafc;
-        --text-muted: #94a3b8;
-        --border-color: rgba(255, 255, 255, 0.1);
+        --text-muted: #9aa0ad;
+        --border-color: rgba(255, 255, 255, 0.12);
         --header-bg: linear-gradient(135deg, #131726, #2e1065);
-        --modal-bg: #0b0919;
-        --accent: #a855f7;
-        --accent-glow: rgba(168, 85, 247, 0.4);
+        --modal-bg: #0d0f16;
+        --accent: #d42fc9;
+        --accent-glow: rgba(212, 47, 201, 0.35);
         --accent-gradient: linear-gradient(
           90deg,
           #5518ff 0%,
           #d42fc9 55%,
           #ff9f5a 100%
         );
+        --light-panel: #f2f2ee;
+        --light-panel-text: #0c0d10;
+        --light-panel-muted: #55585f;
       }
 
       [data-theme="light"] {
@@ -59,10 +64,9 @@
         overflow-x: hidden;
       }
       body {
-        background-color: var(--bg-color);
+        background: var(--bg-color);
         color: var(--text-color);
-        font-family: "Space Grotesk", sans-serif;
-        padding: 16px;
+        font-family: "Inter", system-ui, sans-serif;
         transition:
           background 0.3s,
           color 0.3s;
@@ -71,52 +75,98 @@
         overflow-x: clip;
       }
 
-      /* Cosmic Glow Background */
-      body::before {
-        content: "";
-        position: fixed;
-        top: -50px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 800px;
-        height: 250px;
-        background: radial-gradient(
-          ellipse at center,
-          rgba(168, 85, 247, 0.35) 0%,
-          rgba(59, 130, 246, 0.15) 40%,
-          transparent 70%
-        );
-        box-shadow: 0 0 120px 40px rgba(168, 85, 247, 0.25);
-        border-radius: 50%;
-        z-index: 0;
-        pointer-events: none;
+      .display-font {
+        font-family:
+          "Anton", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+      }
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
       }
 
-      .wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding-bottom: 90px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        position: relative;
-        z-index: 2;
+      a {
+        color: inherit;
+      }
+      img {
+        max-width: 100%;
       }
 
-      .top-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      /* ===== Frame / Hero ===== */
+      .frame {
         width: 100%;
-        gap: 10px;
-        flex-wrap: wrap;
+        min-height: 100vh;
+        background:
+          radial-gradient(
+            circle at 80% 15%,
+            rgba(162, 78, 255, 0.22),
+            transparent 25%
+          ),
+          radial-gradient(
+            circle at 15% 80%,
+            rgba(45, 118, 255, 0.14),
+            transparent 28%
+          ),
+          var(--bg-color);
+        padding: 22px clamp(16px, 4vw, 34px) 34px;
+        position: relative;
+        overflow: hidden;
       }
-      .top-bar-right {
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 20;
+      }
+      .nav-logo {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-color);
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-left: auto;
       }
+      .nav-logo::before {
+        content: "";
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent-gradient);
+        display: inline-block;
+      }
+      nav .menu {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        list-style: none;
+      }
+      nav .menu a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        transition: color 0.2s ease;
+      }
+      nav .menu a:hover {
+        color: var(--text-color);
+      }
+
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
       .btn-custom {
         background: rgba(168, 85, 247, 0.1);
         border: 1px solid var(--border-color);
@@ -125,12 +175,13 @@
         border-radius: 99px;
         text-decoration: none;
         font:
-          500 0.75rem "IBM Plex Mono",
+          500 0.72rem "IBM Plex Mono",
           monospace;
         letter-spacing: 0.04em;
         cursor: pointer;
         backdrop-filter: blur(12px);
         transition: 0.25s;
+        white-space: nowrap;
       }
       .btn-custom:hover {
         border-color: var(--accent);
@@ -141,173 +192,10 @@
         background: var(--accent-gradient);
         border-color: transparent;
         color: #fff;
-        font-weight: 600;
+        font-weight: 700;
         box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
       }
 
-      /* Hero Section */
-      .hero-section {
-        display: grid;
-        grid-template-columns: 1.2fr 0.8fr;
-        align-items: center;
-        gap: 40px;
-        padding: 20px 0;
-      }
-
-      .hero-content {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-      }
-
-      .badge-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 14px;
-        background: rgba(168, 85, 247, 0.12);
-        border: 1px solid rgba(168, 85, 247, 0.3);
-        border-radius: 99px;
-        font:
-          500 0.72rem "IBM Plex Mono",
-          monospace;
-        color: var(--accent);
-      }
-
-      .hero-content h1 {
-        font-size: clamp(2.2rem, 4vw, 3.5rem);
-        line-height: 1.1;
-        font-weight: 700;
-        letter-spacing: -0.03em;
-      }
-      .hero-content h1 span {
-        background: var(--accent-gradient);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      .hero-content p {
-        color: var(--text-muted);
-        font-size: 0.92rem;
-        line-height: 1.6;
-        max-width: 460px;
-      }
-
-      /* Scroll Typewriter Effect Section (Boz rəgdən ağ rəngə keçid) */
-      .scroll-reveal-box {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 30px;
-        margin-top: 10px;
-      }
-      .scroll-reveal-text {
-        font-size: clamp(1.1rem, 2vw, 1.4rem);
-        line-height: 1.6;
-        font-weight: 600;
-      }
-      .scroll-reveal-text .ch {
-        opacity: 0.2;
-        transition:
-          opacity 0.15s ease,
-          color 0.15s ease;
-      }
-      .scroll-reveal-text .ch.is-visible {
-        opacity: 1;
-        color: #ffffff;
-      }
-
-      /* Motion Tools Orbit */
-      .motion-orbit-container {
-        position: relative;
-        width: 300px;
-        height: 300px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .orbit-ring {
-        position: absolute;
-        inset: 0;
-        border: 1px dashed rgba(168, 85, 247, 0.25);
-        border-radius: 50%;
-        animation: spinOrbit 25s linear infinite;
-      }
-      @keyframes spinOrbit {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .orbit-badge-item {
-        position: absolute;
-        width: 48px;
-        height: 48px;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--accent);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        font-family: "IBM Plex Mono", monospace;
-      }
-      .orbit-badge-item:nth-child(1) {
-        top: 0;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      .orbit-badge-item:nth-child(2) {
-        top: 20%;
-        right: 0;
-        transform: translate(50%, -50%);
-      }
-      .orbit-badge-item:nth-child(3) {
-        bottom: 20%;
-        right: 0;
-        transform: translate(50%, 50%);
-      }
-      .orbit-badge-item:nth-child(4) {
-        bottom: 0;
-        left: 50%;
-        transform: translate(-50%, 50%);
-      }
-      .orbit-badge-item:nth-child(5) {
-        bottom: 20%;
-        left: 0;
-        transform: translate(-50%, 50%);
-      }
-      .orbit-badge-item:nth-child(6) {
-        top: 20%;
-        left: 0;
-        transform: translate(-50%, -50%);
-      }
-
-      .center-core {
-        width: 80px;
-        height: 80px;
-        background: radial-gradient(
-          circle,
-          rgba(168, 85, 247, 0.3) 0%,
-          rgba(11, 9, 25, 0.9) 80%
-        );
-        border: 2px solid var(--accent);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.6rem;
-        box-shadow: 0 0 35px var(--accent-glow);
-        z-index: 2;
-      }
-
-      /* Client ID Badge */
       .client-badge {
         display: flex;
         align-items: center;
@@ -315,10 +203,10 @@
         background: rgba(16, 185, 129, 0.1);
         border: 1px solid rgba(16, 185, 129, 0.35);
         color: #34d399;
-        padding: 7px 12px;
-        border-radius: 20px;
+        padding: 8px 13px;
+        border-radius: 99px;
         font:
-          500 0.72rem "IBM Plex Mono",
+          500 0.7rem "IBM Plex Mono",
           monospace;
         cursor: pointer;
         white-space: nowrap;
@@ -336,102 +224,632 @@
         box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
       }
 
-      .studio-header {
-        background: var(--header-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 22px;
+      .hero {
+        position: relative;
+        min-height: calc(100vh - 120px);
+        max-width: 1500px;
+        margin: 0 auto;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 18px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        width: 100%;
+        justify-content: center;
+        text-align: center;
       }
 
+      .hero-title {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        font-size: clamp(30px, 8.4vw, 128px);
+        line-height: 0.95;
+        color: #efefec;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.12);
+        text-shadow: 0 0 40px rgba(255, 255, 255, 0.06);
+        user-select: none;
+      }
+      .hero-title span {
+        background: var(--accent-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        -webkit-text-stroke: 0;
+      }
+
+      .hero-desc {
+        position: relative;
+        z-index: 2;
+        max-width: 560px;
+        margin: 18px auto 0;
+        color: var(--text-muted);
+        font-size: clamp(14px, 1.6vw, 17px);
+        line-height: 1.6;
+        font-weight: 500;
+      }
+
+      .hero-badges {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        justify-content: center;
+        margin-top: 26px;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 110px;
+        height: 50px;
+        padding: 0 22px;
+        border-radius: 999px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: var(--accent-gradient);
+        position: relative;
+        box-shadow: 0 10px 26px rgba(165, 63, 255, 0.3);
+        border: none;
+        cursor: pointer;
+        transition:
+          transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+          box-shadow 0.3s ease;
+      }
+      .hero-badge::before {
+        content: "";
+        position: absolute;
+        inset: 1px;
+        border-radius: 999px;
+        background: #11131b;
+        z-index: 0;
+      }
+      .hero-badge span {
+        position: relative;
+        z-index: 1;
+      }
+      .hero-badge:hover {
+        transform: scale(1.08) rotateY(6deg);
+        box-shadow:
+          0 16px 40px rgba(165, 63, 255, 0.46),
+          0 0 30px rgba(232, 121, 249, 0.3);
+      }
+
+      .avatar-wrap {
+        position: relative;
+        z-index: 2;
+        width: min(220px, 40vw);
+        aspect-ratio: 1/1;
+        margin: 30px auto 4px;
+        display: grid;
+        place-items: center;
+      }
       .story-ring-container {
         position: relative;
-        width: 82px;
-        height: 82px;
+        width: 100%;
+        height: 100%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        padding: 3px;
-        flex-shrink: 0;
+        padding: 4px;
+        filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.45));
       }
-
       .story-ring-container.has-stories {
         background: linear-gradient(
           45deg,
-          #f09433,
-          #e6683c,
-          #dc2743,
-          #cc2366,
-          #bc1888
+          #5518ff,
+          #d42fc9,
+          #ff9f5a,
+          #d42fc9,
+          #5518ff
         );
+        background-size: 300% 300%;
         animation: rotateRing 6s linear infinite;
       }
-
       .story-ring-container.seen-stories {
-        background: #4b5563;
+        background: #2a2d38;
       }
-
       @keyframes rotateRing {
         0% {
-          filter: hue-rotate(0deg);
+          background-position: 0% 50%;
         }
         100% {
-          filter: hue-rotate(360deg);
+          background-position: 100% 50%;
         }
       }
-
       .avatar-img {
-        width: 72px;
-        height: 72px;
+        width: 100%;
+        height: 100%;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid var(--bg-color);
+        border: 4px solid var(--bg-color);
         display: block;
       }
 
-      .profile-info h1 {
-        font-size: 1.4rem;
+      .cta {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 190px;
+        height: 60px;
+        padding: 0 30px;
+        margin-top: 30px;
+        border-radius: 999px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: clamp(12px, 1.2vw, 14px);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        background: var(--accent-gradient);
+        border: 0;
+        box-shadow: 0 10px 30px rgba(165, 63, 255, 0.35);
+        transition:
+          transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+          box-shadow 0.3s ease;
+      }
+      .cta:hover {
+        transform: scale(1.06);
+        box-shadow:
+          0 18px 44px rgba(165, 63, 255, 0.46),
+          0 0 34px rgba(232, 121, 249, 0.3);
+      }
+
+      .blur1,
+      .blur2 {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.3;
+        pointer-events: none;
+      }
+      .blur1 {
+        width: 320px;
+        height: 320px;
+        background: #6f39ff;
+        right: 40px;
+        top: 120px;
+      }
+      .blur2 {
+        width: 280px;
+        height: 280px;
+        background: #1573ff;
+        left: 40px;
+        bottom: -60px;
+      }
+
+      .fade-bottom {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 220px;
+        background: linear-gradient(
+          to bottom,
+          rgba(5, 7, 13, 0) 0%,
+          var(--bg-color) 100%
+        );
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* ===== Tools marquee ===== */
+      .below-fold {
+        width: 100%;
+        background: var(--bg-color);
+        padding: clamp(30px, 6vw, 50px) 0 clamp(80px, 14vw, 170px);
+        overflow: hidden;
+      }
+      .marquee-label {
+        text-align: center;
+        font-size: clamp(11px, 1.3vw, 14px);
         font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 26px;
+        font-family: "IBM Plex Mono", monospace;
+      }
+      .marquee {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        -webkit-mask-image: linear-gradient(
+          90deg,
+          transparent 0,
+          #000 8%,
+          #000 92%,
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          90deg,
+          transparent 0,
+          #000 8%,
+          #000 92%,
+          transparent 100%
+        );
+      }
+      .marquee-track {
+        display: flex;
+        width: max-content;
+        gap: 14px;
+        animation: marqueeScroll 26s linear infinite;
+      }
+      @keyframes marqueeScroll {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .tool-chip {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 22px;
+        border: 1px solid var(--border-color);
+        border-radius: 99px;
+        background: var(--card-bg);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
         color: var(--text-color);
       }
-      .profile-info p {
+
+      /* ===== About section ===== */
+      .about-section {
+        position: relative;
+        width: 100%;
+        background: var(--bg-color);
+        padding: clamp(100px, 15vw, 170px) 20px clamp(90px, 13vw, 150px);
+        overflow: hidden;
+      }
+      .about-inner {
+        position: relative;
+        max-width: 760px;
+        margin: 0 auto;
+        text-align: center;
+        z-index: 3;
+      }
+      .section-title {
+        position: relative;
+        display: grid;
+        font-size: clamp(40px, 8.6vw, 108px);
+        line-height: 1;
+        margin-bottom: 34px;
+        user-select: none;
+      }
+      .section-title .stroke,
+      .section-title .fill {
+        grid-area: 1/1;
+      }
+      .section-title .stroke {
+        color: transparent;
+        -webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.55);
+      }
+      .section-title .fill {
+        color: #efefec;
+        opacity: 0;
+        will-change: opacity;
+      }
+      .section-title.on-light .stroke {
+        -webkit-text-stroke: 1.4px rgba(10, 12, 20, 0.5);
+      }
+      .section-title.on-light .fill {
+        color: #0c0d10;
+      }
+
+      .about-desc {
+        color: var(--text-muted);
+        font-size: clamp(16px, 1.9vw, 20px);
+        line-height: 1.85;
+        font-weight: 500;
+        margin-bottom: 34px;
+      }
+      .about-desc .ch {
+        opacity: 0.12;
+        transition: opacity 0.18s linear;
+      }
+      .about-desc .ch.is-visible {
+        opacity: 1;
+        color: var(--text-color);
+      }
+
+      .about-profile-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 34px;
+        flex-wrap: wrap;
+      }
+      .about-avatar-mini {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border-color);
+        flex-shrink: 0;
+      }
+      .about-profile-text {
+        text-align: left;
+      }
+      .about-profile-text h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+      .about-profile-text p {
         color: var(--accent);
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-family: "IBM Plex Mono", monospace;
         font-weight: 600;
         margin-top: 2px;
         text-transform: uppercase;
       }
 
-      .card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 20px;
-        width: 100%;
+      .about-play {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto;
+        border-radius: 50%;
+        border: none;
+        display: grid;
+        place-items: center;
+        background: var(--accent-gradient);
+        box-shadow: 0 10px 30px rgba(165, 63, 255, 0.35);
+        cursor: pointer;
+        position: relative;
+        z-index: 2;
+        animation: aboutPlayPulse 2.6s ease-in-out infinite;
+        transition:
+          box-shadow 0.3s ease,
+          transform 0.3s ease;
       }
-      .card h2 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text-color);
-        margin-bottom: 16px;
+      @keyframes aboutPlayPulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.08);
+        }
+      }
+      .about-play:hover {
+        animation-play-state: paused;
+        transform: scale(1.1);
+        box-shadow:
+          0 10px 30px rgba(165, 63, 255, 0.35),
+          0 0 22px 3px rgba(212, 47, 201, 0.65),
+          0 0 40px 8px rgba(85, 24, 255, 0.45);
+      }
+      .about-play svg {
+        width: 22px;
+        height: 22px;
+        margin-left: 3px;
+      }
+      .about-play-label {
+        margin-top: 12px;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-family: "IBM Plex Mono", monospace;
       }
 
-      /* GSAP Pinned Card Stack Stilleri */
+      .about-icon {
+        position: absolute;
+        z-index: 1;
+        opacity: 0;
+        pointer-events: none;
+        will-change: transform, opacity;
+        font-size: clamp(34px, 4.2vw, 58px);
+        filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.4));
+      }
+      @keyframes iconWiggle {
+        0% {
+          transform: translate(0px, 0px) rotate(0deg);
+        }
+        25% {
+          transform: translate(7px, -9px) rotate(2.5deg);
+        }
+        50% {
+          transform: translate(-8px, 3px) rotate(-2deg);
+        }
+        75% {
+          transform: translate(4px, 8px) rotate(1.5deg);
+        }
+        100% {
+          transform: translate(0px, 0px) rotate(0deg);
+        }
+      }
+      .icon-wiggle-a {
+        animation: iconWiggle 8s ease-in-out infinite;
+      }
+      .icon-wiggle-b {
+        animation: iconWiggle 9.5s ease-in-out infinite;
+        animation-delay: -2.5s;
+      }
+      .icon-wiggle-c {
+        animation: iconWiggle 7.5s ease-in-out infinite;
+        animation-delay: -1.2s;
+      }
+      .icon-wiggle-d {
+        animation: iconWiggle 10s ease-in-out infinite;
+        animation-delay: -4s;
+      }
+      #aicon1 {
+        top: 14%;
+        left: 6%;
+      }
+      #aicon2 {
+        top: 68%;
+        left: 8%;
+      }
+      #aicon3 {
+        top: 50%;
+        right: 8%;
+      }
+      #aicon4 {
+        top: 14%;
+        right: 6%;
+      }
+      @media (max-width: 760px) {
+        .about-icon {
+          font-size: 28px;
+        }
+        #aicon1 {
+          top: 2%;
+          left: 2%;
+        }
+        #aicon2 {
+          top: 64%;
+          left: 1%;
+        }
+        #aicon3 {
+          top: 46%;
+          right: 2%;
+        }
+        #aicon4 {
+          top: 2%;
+          right: 2%;
+        }
+      }
+
+      /* ===== Services section ===== */
+      .services-section {
+        position: relative;
+        width: 100%;
+        background: var(--light-panel);
+        border-radius: 48px 48px 0 0;
+        padding: clamp(70px, 10vw, 110px) 20px
+          calc(clamp(90px, 13vw, 140px) + 60px);
+        margin-bottom: -60px;
+        overflow: hidden;
+        z-index: 5;
+        box-shadow: inset 0 50px 70px -55px rgba(0, 0, 0, 0.35);
+      }
+      .services-inner {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .service-item {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 26px;
+        padding: 32px 0;
+        border-bottom: 1px solid rgba(10, 12, 20, 0.12);
+        align-items: start;
+      }
+      .service-item:last-child {
+        border-bottom: none;
+      }
+      .service-num {
+        font-family: "Anton", "Arial Black", sans-serif;
+        font-size: clamp(32px, 4.2vw, 50px);
+        color: var(--light-panel-text);
+        line-height: 1;
+        opacity: 0;
+        transform: translateY(16px);
+        transition:
+          opacity 0.5s ease,
+          transform 0.5s ease;
+      }
+      .service-item.is-in .service-num {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .service-heading {
+        font-weight: 800;
+        font-size: clamp(14px, 1.6vw, 18px);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--light-panel-text);
+        margin-bottom: 10px;
+        opacity: 0;
+        transform: translateY(16px);
+        transition:
+          opacity 0.5s ease 0.05s,
+          transform 0.5s ease 0.05s;
+      }
+      .service-item.is-in .service-heading {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .service-desc {
+        font-size: clamp(13px, 1.35vw, 15px);
+        line-height: 1.7;
+        color: var(--light-panel-muted);
+        font-weight: 500;
+      }
+      .service-desc .ch {
+        opacity: 0.14;
+        transition: opacity 0.18s linear;
+      }
+      .service-desc .ch.is-visible {
+        opacity: 1;
+        color: var(--light-panel-text);
+      }
+      @media (max-width: 640px) {
+        .services-section {
+          padding: 70px 16px calc(90px + 40px);
+          margin-bottom: -40px;
+          border-radius: 32px 32px 0 0;
+        }
+        .service-item {
+          grid-template-columns: 60px 1fr;
+          gap: 14px;
+          padding: 22px 0;
+        }
+      }
+
+      /* ===== Projects section ===== */
+      .projects-corner-cap {
+        position: relative;
+        width: 100%;
+        height: 48px;
+        background: var(--bg-color);
+        border-radius: 48px 48px 0 0;
+        margin-bottom: -48px;
+        z-index: 7;
+        pointer-events: none;
+      }
+      @media (max-width: 640px) {
+        .projects-corner-cap {
+          height: 32px;
+          border-radius: 32px 32px 0 0;
+          margin-bottom: -32px;
+        }
+      }
       .projects-section {
         position: relative;
         width: 100%;
+        background: var(--bg-color);
+        border-radius: 48px 48px 0 0;
+        box-shadow: inset 0 50px 70px -55px rgba(0, 0, 0, 0.6);
+        padding: clamp(70px, 10vw, 110px) 20px clamp(30px, 4vw, 40px);
+        z-index: 6;
+      }
+      .projects-title {
+        position: relative;
+        z-index: 50;
+        margin-bottom: 30px;
+        color: #efefec;
+        background: var(--bg-color);
+        padding: 10px 0;
       }
       .projects-stack {
+        max-width: 900px;
+        margin: 0 auto;
         position: relative;
-        width: 100%;
-        margin-top: 20px;
       }
       .project-stack-item {
         position: absolute;
@@ -441,52 +859,61 @@
         will-change: transform;
         backface-visibility: hidden;
       }
+      @media (hover: none) and (pointer: coarse) {
+        .projects-stack.is-mobile-sticky {
+          height: auto !important;
+          position: relative;
+        }
+        .projects-stack.is-mobile-sticky .project-stack-item {
+          position: sticky;
+          top: var(--mstick-top, 20px);
+          left: auto;
+          width: 100%;
+          padding-bottom: 90px;
+        }
+        .projects-stack.is-mobile-sticky .project-stack-item:last-child {
+          padding-bottom: 20px;
+        }
+      }
 
       .project-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 20px;
+        border-radius: 22px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        width: 100%;
-        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
       }
-
-      /* Yığılanda görünən başlıq zolağı - video deyil, ad+kateqoriya göstərir.
-         Bu, kartlar üst-üstə düşəndə videonun qəribə kəsiyini görünməz edir
-         və "wallet card stack" tərzi peşəkar görünüş yaradır. */
       .project-peek-bar {
-        height: 80px;
-        min-height: 80px;
+        height: 78px;
+        min-height: 78px;
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 0 20px;
+        gap: 14px;
+        padding: 0 22px;
         background: var(--header-bg);
         border-bottom: 1px solid var(--border-color);
-        cursor: default;
       }
       .project-peek-index {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: var(--accent-gradient);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font:
-          700 0.8rem "IBM Plex Mono",
-          monospace;
-        color: #fff;
+        font-family: "Anton", "Arial Black", sans-serif;
+        font-size: clamp(24px, 3vw, 34px);
+        color: #efefec;
         flex-shrink: 0;
+        line-height: 1;
       }
       .project-peek-text {
         min-width: 0;
         flex: 1;
       }
-      .project-peek-text .project-cat {
-        margin-bottom: 2px;
+      .project-cat {
+        display: inline-block;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 3px;
       }
       .project-peek-text h3 {
         font-size: 1rem;
@@ -496,11 +923,36 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .btn-order-project {
+        margin-left: auto;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        padding: 9px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: transparent;
+        color: #efefec;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+        font-family: "IBM Plex Mono", monospace;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease;
+      }
+      .btn-order-project:hover {
+        background: #efefec;
+        color: #0d0f16;
+      }
 
       .project-video-wrap {
         position: relative;
         width: 100%;
-        height: 260px;
+        height: 280px;
         background: #000;
       }
       .project-video-wrap video {
@@ -509,7 +961,6 @@
         object-fit: cover;
         display: block;
       }
-      /* Videonun alt hissəsini kart fonuna yumşaq keçidlə birləşdirir */
       .project-video-wrap::after {
         content: "";
         position: absolute;
@@ -531,8 +982,8 @@
         z-index: 2;
       }
       .project-video-btn {
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         border: none;
         background: rgba(11, 9, 25, 0.65);
@@ -566,51 +1017,47 @@
         background: var(--accent-gradient);
         border-radius: 99px;
       }
-
       .project-body {
-        padding: 20px;
+        padding: 22px 24px 26px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        width: 100%;
-      }
-      .project-cat {
-        display: inline-block;
-        background: rgba(168, 85, 247, 0.15);
-        color: var(--accent);
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 0.72rem;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-weight: 600;
-        align-self: flex-start;
-        text-transform: uppercase;
-      }
-      .project-body h3 {
-        font-size: 1.2rem;
-        color: var(--text-color);
+        gap: 8px;
       }
       .project-body p {
-        font-size: 0.88rem;
+        font-size: 0.9rem;
         color: var(--text-muted);
-        line-height: 1.5;
+        line-height: 1.6;
       }
-      .btn-order-project {
+
+      @media (max-width: 640px) {
+        .projects-section {
+          padding: 70px 16px 30px;
+          border-radius: 32px 32px 0 0;
+        }
+        .project-video-wrap {
+          height: 220px;
+        }
+      }
+
+      /* ===== Testimonials section ===== */
+      .testimonials-section {
+        position: relative;
         width: 100%;
-        padding: 12px;
-        background: var(--accent);
-        color: #fff;
-        font-weight: 600;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        font-family: "IBM Plex Mono", monospace;
-        margin-top: 6px;
-        transition: opacity 0.2s;
+        background: var(--light-panel);
+        border-radius: 48px 48px 0 0;
+        padding: clamp(90px, 12vw, 130px) 20px
+          calc(clamp(90px, 14vw, 150px) + 60px);
+        margin-bottom: -60px;
+        z-index: 7;
+        overflow: hidden;
+        box-shadow: inset 0 50px 70px -55px rgba(0, 0, 0, 0.35);
       }
-      .btn-order-project:hover {
-        opacity: 0.9;
+      .testimonials-header {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+      .testimonials-section .section-title {
+        font-size: clamp(34px, 6.6vw, 70px);
       }
 
       .orbit-testimonials-wrapper {
@@ -618,26 +1065,26 @@
         overflow: hidden;
         position: relative;
         padding: 10px 0;
-        mask-image: linear-gradient(
-          to right,
-          transparent,
-          black 10%,
-          black 90%,
-          transparent
-        );
         -webkit-mask-image: linear-gradient(
-          to right,
-          transparent,
-          black 10%,
-          black 90%,
-          transparent
+          90deg,
+          transparent 0,
+          #000 8%,
+          #000 92%,
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          90deg,
+          transparent 0,
+          #000 8%,
+          #000 92%,
+          transparent 100%
         );
       }
       .orbit-track {
         display: flex;
         gap: 20px;
         width: max-content;
-        animation: orbitScroll 30s linear infinite;
+        animation: orbitScroll 34s linear infinite;
       }
       .orbit-track:hover {
         animation-play-state: paused;
@@ -651,75 +1098,173 @@
         }
       }
       .orbit-item {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        padding: 14px 18px;
-        border-radius: 12px;
-        min-width: 260px;
-        max-width: 320px;
+        background: #fff;
+        border: 1px solid rgba(10, 12, 20, 0.1);
+        padding: 18px 22px;
+        border-radius: 18px;
+        min-width: 300px;
+        max-width: 360px;
+        box-shadow: 0 10px 30px rgba(10, 12, 20, 0.06);
       }
       .orbit-stars {
-        color: #f59e0b;
+        color: #f0a83a;
         font-size: 0.8rem;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
       }
       .orbit-text {
-        font-size: 0.85rem;
-        color: var(--text-color);
-        margin-bottom: 6px;
-        line-height: 1.4;
+        font-size: 0.88rem;
+        color: #4a4d56;
+        margin-bottom: 8px;
+        line-height: 1.5;
       }
       .orbit-author {
         font-size: 0.75rem;
+        color: #83868f;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+      }
+
+      /* ===== Contact / footer ===== */
+      .contact-section {
+        position: relative;
+        width: 100%;
+        background: #0a0d16;
+        border-radius: 48px 48px 0 0;
+        padding: clamp(90px, 14vw, 160px) 20px clamp(70px, 10vw, 110px);
+        z-index: 8;
+        overflow: hidden;
+      }
+      .contact-inner {
+        max-width: 760px;
+        margin: 0 auto;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+      }
+      .contact-title {
+        font-family: "Anton", "Arial Black", sans-serif;
+        text-transform: uppercase;
+        font-size: clamp(42px, 6.2vw, 92px);
+        line-height: 1.05;
+        letter-spacing: -0.01em;
+        color: #fff;
+        margin-bottom: 20px;
+      }
+      .contact-desc {
+        color: #9aa0ad;
+        font-size: 1rem;
+        max-width: 480px;
+        margin: 0 auto 30px;
+        line-height: 1.6;
+      }
+      .contact-icon {
+        position: absolute;
+        z-index: 1;
+        opacity: 0.8;
+        font-size: clamp(36px, 5vw, 60px);
+        pointer-events: none;
+        filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.25));
+      }
+      #cicon1 {
+        top: 6%;
+        right: 6%;
+      }
+      #cicon2 {
+        bottom: 8%;
+        left: 6%;
+      }
+
+      .footer-section {
+        position: relative;
+        width: 100%;
+        background: var(--bg-color);
+        border-radius: 48px 48px 0 0;
+        padding: clamp(50px, 7vw, 80px) 20px clamp(30px, 5vw, 50px);
+        z-index: 9;
+        overflow: hidden;
+        box-shadow: inset 0 50px 70px -55px rgba(0, 0, 0, 0.6);
+      }
+      .footer-top {
+        max-width: 1200px;
+        margin: 0 auto 46px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 30px;
+        flex-wrap: wrap;
+      }
+      .footer-title {
+        font-family: "Anton", "Arial Black", sans-serif;
+        text-transform: uppercase;
+        font-size: clamp(28px, 4.4vw, 48px);
+        line-height: 1.05;
+        color: #efefec;
+      }
+      .footer-col-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
         color: var(--text-muted);
+        margin-bottom: 12px;
         font-family: "IBM Plex Mono", monospace;
       }
-
-      .floating-chat-btn {
-        position: fixed;
-        bottom: 22px;
-        right: 22px;
-        width: 58px;
-        height: 58px;
-        background: var(--accent-gradient);
-        color: #fff;
-        border-radius: 50%;
+      .footer-col div {
+        font-size: 13px;
+        color: #d7d9de;
+        line-height: 1.9;
+        font-weight: 500;
+      }
+      .footer-shapes {
+        max-width: 1200px;
+        margin: 0 auto;
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
-        cursor: pointer;
-        z-index: 99999;
-        transition: transform 0.2s;
-        border: none;
+        gap: 14px;
+        flex-wrap: wrap;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
       }
-      .floating-chat-btn:hover {
-        transform: scale(1.08);
+      .f-shape {
+        width: clamp(40px, 6vw, 64px);
+        aspect-ratio: 1;
+        flex-shrink: 0;
       }
-
-      .chat-badge {
-        position: absolute;
-        top: 6px;
-        right: 6px;
-        width: 14px;
-        height: 14px;
-        background: #ef4444;
-        border: 2px solid var(--bg-color);
+      .f-shape-clover {
+        background: #c9b8f0;
+        border-radius: 26%;
+        transform: rotate(45deg);
+      }
+      .f-shape-halfcircle {
+        background: #efefec;
+        border-radius: 0 100% 100% 0;
+      }
+      .f-shape-circle {
+        background: #7c5cff;
         border-radius: 50%;
-        display: none;
+      }
+      .f-shape-bowtie {
+        background: #f0a83a;
+        clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
+      }
+      .f-shape-ring {
+        border-radius: 50%;
+        border: 10px solid #e0399e;
+        box-sizing: border-box;
+      }
+      .footer-bottom {
+        max-width: 1200px;
+        margin: 30px auto 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: #6d7280;
       }
 
-      #client-chat-card {
-        position: fixed !important;
-        bottom: 90px !important;
-        right: 16px !important;
-        left: auto !important;
-        width: min(420px, calc(100vw - 32px));
-        z-index: 99998;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-      }
-
+      /* ===== Functional components (chat / modals / forms) ===== */
       .modal {
         position: fixed;
         inset: 0;
@@ -735,7 +1280,7 @@
         background: var(--modal-bg);
         border: 1px solid var(--border-color);
         padding: 24px;
-        border-radius: 16px;
+        border-radius: 20px;
         width: 100%;
         max-width: 400px;
         position: relative;
@@ -761,7 +1306,7 @@
         width: 100%;
         max-width: 360px;
         height: 520px;
-        border-radius: 20px;
+        border-radius: 22px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -784,7 +1329,7 @@
       .story-bar-fill {
         width: 0%;
         height: 100%;
-        background: var(--accent);
+        background: var(--accent-gradient);
         transition: width linear;
       }
       .story-header-info {
@@ -835,7 +1380,7 @@
         margin-bottom: 12px;
       }
       label {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 600;
         color: var(--text-muted);
         display: block;
@@ -849,7 +1394,7 @@
         padding: 11px 14px;
         background: var(--bg-color);
         border: 1px solid var(--border-color);
-        border-radius: 8px;
+        border-radius: 10px;
         color: var(--text-color);
         font-size: 0.9rem;
         font-family: inherit;
@@ -862,36 +1407,83 @@
       }
       .btn-submit {
         width: 100%;
-        padding: 12px;
-        background: var(--accent);
+        padding: 13px;
+        background: var(--accent-gradient);
         color: #fff;
         font-weight: 700;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 0.85rem;
         font-family: "IBM Plex Mono", monospace;
         margin-top: 4px;
       }
       .btn-submit:hover {
-        opacity: 0.9;
+        opacity: 0.92;
       }
 
-      @media (max-width: 850px) {
-        .hero-section {
-          grid-template-columns: 1fr;
-          text-align: center;
-          gap: 30px;
+      .floating-chat-btn {
+        position: fixed;
+        bottom: 22px;
+        right: 22px;
+        width: 58px;
+        height: 58px;
+        background: var(--accent-gradient);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
+        cursor: pointer;
+        z-index: 99999;
+        transition: transform 0.2s;
+        border: none;
+      }
+      .floating-chat-btn:hover {
+        transform: scale(1.08);
+      }
+      .chat-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 14px;
+        height: 14px;
+        background: #ef4444;
+        border: 2px solid var(--bg-color);
+        border-radius: 50%;
+        display: none;
+      }
+      #client-chat-card {
+        position: fixed !important;
+        bottom: 90px !important;
+        right: 16px !important;
+        left: auto !important;
+        width: min(420px, calc(100vw - 32px));
+        z-index: 99998;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        background: var(--card-bg);
+        border: 2px solid var(--accent);
+        border-radius: 18px;
+        padding: 20px;
+      }
+
+      @media (max-width: 640px) {
+        nav .menu {
+          order: 3;
+          flex-basis: 100%;
+          justify-content: center;
+          flex-wrap: wrap;
+          row-gap: 8px;
         }
-        .hero-content {
-          align-items: center;
+        .nav-right {
+          order: 2;
+          margin-left: auto;
         }
-        .hero-content p {
-          max-width: 100%;
-        }
-        .motion-orbit-container {
-          width: 260px;
-          height: 260px;
+        .hero {
+          min-height: auto;
+          padding: 40px 0 20px;
         }
       }
     </style>
@@ -928,12 +1520,12 @@
         </p>
         <form id="register-form">
           <div class="form-group">
-            <label>Your Name:</label
-            ><input type="text" id="reg-name" placeholder="John Doe" required />
+            <label>Your Name:</label>
+            <input type="text" id="reg-name" placeholder="John Doe" required />
           </div>
           <div class="form-group">
-            <label>Email Address:</label
-            ><input
+            <label>Email Address:</label>
+            <input
               type="email"
               id="reg-email"
               placeholder="example@mail.com"
@@ -947,15 +1539,20 @@
       </div>
     </div>
 
-    <div class="wrapper">
-      <div class="top-bar">
-        <button
-          class="btn-custom btn-primary-custom"
-          onclick="openInquiryModal('General Collaboration')"
-        >
-          🤝 Collaborate
-        </button>
-        <div class="top-bar-right">
+    <div class="frame">
+      <div class="blur1"></div>
+      <div class="blur2"></div>
+
+      <nav>
+        <div class="nav-logo">Motion Studio</div>
+        <ul class="menu">
+          <li><a href="#about-section">About</a></li>
+          <li><a href="#services-section">Services</a></li>
+          <li><a href="#projects-section">Projects</a></li>
+          <li><a href="#testimonials-section">Reviews</a></li>
+          <li><a href="#footer-section">Contact</a></li>
+        </ul>
+        <div class="nav-right">
           <div
             id="client-badge"
             class="client-badge"
@@ -973,186 +1570,257 @@
           >
             ☀️ Light
           </button>
-        </div>
-      </div>
-
-      <!-- Hero Section -->
-      <section class="hero-section">
-        <div class="hero-content">
-          <div class="badge-tag">✨ Motion Portfolio</div>
-          <h1>Providing <span>the best</span> motion experience.</h1>
-          <p>
-            Motion videos, graphic design, animation works, and creative
-            template services.
-          </p>
-          <a
-            href="#projects-section"
+          <button
             class="btn-custom btn-primary-custom"
-            style="
-              padding: 11px 22px;
-              display: inline-block;
-              text-align: center;
-              text-decoration: none;
-              border-radius: 99px;
-            "
-            >View Showreel</a
+            onclick="openInquiryModal('General Collaboration')"
           >
+            🤝 Collaborate
+          </button>
         </div>
-        <div class="motion-orbit-container">
-          <div class="orbit-ring"></div>
-          <div class="orbit-badge-item">AE</div>
-          <div class="orbit-badge-item">C4D</div>
-          <div class="orbit-badge-item">BL</div>
-          <div class="orbit-badge-item">RM</div>
-          <div class="orbit-badge-item">PR</div>
-          <div class="orbit-badge-item">FIG</div>
-          <div class="center-core">🎬</div>
+      </nav>
+
+      <section class="hero">
+        <h1 class="hero-title display-font" id="header-name">Motion Studio</h1>
+        <p class="hero-desc" id="header-bio">
+          Motion Design & Animation Studio
+        </p>
+
+        <div class="hero-badges">
+          <a class="hero-badge" href="#projects-section"
+            ><span>🎬 View Work</span></a
+          >
+          <button
+            type="button"
+            class="hero-badge"
+            onclick="openInquiryModal('General Collaboration')"
+          >
+            <span>🤝 Collaborate</span>
+          </button>
         </div>
+
+        <div class="avatar-wrap">
+          <div
+            id="story-ring-wrapper"
+            class="story-ring-container"
+            onclick="openStoryModal()"
+            title="View Stories"
+          >
+            <img
+              id="header-avatar"
+              class="avatar-img"
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+              alt="Avatar"
+            />
+          </div>
+        </div>
+
+        <a class="cta" href="#footer-section"><span>Contact Me</span></a>
       </section>
 
-      <!-- Scroll Typewriter Effect (Bozdan ağa keçid) -->
-      <div class="scroll-reveal-box">
-        <p class="scroll-reveal-text" id="revealText">
+      <div class="fade-bottom"></div>
+    </div>
+
+    <div class="below-fold">
+      <p class="marquee-label">Tools &amp; Software</p>
+      <div class="marquee">
+        <div class="marquee-track">
+          <span class="tool-chip">After Effects</span>
+          <span class="tool-chip">Adobe Illustrator</span>
+          <span class="tool-chip">InDesign</span>
+          <span class="tool-chip">Photoshop</span>
+          <span class="tool-chip">Premiere Pro</span>
+          <span class="tool-chip">Figma</span>
+          <span class="tool-chip">Adobe Illustrator</span>
+          <span class="tool-chip">InDesign</span>
+          <span class="tool-chip">After Effects</span>
+          <span class="tool-chip">Photoshop</span>
+          <span class="tool-chip">Blender</span>
+          <span class="tool-chip">Adobe Illustrator</span>
+          <span class="tool-chip">Premiere Pro</span>
+          <span class="tool-chip">Figma</span>
+          <span class="tool-chip">Premiere Pro</span>
+          <span class="tool-chip">InDesign</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="about-section" id="about-section">
+      <span class="about-icon icon-wiggle-a" id="aicon1">🎬</span>
+      <span class="about-icon icon-wiggle-b" id="aicon2">🚀</span>
+      <span class="about-icon icon-wiggle-c" id="aicon3">✨</span>
+      <span class="about-icon icon-wiggle-d" id="aicon4">🎨</span>
+
+      <div class="about-inner">
+        <h2 class="section-title display-font">
+          <span class="stroke">About</span>
+          <span class="fill" id="aboutFill">About</span>
+        </h2>
+
+        <p class="about-desc" id="revealText">
           I'm a Motion Designer and Video Editor specializing in Adobe After
           Effects, creating stunning logo animations, dynamic explainer videos,
           and social media reels that bring brand identities to life.
         </p>
-      </div>
 
-      <div class="studio-header">
-        <div
-          id="story-ring-wrapper"
-          class="story-ring-container"
-          onclick="openStoryModal()"
-          title="View Stories"
-        >
+        <div class="about-profile-row">
           <img
-            id="header-avatar"
-            class="avatar-img"
+            id="story-avatar-img-inline"
+            class="about-avatar-mini"
             src="https://images.unsplash.com/photo-1534528741775-53994a69daeb"
             alt="Avatar"
           />
+          <div class="about-profile-text">
+            <h3 id="header-name-2">Motion Studio</h3>
+            <p>Motion Design &amp; Animation</p>
+          </div>
         </div>
-        <div class="profile-info">
-          <h1 id="header-name">Motion Studio</h1>
-          <p id="header-bio">Motion Design & Animation Studio</p>
-        </div>
-      </div>
 
-      <!-- Live Support Panel -->
-      <div
-        id="client-chat-card"
-        class="card"
-        style="display: none; border: 2px solid var(--accent)"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-          "
+        <button
+          type="button"
+          class="about-play"
+          id="aboutPlayBtn"
+          aria-label="View stories"
+          onclick="openStoryModal()"
         >
-          <span
-            style="
-              font-weight: 700;
-              color: var(--accent);
-              font-size: 0.95rem;
-              font-family: &quot;IBM Plex Mono&quot;, monospace;
-            "
-            >💬 Live Support</span
-          >
-          <button
-            onclick="closeClientChat()"
-            style="
-              background: none;
-              border: none;
-              color: #ef4444;
-              font-size: 1.2rem;
-              cursor: pointer;
-              font-weight: bold;
-              padding: 0 8px;
-            "
-            title="Close"
-          >
-            &times;
-          </button>
-        </div>
-        <div
-          style="
-            height: 190px;
-            overflow-y: auto;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-          "
-          id="client-general-chat-box"
-        >
-          <p
-            style="
-              color: var(--text-muted);
-              text-align: center;
-              margin-top: 60px;
-              font-size: 0.85rem;
-            "
-          >
-            Welcome to live support! You can send your message here.
-          </p>
-        </div>
-        <div id="delivered-file-container" style="margin-bottom: 10px"></div>
-        <div style="display: flex; gap: 8px">
-          <input
-            type="text"
-            id="general-msg-input"
-            placeholder="Type your message..."
-            onkeypress="handleGeneralChatKey(event)"
-          />
-          <button
-            onclick="sendGeneralMessage()"
-            style="
-              padding: 0 16px;
-              background: #10b981;
-              color: #fff;
-              border: none;
-              border-radius: 8px;
-              cursor: pointer;
-              font-weight: 600;
-              font-size: 0.85rem;
-            "
-          >
-            Send
-          </button>
-        </div>
+          <svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z" /></svg>
+        </button>
+        <div class="about-play-label">View Stories</div>
       </div>
+    </section>
 
-      <!-- Portfolio / Animation Showcase (GSAP Pinned Stack ilə) -->
-      <section id="projects-section" class="projects-section">
+    <section class="services-section" id="services-section">
+      <div class="services-inner">
         <h2
-          style="
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-color);
-            margin-bottom: 16px;
-          "
+          class="section-title on-light display-font"
+          style="margin-bottom: 60px"
         >
-          🎬 Portfolio & Animation Showcase
+          <span class="stroke">Services</span>
+          <span class="fill" id="servicesFill">Services</span>
         </h2>
-        <div class="projects-stack" id="projects-container">
-          <p style="color: var(--text-muted)">Loading projects...</p>
-        </div>
-      </section>
 
+        <div class="service-item" id="service-1">
+          <div class="service-num">01</div>
+          <div>
+            <div class="service-heading">Logo Animation</div>
+            <p
+              class="service-desc"
+              data-desc="Professional logo animations that bring brand identities to life, giving businesses a polished, memorable motion signature."
+            ></p>
+          </div>
+        </div>
+
+        <div class="service-item" id="service-2">
+          <div class="service-num">02</div>
+          <div>
+            <div class="service-heading">Explainer Videos</div>
+            <p
+              class="service-desc"
+              data-desc="2D motion graphics that break down products and ideas into clear, engaging explainer videos for any audience."
+            ></p>
+          </div>
+        </div>
+
+        <div class="service-item" id="service-3">
+          <div class="service-num">03</div>
+          <div>
+            <div class="service-heading">Social Media Animation</div>
+            <p
+              class="service-desc"
+              data-desc="Eye-catching animated posts and reels designed for Instagram, TikTok, and other platforms to boost engagement."
+            ></p>
+          </div>
+        </div>
+
+        <div class="service-item" id="service-4">
+          <div class="service-num">04</div>
+          <div>
+            <div class="service-heading">Promotional Videos</div>
+            <p
+              class="service-desc"
+              data-desc="Polished marketing videos with professional transitions, sound design, and color correction for advertising campaigns."
+            ></p>
+          </div>
+        </div>
+
+        <div class="service-item" id="service-5">
+          <div class="service-num">05</div>
+          <div>
+            <div class="service-heading">Video Editing</div>
+            <p
+              class="service-desc"
+              data-desc="Full video editing services — clean cuts, kinetic typography, and pacing that keeps every project sharp and on-brand."
+            ></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="projects-corner-cap" aria-hidden="true"></div>
+    <section id="projects-section" class="projects-section">
+      <h2 class="section-title projects-title display-font">
+        <span class="stroke">Projects</span>
+        <span class="fill" id="projectsFill">Projects</span>
+      </h2>
+      <div class="projects-stack" id="projects-container">
+        <p style="color: var(--text-muted); text-align: center">
+          Loading projects...
+        </p>
+      </div>
+    </section>
+
+    <section class="testimonials-section" id="testimonials-section">
+      <div class="testimonials-header">
+        <h2 class="section-title on-light display-font">
+          <span class="stroke">What Clients Say</span>
+          <span class="fill" id="testimonialsFill">What Clients Say</span>
+        </h2>
+      </div>
       <div class="orbit-testimonials-wrapper">
         <div class="orbit-track" id="orbit-testimonials-track"></div>
       </div>
-    </div>
+    </section>
+
+    <section class="contact-section" id="contact-section">
+      <span class="contact-icon" id="cicon1">💌</span>
+      <span class="contact-icon" id="cicon2">🖱️</span>
+      <div class="contact-inner">
+        <h2 class="contact-title">Let's Get In Touch</h2>
+        <p class="contact-desc">
+          Have a project in mind? Tell us about it and we'll get back to you
+          with a plan and a price.
+        </p>
+        <button
+          type="button"
+          class="cta"
+          style="margin-top: 0"
+          onclick="openInquiryModal('General Collaboration')"
+        >
+          <span>Start a Project</span>
+        </button>
+      </div>
+    </section>
+
+    <footer class="footer-section" id="footer-section">
+      <div class="footer-top">
+        <h2 class="footer-title">Motion<br />Studio</h2>
+        <div class="footer-col">
+          <div class="footer-col-title">Studio</div>
+          <div>Motion Design &amp; Video Editing</div>
+          <div>Logo Animation · Explainers · Social · Promo</div>
+        </div>
+      </div>
+      <div class="footer-shapes">
+        <div class="f-shape f-shape-clover"></div>
+        <div class="f-shape f-shape-halfcircle"></div>
+        <div class="f-shape f-shape-circle"></div>
+        <div class="f-shape f-shape-bowtie"></div>
+        <div class="f-shape f-shape-ring"></div>
+      </div>
+      <div class="footer-bottom">
+        <div>© 2026 Motion Studio. All rights reserved.</div>
+        <div>Built with care.</div>
+      </div>
+    </footer>
 
     <!-- Floating Chat Trigger -->
     <button
@@ -1160,10 +1828,100 @@
       class="floating-chat-btn"
       onclick="toggleFloatingChat()"
       title="Live Support"
+      style="display: none"
     >
       💬
       <span id="client-chat-badge" class="chat-badge"></span>
     </button>
+
+    <!-- Live Support Panel -->
+    <div id="client-chat-card" style="display: none">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+          border-bottom: 1px solid var(--border-color);
+          padding-bottom: 8px;
+        "
+      >
+        <span
+          style="
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 0.95rem;
+            font-family: &quot;IBM Plex Mono&quot;, monospace;
+          "
+          >💬 Live Support</span
+        >
+        <button
+          onclick="closeClientChat()"
+          style="
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 8px;
+          "
+          title="Close"
+        >
+          &times;
+        </button>
+      </div>
+      <div
+        style="
+          height: 190px;
+          overflow-y: auto;
+          background: var(--bg-color);
+          border: 1px solid var(--border-color);
+          border-radius: 10px;
+          padding: 12px;
+          margin-bottom: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        "
+        id="client-general-chat-box"
+      >
+        <p
+          style="
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 60px;
+            font-size: 0.85rem;
+          "
+        >
+          Welcome to live support! You can send your message here.
+        </p>
+      </div>
+      <div id="delivered-file-container" style="margin-bottom: 10px"></div>
+      <div style="display: flex; gap: 8px">
+        <input
+          type="text"
+          id="general-msg-input"
+          placeholder="Type your message..."
+          onkeypress="handleGeneralChatKey(event)"
+        />
+        <button
+          onclick="sendGeneralMessage()"
+          style="
+            padding: 0 16px;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+          "
+        >
+          Send
+        </button>
+      </div>
+    </div>
 
     <!-- Review Modal -->
     <div id="review-modal" class="modal">
@@ -1179,12 +1937,12 @@
         <h2>⭐ Rate Your Experience</h2>
         <form id="review-form" style="margin-top: 14px">
           <div class="form-group">
-            <label>Your Name:</label
-            ><input type="text" id="review-name" required />
+            <label>Your Name:</label>
+            <input type="text" id="review-name" required />
           </div>
           <div class="form-group">
-            <label>Company / Role:</label
-            ><input type="text" id="review-comp" placeholder="Optional" />
+            <label>Company / Role:</label>
+            <input type="text" id="review-comp" placeholder="Optional" />
           </div>
           <div class="form-group">
             <label>Rating (1 - 5):</label>
@@ -1197,8 +1955,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Your Review:</label
-            ><textarea
+            <label>Your Review:</label>
+            <textarea
               id="review-comment"
               rows="3"
               required
@@ -1266,8 +2024,8 @@
         </h2>
         <form id="inquiry-form">
           <div class="form-group">
-            <label>Selected Style / Project:</label
-            ><input
+            <label>Selected Style / Project:</label>
+            <input
               type="text"
               id="selected-project"
               readonly
@@ -1285,8 +2043,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label>💡 Estimated Standard Price:</label
-            ><input
+            <label>💡 Estimated Standard Price:</label>
+            <input
               type="text"
               id="auto-budget"
               readonly
@@ -1294,8 +2052,8 @@
             />
           </div>
           <div class="form-group">
-            <label>✍️ Your Proposed Budget:</label
-            ><input
+            <label>✍️ Your Proposed Budget:</label>
+            <input
               type="text"
               id="client-budget"
               placeholder="E.g: $300"
@@ -1303,8 +2061,8 @@
             />
           </div>
           <div class="form-group">
-            <label>Project Notes:</label
-            ><textarea
+            <label>Project Notes:</label>
+            <textarea
               id="client-message"
               rows="3"
               placeholder="Describe requirements..."
@@ -1347,9 +2105,11 @@
         document.getElementById("floating-chat-trigger").style.display = "flex";
         initSignalRConnections();
         initScrollRevealEffect();
+        initSectionTitleReveal();
+        initServicesReveal();
       });
 
-      // Scroll Typewriter / Boz rəgdən ağ rəngə keçid effekti
+      // Scroll Typewriter effect for the About paragraph
       function initScrollRevealEffect() {
         const pEl = document.getElementById("revealText");
         if (!pEl) return;
@@ -1382,16 +2142,109 @@
         );
       }
 
-      // GSAP Pinned Card Stack İnitializer (Dinamik yüklənən kartlar üçün)
+      // Stroke -> fill reveal for big section titles (About / Services / Projects / Testimonials)
+      function initSectionTitleReveal() {
+        const fills = [
+          { id: "aboutFill", start: 1.0, end: 0.35 },
+          { id: "servicesFill", start: 1.0, end: 0.25 },
+          { id: "projectsFill", start: 1.0, end: 0.3 },
+          { id: "testimonialsFill", start: 1.0, end: 0.35 },
+        ];
+        const state = fills
+          .map((f) => {
+            const el = document.getElementById(f.id);
+            if (!el) return null;
+            return {
+              el,
+              section: el.closest("section"),
+              start: f.start,
+              end: f.end,
+              current: 0,
+            };
+          })
+          .filter(Boolean);
+
+        function update() {
+          const vh = window.innerHeight;
+          state.forEach((s) => {
+            const rect = (s.section || s.el).getBoundingClientRect();
+            const startPoint = vh * s.start;
+            const endPoint = vh * s.end;
+            let P = (startPoint - rect.top) / (startPoint - endPoint);
+            P = Math.min(1, Math.max(0, P));
+            s.current += (P - s.current) * 0.08;
+            s.el.style.opacity = Math.pow(s.current, 3);
+          });
+          requestAnimationFrame(update);
+        }
+        window.addEventListener("scroll", () => {}, { passive: true });
+        requestAnimationFrame(update);
+      }
+
+      // Services list: type out each description as it scrolls into view
+      function initServicesReveal() {
+        const items = Array.from(
+          document.querySelectorAll(".service-item"),
+        ).map((el) => {
+          const descEl = el.querySelector(".service-desc");
+          const text = descEl.getAttribute("data-desc") || "";
+          descEl.textContent = "";
+          const spans = [];
+          for (const ch of text) {
+            const span = document.createElement("span");
+            span.className = "ch";
+            span.textContent = ch;
+            descEl.appendChild(span);
+            spans.push(span);
+          }
+          return { el, spans, current: 0 };
+        });
+
+        function update() {
+          const vh = window.innerHeight;
+          items.forEach((item) => {
+            const rect = item.el.getBoundingClientRect();
+            const sp = vh * 0.92;
+            const ep = vh * 0.42;
+            let ip = (sp - rect.top) / (sp - ep);
+            ip = Math.min(1, Math.max(0, ip));
+            item.current += (ip - item.current) * 0.08;
+
+            if (item.current > 0.02) item.el.classList.add("is-in");
+
+            const eased = Math.pow(item.current, 3);
+            const revealCount = Math.round(eased * item.spans.length);
+            item.spans.forEach((span, i) => {
+              if (i < revealCount) span.classList.add("is-visible");
+              else span.classList.remove("is-visible");
+            });
+          });
+          requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+      }
+
+      // GSAP Pinned Card Stack Initializer (for dynamically loaded project cards)
       let pinnedScrollTrigger = null;
       function initPinnedCardsAnimation() {
         if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined")
           return;
         gsap.registerPlugin(ScrollTrigger);
 
+        const isTouchDevice = window.matchMedia(
+          "(hover: none) and (pointer: coarse)",
+        ).matches;
         const stack = document.getElementById("projects-container");
         const cards = gsap.utils.toArray(".project-stack-item");
         if (!stack || cards.length < 2) return;
+
+        if (isTouchDevice) {
+          stack.classList.add("is-mobile-sticky");
+          cards.forEach((card, i) => {
+            card.style.setProperty("--mstick-top", 20 + i * 20 + "px");
+          });
+          return;
+        }
 
         if (pinnedScrollTrigger) {
           pinnedScrollTrigger.kill();
@@ -1430,7 +2283,6 @@
         });
       }
 
-      // Ekran ölçüsü dəyişəndə (məs. mobil klaviatura, döndərmə) yığını yenidən hesabla
       let projectStackResizeTimer;
       window.addEventListener("resize", () => {
         clearTimeout(projectStackResizeTimer);
@@ -1552,6 +2404,8 @@
           if (prof.designerName) {
             document.getElementById("header-name").innerText =
               prof.designerName;
+            const nameTwo = document.getElementById("header-name-2");
+            if (nameTwo) nameTwo.innerText = prof.designerName;
             document.getElementById("story-studio-name").innerText =
               prof.designerName;
           }
@@ -1563,6 +2417,10 @@
               : `${window.location.origin}${prof.avatarUrl}`;
             document.getElementById("header-avatar").src = avatarFull;
             document.getElementById("story-avatar-img").src = avatarFull;
+            const miniAvatar = document.getElementById(
+              "story-avatar-img-inline",
+            );
+            if (miniAvatar) miniAvatar.src = avatarFull;
           }
         } catch (err) {}
       }
@@ -1575,7 +2433,7 @@
           container.innerHTML = "";
           if (projects.length === 0) {
             container.innerHTML =
-              '<p style="color: var(--text-muted);">No projects published yet.</p>';
+              '<p style="color: var(--text-muted); text-align:center;">No projects published yet.</p>';
             return;
           }
           projects.forEach((p, idx) => {
@@ -1590,6 +2448,7 @@
                     <span class="project-cat">${p.category}</span>
                     <h3>${p.title}</h3>
                   </div>
+                  <button type="button" class="btn-order-project" onclick="openInquiryModal('${p.title.replace(/'/g, "\\'")}')">Order</button>
                 </div>
                 <div class="project-video-wrap">
                   <video id="${vid}" src="${p.videoUrl}" muted loop playsinline preload="metadata"></video>
@@ -1603,7 +2462,6 @@
                 </div>
                 <div class="project-body">
                   <p>${p.description}</p>
-                  <button class="btn-order-project" onclick="openInquiryModal('${p.title.replace(/'/g, "\\'")}')">🎯 Order With This Style</button>
                 </div>
               </div>
             `;
@@ -1620,13 +2478,11 @@
               const btn = item.querySelector(".project-video-btn");
               if (btn) btn.innerText = "▶";
             });
-            // Video ölçüləri yükləndikdən sonra stack hündürlüyünü yenidən hesabla
             videoEl.addEventListener("loadedmetadata", () => {
               if (window.ScrollTrigger) ScrollTrigger.refresh();
             });
           });
 
-          // Kartlar DOM-a düşdükdən sonra animasiyanı işə salırıq
           setTimeout(initPinnedCardsAnimation, 100);
         } catch (err) {}
       }
