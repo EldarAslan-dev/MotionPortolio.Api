@@ -32,6 +32,10 @@ builder.Services.AddHostedService<MotionPortfolio.Api.Services.InquiryConsumerSe
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 500_000_000; // 500 MB
+});
 
 var app = builder.Build();
 

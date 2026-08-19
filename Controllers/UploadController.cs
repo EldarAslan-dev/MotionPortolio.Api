@@ -13,8 +13,9 @@ public class UploadController : ControllerBase
         _environment = environment;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> UploadVideo(IFormFile file)
+   [HttpPost]
+[RequestSizeLimit(500_000_000)] // məs. 500 MB
+public async Task<IActionResult> UploadVideo(IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest("Fayl seçilməyib.");
@@ -45,5 +46,7 @@ public class UploadController : ControllerBase
         // Brauzerin birbaşa oxuya biləcəyi URL qaytarırıq
         var fileUrl = $"/uploads/{uniqueFileName}";
         return Ok(new { url = fileUrl });
+        
     }
+    
 }
