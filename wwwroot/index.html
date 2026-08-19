@@ -505,7 +505,26 @@
   <body>
     <!-- Qeydiyyat Modalı -->
     <div id="register-modal" class="modal" style="display: none">
-      <div class="modal-box">
+      <div class="modal-box" style="position: relative">
+        <button
+          onclick="
+            document.getElementById('register-modal').style.display = 'none'
+          "
+          style="
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+          "
+          aria-label="Bağla"
+        >
+          &times;
+        </button>
         <h2
           style="
             color: var(--text-color);
@@ -860,7 +879,7 @@
     </div>
 
     <script>
-      const API_BASE = `${window.location.protocol}//${window.location.hostname}:5118/api`;
+      const API_BASE = "/api";
       let storiesData = [];
       let currentStoryIndex = 0;
       let storyTimer = null;
@@ -876,9 +895,11 @@
           document.getElementById("theme-toggle-btn").innerText = "🌙 Tünd";
         }
 
-        if (!clientId) {
-          document.getElementById("register-modal").style.display = "flex";
-        } else {
+        // Qeydiyyat pəncərəsi artıq sayta girən kimi AVTOMATİK açılmır.
+        // Yalnız müştəri sifariş vermək və ya canlı dəstəklə yazmaq
+        // istəyəndə (openInquiryModal / toggleFloatingChat / sendGeneralMessage)
+        // qeydiyyat tələb olunur.
+        if (clientId) {
           document.getElementById("client-id-display").innerText =
             `Müştəri ID: ${clientId}`;
         }
@@ -997,7 +1018,7 @@
           const res = await fetch(`${API_BASE}/profile`);
           const prof = await res.json();
           if (prof.avatarUrl) {
-            const serverOrigin = `${window.location.protocol}//${window.location.hostname}:5118`;
+            const serverOrigin = `${window.location.protocol}//${window.location.hostname}`;
             const fullAvatarUrl = prof.avatarUrl.startsWith("http")
               ? prof.avatarUrl
               : `${serverOrigin}${prof.avatarUrl}`;
@@ -1226,7 +1247,7 @@
       function initSignalRConnections() {
         if (chatConnection) return;
 
-        const hubUrl = `${window.location.protocol}//${window.location.hostname}:5118/notificationHub`;
+        const hubUrl = "/notificationHub";
         chatConnection = new signalR.HubConnectionBuilder()
           .withUrl(hubUrl)
           .withAutomaticReconnect()
@@ -1244,6 +1265,10 @@
             }
           }
         });
+
+        // Sayta qayıdanda köhnə (admin panel bağlı olanda göndərilmiş daxil
+        // olmaqla) bütün mesaj tarixçəsini bazadan yükləyir.
+        loadChatHistory();
 
         chatConnection.on("ReceiveStatusUpdate", (status) => {
           if (status === "Tamamlandı") {
@@ -1265,7 +1290,11 @@
         chatConnection
           .start()
           .then(async () => {
-            chatConnection.invoke("JoinGeneralSupport");
+            // Yalnız öz şəxsi söhbət qrupuna qoşulur - başqa müştərilərin
+            // söhbətlərini görmür.
+            if (clientId) {
+              chatConnection.invoke("JoinClientGroup", clientId);
+            }
 
             try {
               const res = await fetch(`${API_BASE}/inquiries`);
@@ -1297,6 +1326,30 @@
             } catch (e) {}
           })
           .catch((err) => console.error(err));
+      }
+
+      async function loadChatHistory() {
+        if (!clientId) return;
+        try {
+          const res = await fetch(`${API_BASE}/messages/client/${clientId}`);
+          if (!res.ok) return;
+          const messages = await res.json();
+          if (!Array.isArray(messages) || messages.length === 0) return;
+
+          const chatBox = document.getElementById("client-general-chat-box");
+          if (chatBox) chatBox.innerHTML = "";
+
+          messages.forEach((m) => appendGeneralMessage(m.sender, m.content));
+
+          const last = messages[messages.length - 1];
+          if (last.sender === "Admin") {
+            const chatCard = document.getElementById("client-chat-card");
+            if (!chatCard || chatCard.style.display === "none") {
+              const badge = document.getElementById("client-chat-badge");
+              if (badge) badge.style.display = "block";
+            }
+          }
+        } catch (e) {}
       }
 
       function appendGeneralMessage(sender, content) {
@@ -1340,18 +1393,26 @@
       }
 
       function sendGeneralMessage() {
+        if (!clientId) {
+          alert("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+          document.getElementById("register-modal").style.display = "flex";
+          return;
+        }
+
         const input = document.getElementById("general-msg-input");
         const text = input.value.trim();
         if (!text) return;
 
         appendGeneralMessage("Client", text);
 
-        const clientIdentifier = clientName
-          ? `${clientName} (${clientId})`
-          : clientId || "Müştəri";
-
         chatConnection
-          .invoke("SendGeneralMessage", text, "Client", clientIdentifier)
+          .invoke(
+            "SendGeneralMessage",
+            clientId,
+            clientName || clientId,
+            "Client",
+            text,
+          )
           .then(() => {
             input.value = "";
           })

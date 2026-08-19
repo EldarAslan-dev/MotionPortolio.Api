@@ -1,0 +1,8 @@
+# .NET / Visual Studio kesh və build qovluqlari
+[Bb]in/
+[Oo]bj/
+.vs/
+*.cache
+*.user
+*.suo
+publish/

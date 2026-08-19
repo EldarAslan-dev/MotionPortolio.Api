@@ -1,9 +1,18 @@
 using Microsoft.AspNetCore.SignalR;
+using MotionPortfolio.Api.Data;
+using MotionPortfolio.Api.Models;
 
 namespace MotionPortfolio.Api.Hubs;
 
 public class NotificationHub : Hub
 {
+    private readonly AppDbContext _context;
+
+    public NotificationHub(AppDbContext context)
+    {
+        _context = context;
+    }
+
     public async Task SendInquiryNotification(object inquiry)
     {
         await Clients.All.SendAsync("ReceiveInquiryNotification", inquiry);
@@ -57,15 +66,73 @@ public class NotificationHub : Hub
 
     // --- CANLI DƏSTƏK (GENERAL SUPPORT) ---
 
+    // Yalnız ADMIN bu qrupa qoşulur ki, hər müştəridən gələn mesajdan xəbərdar olsun.
     public async Task JoinGeneralSupport()
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, "general");
     }
 
-    // Tək bir metod (Overloading olmadan)
-    public async Task SendGeneralMessage(string content, string sender, string clientNameOrId = "Müştəri")
+    // Hər MÜŞTƏRİ öz şəxsi qrupuna qoşulur ki, yalnız ÖZ söhbətini görsün,
+    // başqa müştərilərə göndərilən admin mesajlarını görməsin.
+    public async Task JoinClientGroup(string clientId)
     {
-        await Clients.Group("general").SendAsync("ReceiveGeneralMessage", sender, content, clientNameOrId);
+        if (!string.IsNullOrEmpty(clientId))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, "client_" + clientId);
+        }
+    }
+
+    // Ümumi dəstək mesajı: bazaya yazılır (offline saxlanılır) və canlı çatdırılır.
+    // clientId  -> müştərinin unikal ID-si (məs: CLI-20260819-1234)
+    // clientName-> müştərinin adı (görünmə üçün)
+    // sender    -> "Client" və ya "Admin"
+    // content   -> mesajın mətni
+    public async Task SendGeneralMessage(string clientId, string clientName, string sender, string content)
+    {
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(content))
+        {
+            return;
+        }
+
+        var displayName = string.IsNullOrWhiteSpace(clientName) ? clientId : clientName;
+
+        // Müştərinin "şəxsiyyətini" saxla/yenilə (bu qeyd mesajlar silinsə belə qalır)
+        var chatClient = await _context.ChatClients.FindAsync(clientId);
+        if (chatClient == null)
+        {
+            chatClient = new ChatClient
+            {
+                ClientId = clientId,
+                ClientName = displayName,
+                CreatedAt = DateTime.UtcNow,
+                LastMessageAt = DateTime.UtcNow
+            };
+            _context.ChatClients.Add(chatClient);
+        }
+        else
+        {
+            chatClient.LastMessageAt = DateTime.UtcNow;
+            if (sender == "Client" && !string.IsNullOrWhiteSpace(clientName))
+            {
+                chatClient.ClientName = displayName;
+            }
+        }
+
+        // Mesajı bazaya yaz (offline saxlama)
+        var message = new Message
+        {
+            ClientId = clientId,
+            ClientName = displayName,
+            Sender = sender,
+            Content = content,
+            SentAt = DateTime.UtcNow
+        };
+        _context.Messages.Add(message);
+        await _context.SaveChangesAsync();
+
+        // Yalnız bu müştəriyə (onlayn olarsa) və admin(lər)ə canlı çatdır
+        await Clients.Group("client_" + clientId).SendAsync("ReceiveGeneralMessage", sender, content, clientId, displayName);
+        await Clients.Group("general").SendAsync("ReceiveGeneralMessage", sender, content, clientId, displayName);
     }
 
     public async Task UpdateStatus(string orderNumber, string status)

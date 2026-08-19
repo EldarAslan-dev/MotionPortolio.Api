@@ -53,7 +53,7 @@ services:
       - RabbitMQ__Host=rabbitmq
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "5118:8080"
+      - "127.0.0.1:5118:8080"
     depends_on:
       sqlserver:
         condition: service_healthy

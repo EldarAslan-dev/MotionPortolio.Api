@@ -114,6 +114,28 @@ using (var scope = app.Services.CreateScope())
 
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'DeliveredFileUrl' AND Object_ID = Object_ID(N'Inquiries'))
             ALTER TABLE Inquiries ADD DeliveredFileUrl NVARCHAR(MAX) NULL;
+
+            -- Müştəri şəxsiyyəti cədvəli: mesajlar silinsə belə bu qalır,
+            -- ona görə admin panelindəki söhbətlər siyahısından müştəri itmir
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ChatClients' and xtype='U')
+            CREATE TABLE ChatClients (
+                ClientId NVARCHAR(100) NOT NULL PRIMARY KEY,
+                ClientName NVARCHAR(MAX) NOT NULL DEFAULT '',
+                CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+                LastMessageAt DATETIME2 NOT NULL DEFAULT GETDATE()
+            );
+
+            -- Ümumi dəstək çatının (offline mesajlaşma) mesajları
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Messages' and xtype='U')
+            CREATE TABLE Messages (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                ClientId NVARCHAR(100) NOT NULL DEFAULT '',
+                ClientName NVARCHAR(MAX) NOT NULL DEFAULT '',
+                OrderNumber NVARCHAR(MAX) NULL,
+                Sender NVARCHAR(50) NOT NULL DEFAULT '',
+                Content NVARCHAR(MAX) NOT NULL DEFAULT '',
+                SentAt DATETIME2 NOT NULL DEFAULT GETDATE()
+            );
         ");
     }
 }
