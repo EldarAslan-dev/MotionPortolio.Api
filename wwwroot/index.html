@@ -1,36 +1,40 @@
 <!doctype html>
-<html lang="az">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Motion Studio | Creative Portfolio</title>
+    <title>Motion Studio | Professional Portfolio</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
       :root {
-        --bg-color: #080a11;
-        --card-bg: #111422;
-        --text-color: #e2e8f0;
+        --bg-color: #030014;
+        --card-bg: #0b0919;
+        --text-color: #f8fafc;
         --text-muted: #94a3b8;
-        --border-color: rgba(255, 255, 255, 0.08);
-        --header-bg: linear-gradient(135deg, #131726, #1e1b4b);
-        --modal-bg: #131726;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --header-bg: linear-gradient(135deg, #131726, #2e1065);
+        --modal-bg: #0b0919;
+        --accent: #a855f7;
+        --accent-glow: rgba(168, 85, 247, 0.4);
       }
 
       [data-theme="light"] {
         --bg-color: #f8fafc;
         --card-bg: #ffffff;
-        --text-color: #1e293b;
+        --text-color: #0f172a;
         --text-muted: #64748b;
-        --border-color: rgba(0, 0, 0, 0.08);
+        --border-color: rgba(0, 0, 0, 0.1);
         --header-bg: linear-gradient(135deg, #e2e8f0, #c7d2fe);
         --modal-bg: #ffffff;
+        --accent: #7c3aed;
+        --accent-glow: rgba(124, 58, 237, 0.2);
       }
 
       * {
@@ -40,24 +44,52 @@
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
       }
+      html {
+        scroll-behavior: smooth;
+      }
       body {
         background-color: var(--bg-color);
         color: var(--text-color);
-        font-family: "Plus Jakarta Sans", sans-serif;
+        font-family: "Space Grotesk", sans-serif;
         padding: 16px;
         transition:
           background 0.3s,
           color 0.3s;
         position: relative;
         min-height: 100vh;
+        overflow-x: hidden;
       }
+
+      /* Cosmic Glow Background */
+      body::before {
+        content: "";
+        position: fixed;
+        top: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 800px;
+        height: 250px;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(168, 85, 247, 0.35) 0%,
+          rgba(59, 130, 246, 0.15) 40%,
+          transparent 70%
+        );
+        box-shadow: 0 0 120px 40px rgba(168, 85, 247, 0.25);
+        border-radius: 50%;
+        z-index: 0;
+        pointer-events: none;
+      }
+
       .wrapper {
-        max-width: 760px;
+        max-width: 1100px;
         margin: 0 auto;
         padding-bottom: 90px;
         display: flex;
         flex-direction: column;
-        gap: 20px; /* Bütün bloklar axıcı şəkildə alt-alta düzülür */
+        gap: 24px;
+        position: relative;
+        z-index: 2;
       }
 
       .top-bar {
@@ -75,40 +107,190 @@
         margin-left: auto;
       }
       .btn-custom {
-        background: #1e1b4b;
-        border: 1px solid #6366f1;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 8px;
+        background: rgba(168, 85, 247, 0.1);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        padding: 9px 18px;
+        border-radius: 99px;
         text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 600;
+        font:
+          500 0.75rem "IBM Plex Mono",
+          monospace;
+        letter-spacing: 0.04em;
         cursor: pointer;
+        backdrop-filter: blur(12px);
+        transition: 0.25s;
+      }
+      .btn-custom:hover {
+        border-color: var(--accent);
+        background: var(--accent-glow);
+        transform: translateY(-2px);
       }
       .btn-primary-custom {
-        background: #6366f1;
+        background: linear-gradient(135deg, #a855f7, #6366f1);
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
       }
 
-      /* Müştəri ID rozeti: admin/studiya məlumatından tamamilə ayrı,
-         sağ yuxarıda öz başına duran kiçik bir "kart". */
+      /* Hero Section */
+      .hero-section {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        align-items: center;
+        gap: 40px;
+        padding: 20px 0;
+      }
+
+      .hero-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .badge-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: rgba(168, 85, 247, 0.12);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        border-radius: 99px;
+        font:
+          500 0.72rem "IBM Plex Mono",
+          monospace;
+        color: var(--accent);
+      }
+
+      .hero-content h1 {
+        font-size: clamp(2.2rem, 4vw, 3.5rem);
+        line-height: 1.1;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .hero-content h1 span {
+        background: linear-gradient(135deg, #c084fc, #818cf8, #38bdf8);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .hero-content p {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+        line-height: 1.6;
+        max-width: 460px;
+      }
+
+      /* Motion Tools Orbit */
+      .motion-orbit-container {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .orbit-ring {
+        position: absolute;
+        inset: 0;
+        border: 1px dashed rgba(168, 85, 247, 0.25);
+        border-radius: 50%;
+        animation: spinOrbit 25s linear infinite;
+      }
+      @keyframes spinOrbit {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .orbit-badge-item {
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--accent);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        font-family: "IBM Plex Mono", monospace;
+      }
+      .orbit-badge-item:nth-child(1) {
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .orbit-badge-item:nth-child(2) {
+        top: 20%;
+        right: 0;
+        transform: translate(50%, -50%);
+      }
+      .orbit-badge-item:nth-child(3) {
+        bottom: 20%;
+        right: 0;
+        transform: translate(50%, 50%);
+      }
+      .orbit-badge-item:nth-child(4) {
+        bottom: 0;
+        left: 50%;
+        transform: translate(-50%, 50%);
+      }
+      .orbit-badge-item:nth-child(5) {
+        bottom: 20%;
+        left: 0;
+        transform: translate(-50%, 50%);
+      }
+      .orbit-badge-item:nth-child(6) {
+        top: 20%;
+        left: 0;
+        transform: translate(-50%, -50%);
+      }
+
+      .center-core {
+        width: 80px;
+        height: 80px;
+        background: radial-gradient(
+          circle,
+          rgba(168, 85, 247, 0.3) 0%,
+          rgba(11, 9, 25, 0.9) 80%
+        );
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        box-shadow: 0 0 35px var(--accent-glow);
+        z-index: 2;
+      }
+
+      /* Client ID Badge */
       .client-badge {
         display: flex;
         align-items: center;
         gap: 7px;
-        background: rgba(52, 211, 153, 0.1);
-        border: 1px solid rgba(52, 211, 153, 0.35);
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.35);
         color: #34d399;
         padding: 7px 12px;
         border-radius: 20px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.2px;
+        font:
+          500 0.72rem "IBM Plex Mono",
+          monospace;
         cursor: pointer;
         white-space: nowrap;
         transition: background 0.15s;
       }
       .client-badge:hover {
-        background: rgba(52, 211, 153, 0.18);
+        background: rgba(16, 185, 129, 0.18);
       }
       .client-badge-dot {
         width: 6px;
@@ -116,7 +298,7 @@
         border-radius: 50%;
         background: #34d399;
         flex-shrink: 0;
-        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
       }
 
       .studio-header {
@@ -179,15 +361,17 @@
       }
 
       .profile-info h1 {
-        font-size: 1.5rem;
-        font-weight: 800;
+        font-size: 1.4rem;
+        font-weight: 700;
         color: var(--text-color);
       }
       .profile-info p {
-        color: #818cf8;
-        font-size: 0.95rem;
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-family: "IBM Plex Mono", monospace;
         font-weight: 600;
         margin-top: 2px;
+        text-transform: uppercase;
       }
 
       .card {
@@ -200,14 +384,13 @@
       .card h2 {
         font-size: 1.25rem;
         font-weight: 700;
-        color: #818cf8;
+        color: var(--text-color);
         margin-bottom: 16px;
       }
 
-      /* Bütün layihələr alt-alta axıcı sıralanır */
       .projects-grid {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 20px;
         width: 100%;
       }
@@ -221,13 +404,19 @@
         flex-direction: column;
         width: 100%;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        transition:
+          border-color 0.3s,
+          transform 0.3s;
+      }
+      .project-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-3px);
       }
 
       .project-card video {
         width: 100%;
-        height: auto;
-        max-height: 320px;
-        object-fit: contain;
+        height: 220px;
+        object-fit: cover;
         background: #000;
         display: block;
       }
@@ -241,13 +430,15 @@
       }
       .project-cat {
         display: inline-block;
-        background: rgba(99, 102, 241, 0.15);
-        color: #818cf8;
-        font-size: 0.75rem;
+        background: rgba(168, 85, 247, 0.15);
+        color: var(--accent);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
         padding: 4px 8px;
         border-radius: 6px;
         font-weight: 600;
         align-self: flex-start;
+        text-transform: uppercase;
       }
       .project-body h3 {
         font-size: 1.1rem;
@@ -261,18 +452,19 @@
       .btn-order-project {
         width: 100%;
         padding: 11px;
-        background: #6366f1;
+        background: var(--accent);
         color: #fff;
         font-weight: 600;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
+        font-family: "IBM Plex Mono", monospace;
         margin-top: 4px;
-        transition: background 0.2s;
+        transition: opacity 0.2s;
       }
       .btn-order-project:hover {
-        background: #4f46e5;
+        opacity: 0.9;
       }
 
       .orbit-testimonials-wrapper {
@@ -313,9 +505,8 @@
         }
       }
       .orbit-item {
-        background: rgba(17, 20, 34, 0.6);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
         padding: 14px 18px;
         border-radius: 12px;
         min-width: 260px;
@@ -335,35 +526,32 @@
       .orbit-author {
         font-size: 0.75rem;
         color: var(--text-muted);
-        font-weight: 600;
+        font-family: "IBM Plex Mono", monospace;
       }
 
-      /* Həmişə sağ altdan sabit qalan Çat Düyməsi */
       .floating-chat-btn {
         position: fixed;
         bottom: 22px;
         right: 22px;
         width: 58px;
         height: 58px;
-        background: #6366f1;
+        background: linear-gradient(135deg, #a855f7, #6366f1);
         color: #fff;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
-        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
         cursor: pointer;
         z-index: 99999;
         transition: transform 0.2s;
         border: none;
-        position: fixed;
       }
       .floating-chat-btn:hover {
         transform: scale(1.08);
       }
 
-      /* Qırmızı bildiriş nöqtəsi */
       .chat-badge {
         position: absolute;
         top: 6px;
@@ -376,14 +564,12 @@
         display: none;
       }
 
-      /* Mobil və Kompüter üçün Sabit Canlı Dəstək Pəncərəsi */
       #client-chat-card {
         position: fixed !important;
         bottom: 90px !important;
         right: 16px !important;
-        left: 16px !important;
-        max-width: 420px;
-        margin-left: auto;
+        left: auto !important;
+        width: min(420px, calc(100vw - 32px));
         z-index: 99998;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
       }
@@ -391,7 +577,8 @@
       .modal {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.85);
+        background: rgba(3, 0, 20, 0.85);
+        backdrop-filter: blur(8px);
         display: none;
         align-items: center;
         justify-content: center;
@@ -406,7 +593,7 @@
         width: 100%;
         max-width: 400px;
         position: relative;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
       }
       .close-modal {
         position: absolute;
@@ -451,7 +638,7 @@
       .story-bar-fill {
         width: 0%;
         height: 100%;
-        background: #fff;
+        background: var(--accent);
         transition: width linear;
       }
       .story-header-info {
@@ -469,7 +656,7 @@
       .story-header-info span {
         color: #fff;
         font-size: 0.85rem;
-        font-weight: 700;
+        font-family: "IBM Plex Mono", monospace;
       }
       .story-content {
         flex-grow: 1;
@@ -492,7 +679,9 @@
         color: #fff;
         padding: 8px 16px;
         border-radius: 8px;
-        font-weight: 600;
+        font:
+          500 0.7rem "IBM Plex Mono",
+          monospace;
         cursor: pointer;
       }
 
@@ -505,6 +694,7 @@
         color: var(--text-muted);
         display: block;
         margin-bottom: 4px;
+        font-family: "IBM Plex Mono", monospace;
       }
       input,
       select,
@@ -522,44 +712,54 @@
       select:focus,
       textarea:focus {
         outline: none;
-        border-color: #6366f1;
+        border-color: var(--accent);
       }
       .btn-submit {
         width: 100%;
         padding: 12px;
-        background: #6366f1;
+        background: var(--accent);
         color: #fff;
-        font-weight: 600;
+        font-weight: 700;
         border: none;
         border-radius: 8px;
         cursor: pointer;
+        font-size: 0.85rem;
+        font-family: "IBM Plex Mono", monospace;
         margin-top: 4px;
       }
       .btn-submit:hover {
-        background: #4f46e5;
+        opacity: 0.9;
+      }
+
+      @media (max-width: 850px) {
+        .hero-section {
+          grid-template-columns: 1fr;
+          text-align: center;
+          gap: 30px;
+        }
+        .hero-content {
+          align-items: center;
+        }
+        .hero-content p {
+          max-width: 100%;
+        }
+        .motion-orbit-container {
+          width: 260px;
+          height: 260px;
+        }
       }
     </style>
   </head>
   <body>
-    <!-- Qeydiyyat Modalı -->
+    <!-- Registration Modal -->
     <div id="register-modal" class="modal" style="display: none">
       <div class="modal-box" style="position: relative">
         <button
           onclick="
             document.getElementById('register-modal').style.display = 'none'
           "
-          style="
-            position: absolute;
-            top: 10px;
-            right: 12px;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.4rem;
-            cursor: pointer;
-            line-height: 1;
-          "
-          aria-label="Bağla"
+          class="close-modal"
+          aria-label="Close"
         >
           &times;
         </button>
@@ -567,10 +767,10 @@
           style="
             color: var(--text-color);
             font-size: 1.25rem;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
           "
         >
-          👋 Motion Studio-ya Xoş Gəldiniz
+          👋 Welcome to Motion Studio
         </h2>
         <p
           style="
@@ -579,30 +779,29 @@
             margin-bottom: 14px;
           "
         >
-          Dəstək və xidmətlərdən yararlanmaq üçün zəhmət olmasa qeydiyyatdan
-          keçin.
+          Please register to access support and services.
         </p>
         <form id="register-form">
           <div class="form-group">
-            <label>Adınız:</label>
+            <label>Your Name:</label>
             <input
               type="text"
               id="reg-name"
-              placeholder="Məs: Anar Məmmədov"
+              placeholder="E.g: John Doe"
               required
             />
           </div>
           <div class="form-group">
-            <label>Email Adresiniz:</label>
+            <label>Email Address:</label>
             <input
               type="email"
               id="reg-email"
-              placeholder="ornek@mail.com"
+              placeholder="example@mail.com"
               required
             />
           </div>
           <button type="submit" id="submit-reg" class="btn-submit">
-            Qeydiyyatı Tamamla
+            Complete Registration
           </button>
         </form>
       </div>
@@ -612,9 +811,9 @@
       <div class="top-bar">
         <button
           class="btn-custom btn-primary-custom"
-          onclick="openInquiryModal('Ümumi Əməkdaşlıq')"
+          onclick="openInquiryModal('General Collaboration')"
         >
-          🤝 Əməkdaşlıq Et
+          🤝 Collaborate
         </button>
         <div class="top-bar-right">
           <div
@@ -622,7 +821,7 @@
             class="client-badge"
             style="display: none"
             onclick="copyClientId()"
-            title="Sizin unikal müştəri identifikatorunuz — kopyalamaq üçün klikləyin"
+            title="Your unique client identifier — click to copy"
           >
             <span class="client-badge-dot"></span>
             <span id="client-badge-text"></span>
@@ -632,17 +831,52 @@
             onclick="toggleTheme()"
             id="theme-toggle-btn"
           >
-            ☀️ İşıqlı
+            ☀️ Light
           </button>
         </div>
       </div>
+
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-content">
+          <div class="badge-tag">✨ Motion Portfolio</div>
+          <h1>Providing <span>the best</span> motion experience.</h1>
+          <p>
+            Motion videos, graphic design, animation works, and creative
+            template services.
+          </p>
+          <a
+            href="#projects-section"
+            class="btn-custom btn-primary-custom"
+            style="
+              padding: 11px 22px;
+              display: inline-block;
+              text-align: center;
+              text-decoration: none;
+              border-radius: 99px;
+            "
+            >View Showreel</a
+          >
+        </div>
+
+        <div class="motion-orbit-container">
+          <div class="orbit-ring"></div>
+          <div class="orbit-badge-item">AE</div>
+          <div class="orbit-badge-item">C4D</div>
+          <div class="orbit-badge-item">BL</div>
+          <div class="orbit-badge-item">RM</div>
+          <div class="orbit-badge-item">PR</div>
+          <div class="orbit-badge-item">FIG</div>
+          <div class="center-core">🎬</div>
+        </div>
+      </section>
 
       <div class="studio-header">
         <div
           id="story-ring-wrapper"
           class="story-ring-container"
           onclick="openStoryModal()"
-          title="Story-lərə Bax"
+          title="View Stories"
         >
           <img
             id="header-avatar"
@@ -653,15 +887,15 @@
         </div>
         <div class="profile-info">
           <h1 id="header-name">Motion Studio</h1>
-          <p id="header-bio">3D & Motion Artist Studio</p>
+          <p id="header-bio">Motion Design & Animation Studio</p>
         </div>
       </div>
 
-      <!-- Tək Mərkəzi Canlı Dəstək Paneli -->
+      <!-- Live Support Panel -->
       <div
         id="client-chat-card"
         class="card"
-        style="display: none; border: 2px solid #6366f1"
+        style="display: none; border: 2px solid var(--accent)"
       >
         <div
           style="
@@ -673,8 +907,14 @@
             padding-bottom: 8px;
           "
         >
-          <span style="font-weight: 700; color: #818cf8; font-size: 0.95rem"
-            >💬 Canlı Dəstək</span
+          <span
+            style="
+              font-weight: 700;
+              color: var(--accent);
+              font-size: 0.95rem;
+              font-family: &quot;IBM Plex Mono&quot;, monospace;
+            "
+            >💬 Live Support</span
           >
           <button
             onclick="closeClientChat()"
@@ -687,7 +927,7 @@
               font-weight: bold;
               padding: 0 8px;
             "
-            title="Bağla"
+            title="Close"
           >
             &times;
           </button>
@@ -716,7 +956,7 @@
               font-size: 0.85rem;
             "
           >
-            Canlı dəstəyə xoş gəldiniz! Sualınızı verə bilərsiniz.
+            Welcome to live support! You can send your message here.
           </p>
         </div>
 
@@ -726,7 +966,7 @@
           <input
             type="text"
             id="general-msg-input"
-            placeholder="Mesajınızı yazın..."
+            placeholder="Type your message..."
             onkeypress="handleGeneralChatKey(event)"
           />
           <button
@@ -742,16 +982,16 @@
               font-size: 0.85rem;
             "
           >
-            Göndər
+            Send
           </button>
         </div>
       </div>
 
-      <!-- Alt-alta axıcı Vitrin -->
-      <div class="card">
-        <h2>🎬 Portfel / Animasiya Vitrini</h2>
+      <!-- Portfolio / Animation Showcase -->
+      <div id="projects-section" class="card">
+        <h2>🎬 Portfolio & Animation Showcase</h2>
         <div id="projects-container" class="projects-grid">
-          <p style="color: var(--text-muted)">Layihələr yüklənir...</p>
+          <p style="color: var(--text-muted)">Loading projects...</p>
         </div>
       </div>
 
@@ -760,18 +1000,18 @@
       </div>
     </div>
 
-    <!-- Üzən Çat Düyməsi + Qırmızı Nöqtə -->
+    <!-- Floating Chat Trigger -->
     <button
       id="floating-chat-trigger"
       class="floating-chat-btn"
       onclick="toggleFloatingChat()"
-      title="Canlı Dəstək"
+      title="Live Support"
     >
       💬
       <span id="client-chat-badge" class="chat-badge"></span>
     </button>
 
-    <!-- Rəy Modalı -->
+    <!-- Review Modal -->
     <div id="review-modal" class="modal">
       <div class="modal-box">
         <button
@@ -782,18 +1022,18 @@
         >
           &times;
         </button>
-        <h2>⭐ Təcrübənizi Qiymətləndirin</h2>
+        <h2>⭐ Rate Your Experience</h2>
         <form id="review-form" style="margin-top: 14px">
           <div class="form-group">
-            <label>Adınız:</label
+            <label>Your Name:</label
             ><input type="text" id="review-name" required />
           </div>
           <div class="form-group">
-            <label>Şirkət / Vəzifə:</label
-            ><input type="text" id="review-comp" placeholder="İstəyə bağlı" />
+            <label>Company / Role:</label
+            ><input type="text" id="review-comp" placeholder="Optional" />
           </div>
           <div class="form-group">
-            <label>Ulduz (1 - 5):</label>
+            <label>Rating (1 - 5):</label>
             <select id="review-rating">
               <option value="5">⭐⭐⭐⭐⭐ (5)</option>
               <option value="4">⭐⭐⭐⭐ (4)</option>
@@ -803,15 +1043,15 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Rəyiniz:</label
+            <label>Your Review:</label
             ><textarea
               id="review-comment"
               rows="3"
               required
-              placeholder="Xidmət haqqında fikirləriniz..."
+              placeholder="Share your thoughts about our service..."
             ></textarea>
           </div>
-          <button type="submit" class="btn-submit">Rəyi Göndər</button>
+          <button type="submit" class="btn-submit">Submit Review</button>
         </form>
       </div>
     </div>
@@ -845,13 +1085,13 @@
         </div>
         <div class="story-content" id="story-content-area"></div>
         <div class="story-nav-btns">
-          <button onclick="prevStory()">Geri</button>
-          <button onclick="nextStory()">İrəli</button>
+          <button onclick="prevStory()">Back</button>
+          <button onclick="nextStory()">Next</button>
         </div>
       </div>
     </div>
 
-    <!-- Sifariş Modalı -->
+    <!-- Inquiry Modal -->
     <div
       id="inquiry-modal"
       class="modal"
@@ -868,30 +1108,30 @@
             margin-bottom: 14px;
           "
         >
-          🤝 Əməkdaşlıq Sifarişi
+          🤝 Collaboration Inquiry
         </h2>
         <form id="inquiry-form">
           <div class="form-group">
-            <label>Seçilən Stil / Layihə:</label
+            <label>Selected Style / Project:</label
             ><input
               type="text"
               id="selected-project"
               readonly
-              style="color: #818cf8"
+              style="color: var(--accent)"
             />
           </div>
           <div class="form-group">
-            <label>🎬 Layihə Növü / Paket:</label>
+            <label>🎬 Project Type / Package:</label>
             <select id="calc-package" onchange="calculateBudget()">
               <option value="150">
-                Standart Reels / TikTok Şablonu ($150)
+                Standard Reels / TikTok Template ($150)
               </option>
-              <option value="350">3D Motion Kommersiya ($350)</option>
-              <option value="600">Kompleks Studio Layihəsi ($600)</option>
+              <option value="350">3D Motion Commercial ($350)</option>
+              <option value="600">Complex Studio Project ($600)</option>
             </select>
           </div>
           <div class="form-group">
-            <label>💡 Təxmini Hesablanan Qiymət:</label
+            <label>💡 Estimated Standard Price:</label
             ><input
               type="text"
               id="auto-budget"
@@ -900,25 +1140,25 @@
             />
           </div>
           <div class="form-group">
-            <label>✍️ Sizin Təklif Etdiyiniz Büdcə:</label
+            <label>✍️ Your Proposed Budget:</label
             ><input
               type="text"
               id="client-budget"
-              placeholder="Məs: $300"
+              placeholder="E.g: $300"
               required
             />
           </div>
           <div class="form-group">
-            <label>Layihə Haqqında Qeydlər:</label
+            <label>Project Notes:</label
             ><textarea
               id="client-message"
               rows="3"
-              placeholder="İstəklərinizi qeyd edin..."
+              placeholder="Describe your requirements..."
               required
             ></textarea>
           </div>
           <button type="submit" id="submit-inquiry" class="btn-submit">
-            Sifarişi Göndər
+            Send Inquiry
           </button>
         </form>
       </div>
@@ -931,9 +1171,8 @@
       let storyTimer = null;
       let clientId = localStorage.getItem("clientId") || null;
       let clientName = localStorage.getItem("clientName") || "";
-      let clientEmail = localStorage.getItem("clientEmail") || ""; // Düzəldildi
+      let clientEmail = localStorage.getItem("clientEmail") || "";
       let chatConnection = null;
-      // Admin komanda üzvü ilə birbaşa danışmağa icazə verəndə (sifariş üzrə çat) aktivləşir
       let orderChatEnabled = false;
       let myOrderNumber = null;
 
@@ -941,13 +1180,9 @@
         const savedTheme = localStorage.getItem("theme");
         if (savedTheme === "light") {
           document.documentElement.setAttribute("data-theme", "light");
-          document.getElementById("theme-toggle-btn").innerText = "🌙 Tünd";
+          document.getElementById("theme-toggle-btn").innerText = "🌙 Dark";
         }
 
-        // Qeydiyyat pəncərəsi artıq sayta girən kimi AVTOMATİK açılmır.
-        // Yalnız müştəri sifariş vermək və ya canlı dəstəklə yazmaq
-        // istəyəndə (openInquiryModal / toggleFloatingChat / sendGeneralMessage)
-        // qeydiyyat tələb olunur.
         if (clientId) {
           showClientBadge(clientId);
         }
@@ -967,7 +1202,7 @@
           e.preventDefault();
           const btn = document.getElementById("submit-reg");
           btn.disabled = true;
-          btn.innerText = "Qeydiyyat olunur...";
+          btn.innerText = "Registering...";
 
           const name = document.getElementById("reg-name").value.trim();
           const email = document.getElementById("reg-email").value.trim();
@@ -991,15 +1226,15 @@
 
               showClientBadge(clientId);
               document.getElementById("register-modal").style.display = "none";
-              alert(`Qeydiyyat uğurla tamamlandı! Sizin ID: ${clientId}`);
+              alert(`Registration successful! Your ID: ${clientId}`);
             } else {
-              alert("Qeydiyyat zamanı xəta baş verdi.");
+              alert("Registration failed.");
             }
           } catch (err) {
-            alert("Serverlə əlaqə qurulmadı.");
+            alert("Could not connect to the server.");
           } finally {
             btn.disabled = false;
-            btn.innerText = "Qeydiyyatı Tamamla";
+            btn.innerText = "Complete Registration";
           }
         });
 
@@ -1017,7 +1252,7 @@
         const finish = () => {
           if (!text) return;
           const original = clientId;
-          text.innerText = "Kopyalandı! ✓";
+          text.innerText = "Copied! ✓";
           setTimeout(() => (text.innerText = original), 1200);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1036,11 +1271,11 @@
         if (html.getAttribute("data-theme") === "light") {
           html.removeAttribute("data-theme");
           localStorage.setItem("theme", "dark");
-          btn.innerText = "☀️ İşıqlı";
+          btn.innerText = "☀️ Light";
         } else {
           html.setAttribute("data-theme", "light");
           localStorage.setItem("theme", "light");
-          btn.innerText = "🌙 Tünd";
+          btn.innerText = "🌙 Dark";
         }
       }
 
@@ -1103,7 +1338,7 @@
           document.getElementById("header-name").innerText = name;
           document.getElementById("story-studio-name").innerText = name;
           document.getElementById("header-bio").innerText =
-            prof.bio || "3D & Motion Artist Studio";
+            prof.bio || "Motion Design & Animation Studio";
         } catch (err) {}
       }
 
@@ -1115,7 +1350,7 @@
           container.innerHTML = "";
           if (projects.length === 0) {
             container.innerHTML =
-              '<p style="color: var(--text-muted);">Hələ heç bir layihə paylaşılmayıb.</p>';
+              '<p style="color: var(--text-muted);">No projects published yet.</p>';
             return;
           }
           projects.forEach((p) => {
@@ -1127,7 +1362,7 @@
                 <span class="project-cat">${p.category}</span>
                 <h3>${p.title}</h3>
                 <p>${p.description}</p>
-                <button class="btn-order-project" onclick="openInquiryModal('${p.title.replace(/'/g, "\\'")}')">🎯 Bu Stil İlə Sifariş Ver</button>
+                <button class="btn-order-project" onclick="openInquiryModal('${p.title.replace(/'/g, "\\'")}')">🎯 Order With This Style</button>
               </div>
             `;
             container.appendChild(card);
@@ -1162,7 +1397,7 @@
       async function openStoryModal() {
         await loadPublicStories();
         if (!storiesData || storiesData.length === 0) {
-          alert("Aktiv story mövcud deyil!");
+          alert("No active stories available!");
           return;
         }
         currentStoryIndex = 0;
@@ -1242,7 +1477,7 @@
 
       function openInquiryModal(projectTitle) {
         if (!clientId) {
-          alert("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+          alert("Please register first.");
           document.getElementById("register-modal").style.display = "flex";
           return;
         }
@@ -1262,7 +1497,7 @@
         const select = document.getElementById("calc-package");
         const basePrice = select.value;
         document.getElementById("auto-budget").value =
-          `$${basePrice} (Təxmini Standart Qiymət)`;
+          `$${basePrice} (Estimated Standard Price)`;
         document.getElementById("client-budget").value = `$${basePrice}`;
       }
 
@@ -1272,7 +1507,7 @@
           e.preventDefault();
           const btn = document.getElementById("submit-inquiry");
           btn.disabled = true;
-          btn.innerText = "Göndürülür...";
+          btn.innerText = "Sending...";
 
           const payload = {
             clientId: clientId,
@@ -1293,7 +1528,7 @@
             if (res.ok) {
               const data = await res.json();
               alert(
-                "Sifarişiniz uğurla göndərildi! Canlı dəstək vasitəsilə izləyə bilərsiniz.",
+                "Your order has been successfully sent! You can track it via live support.",
               );
               document.getElementById("inquiry-form").reset();
               closeInquiryModal();
@@ -1308,13 +1543,13 @@
                 chatConnection.invoke("JoinOrderGroup", data.data.orderNumber);
               }
             } else {
-              alert("Xəta baş verdi.");
+              alert("An error occurred.");
             }
           } catch (err) {
-            alert("Serverlə əlaqə qurulmadı.");
+            alert("Could not connect to the server.");
           } finally {
             btn.disabled = false;
-            btn.innerText = "Sifarişi Göndər";
+            btn.innerText = "Send Inquiry";
           }
         });
 
@@ -1328,7 +1563,6 @@
           .build();
 
         chatConnection.on("ReceiveGeneralMessage", (sender, content) => {
-          // Sifariş çatı aktivdirsə, bu ümumi dəstək kanalı istifadə olunmur.
           if (orderChatEnabled) return;
           if (sender === "Admin") {
             playNotificationSound();
@@ -1342,10 +1576,9 @@
           }
         });
 
-        // Sifariş üzrə çat: admin komanda üzvünü müştəri ilə görüşdürəndə işə düşür.
         chatConnection.on("ReceiveMessage", (msg) => {
           if (!orderChatEnabled || msg.orderNumber !== myOrderNumber) return;
-          if (msg.sender === "Client") return; // özümüzün göndərdiyimizi artıq göstərmişik
+          if (msg.sender === "Client") return;
 
           playNotificationSound();
           appendGeneralMessage(msg.sender, msg.content, msg.sender);
@@ -1366,8 +1599,8 @@
             if (fileContainer) {
               fileContainer.innerHTML = `
                 <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 10px; border-radius: 8px; text-align: center;">
-                  <p style="color: #10b981; font-weight: bold; margin-bottom: 6px; font-size: 0.85rem;">🎉 Sifarişiniz Tamamlandı!</p>
-                  <button onclick="document.getElementById('review-modal').style.display='flex'" style="background: #f59e0b; padding: 6px 12px; font-size: 0.8rem; border:none; border-radius:6px; cursor:pointer; color:#fff;">⭐ Rəy Bildir</button>
+                  <p style="color: #10b981; font-weight: bold; margin-bottom: 6px; font-size: 0.85rem;">🎉 Your Order is Completed!</p>
+                  <button onclick="document.getElementById('review-modal').style.display='flex'" style="background: #f59e0b; padding: 6px 12px; font-size: 0.8rem; border:none; border-radius:6px; cursor:pointer; color:#fff;">⭐ Leave a Review</button>
                 </div>
               `;
             }
@@ -1377,8 +1610,6 @@
         chatConnection
           .start()
           .then(async () => {
-            // Yalnız öz şəxsi söhbət qrupuna qoşulur - başqa müştərilərin
-            // söhbətlərini görmür.
             if (clientId) {
               chatConnection.invoke("JoinClientGroup", clientId);
             }
@@ -1391,8 +1622,6 @@
                   myOrderNumber = myInquiry.orderNumber;
                   chatConnection.invoke("JoinOrderGroup", myOrderNumber);
 
-                  // Admin komanda üzvü ilə birbaşa danışmağa icazə veribsə,
-                  // mesajlar admin panelinə yox, birbaşa sifariş çatına gedir.
                   orderChatEnabled = !!myInquiry.clientChatEnabled;
                   if (orderChatEnabled) {
                     loadOrderChatHistory(myOrderNumber);
@@ -1405,8 +1634,8 @@
                     if (fileContainer) {
                       fileContainer.innerHTML = `
                         <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 10px; border-radius: 8px; text-align: center;">
-                          <p style="color: #10b981; font-weight: bold; margin-bottom: 6px; font-size: 0.85rem;">🎉 Sifarişiniz Tamamlandı!</p>
-                          <button onclick="document.getElementById('review-modal').style.display='flex'" style="background: #f59e0b; padding: 6px 12px; font-size: 0.8rem; border:none; border-radius:6px; cursor:pointer; color:#fff;">⭐ Rəy Bildir</button>
+                          <p style="color: #10b981; font-weight: bold; margin-bottom: 6px; font-size: 0.85rem;">🎉 Your Order is Completed!</p>
+                          <button onclick="document.getElementById('review-modal').style.display='flex'" style="background: #f59e0b; padding: 6px 12px; font-size: 0.8rem; border:none; border-radius:6px; cursor:pointer; color:#fff;">⭐ Leave a Review</button>
                         </div>
                       `;
                     }
@@ -1415,7 +1644,6 @@
               }
             } catch (e) {}
 
-            // Sifariş çatı aktiv deyilsə (defolt), ümumi dəstək tarixçəsi göstərilir.
             if (!orderChatEnabled) {
               loadChatHistory();
             }
@@ -1456,12 +1684,13 @@
         const isAdmin = sender !== "Client";
 
         msgDiv.style.alignSelf = isAdmin ? "flex-start" : "flex-end";
-        msgDiv.style.background = isAdmin ? "#1e1b4b" : "#10b981";
+        msgDiv.style.background = isAdmin ? "#1e1b4b" : "var(--accent)";
+        msgDiv.style.color = "#fff";
         msgDiv.style.padding = "8px 12px";
         msgDiv.style.borderRadius = "8px";
         msgDiv.style.maxWidth = "80%";
         msgDiv.style.fontSize = "0.85rem";
-        msgDiv.innerHTML = `<strong>${isAdmin ? label || "Admin" : "Siz"}:</strong> ${content}`;
+        msgDiv.innerHTML = `<strong>${isAdmin ? label || "Admin" : "You"}:</strong> ${content}`;
 
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -1488,7 +1717,7 @@
 
       function toggleFloatingChat(forceOpen = false) {
         if (!clientId) {
-          alert("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+          alert("Please register first.");
           document.getElementById("register-modal").style.display = "flex";
           return;
         }
@@ -1504,7 +1733,7 @@
 
       function sendGeneralMessage() {
         if (!clientId) {
-          alert("Zəhmət olmasa əvvəlcə qeydiyyatdan keçin.");
+          alert("Please register first.");
           document.getElementById("register-modal").style.display = "flex";
           return;
         }
@@ -1534,7 +1763,7 @@
           .then(() => {
             input.value = "";
           })
-          .catch((err) => console.error("Mesaj göndərmə xətası:", err));
+          .catch((err) => console.error("Message send error:", err));
       }
 
       function handleGeneralChatKey(e) {
@@ -1559,7 +1788,7 @@
               body: JSON.stringify(payload),
             });
             if (res.ok) {
-              alert("Rəyiniz üçün təşəkkür edirik!");
+              alert("Thank you for your review!");
               document.getElementById("review-modal").style.display = "none";
               document.getElementById("review-form").reset();
               loadPublicTestimonials();
