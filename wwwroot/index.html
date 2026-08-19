@@ -439,25 +439,132 @@
         left: 0;
         width: 100%;
         will-change: transform;
+        backface-visibility: hidden;
       }
 
       .project-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
-        border-radius: 18px;
+        border-radius: 20px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
         width: 100%;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
       }
 
-      .project-card video {
+      /* Yığılanda görünən başlıq zolağı - video deyil, ad+kateqoriya göstərir.
+         Bu, kartlar üst-üstə düşəndə videonun qəribə kəsiyini görünməz edir
+         və "wallet card stack" tərzi peşəkar görünüş yaradır. */
+      .project-peek-bar {
+        height: 80px;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 20px;
+        background: var(--header-bg);
+        border-bottom: 1px solid var(--border-color);
+        cursor: default;
+      }
+      .project-peek-index {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--accent-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font:
+          700 0.8rem "IBM Plex Mono",
+          monospace;
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .project-peek-text {
+        min-width: 0;
+        flex: 1;
+      }
+      .project-peek-text .project-cat {
+        margin-bottom: 2px;
+      }
+      .project-peek-text h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .project-video-wrap {
+        position: relative;
         width: 100%;
         height: 260px;
-        object-fit: cover;
         background: #000;
+      }
+      .project-video-wrap video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
         display: block;
+      }
+      /* Videonun alt hissəsini kart fonuna yumşaq keçidlə birləşdirir */
+      .project-video-wrap::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 60px;
+        background: linear-gradient(to top, var(--card-bg), transparent);
+        pointer-events: none;
+      }
+      .project-video-controls {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 2;
+      }
+      .project-video-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(11, 9, 25, 0.65);
+        backdrop-filter: blur(8px);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+      }
+      .project-video-btn:hover {
+        background: var(--accent);
+        transform: scale(1.06);
+      }
+      .project-video-progress {
+        flex: 1;
+        height: 4px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.25);
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .project-video-progress-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--accent-gradient);
+        border-radius: 99px;
       }
 
       .project-body {
@@ -1276,6 +1383,7 @@
       }
 
       // GSAP Pinned Card Stack İnitializer (Dinamik yüklənən kartlar üçün)
+      let pinnedScrollTrigger = null;
       function initPinnedCardsAnimation() {
         if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined")
           return;
@@ -1284,6 +1392,11 @@
         const stack = document.getElementById("projects-container");
         const cards = gsap.utils.toArray(".project-stack-item");
         if (!stack || cards.length < 2) return;
+
+        if (pinnedScrollTrigger) {
+          pinnedScrollTrigger.kill();
+          pinnedScrollTrigger = null;
+        }
 
         const PEEK = 80;
         const cardHeights = cards.map((c) => c.offsetHeight);
@@ -1304,11 +1417,11 @@
           tl.to(cards[i], { y: restY[i], duration: 1 }, i - 1);
         }
 
-        ScrollTrigger.create({
+        pinnedScrollTrigger = ScrollTrigger.create({
           trigger: stack,
           start: "top top+=80",
           end: () => "+=" + window.innerHeight * (cards.length - 1),
-          scrub: 0.3,
+          scrub: 0.6,
           pin: true,
           pinType: "transform",
           anticipatePin: 1,
@@ -1316,6 +1429,15 @@
           invalidateOnRefresh: true,
         });
       }
+
+      // Ekran ölçüsü dəyişəndə (məs. mobil klaviatura, döndərmə) yığını yenidən hesabla
+      let projectStackResizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(projectStackResizeTimer);
+        projectStackResizeTimer = setTimeout(() => {
+          if (window.ScrollTrigger) ScrollTrigger.refresh();
+        }, 250);
+      });
 
       document
         .getElementById("register-form")
@@ -1459,23 +1581,82 @@
           projects.forEach((p, idx) => {
             const item = document.createElement("div");
             item.className = "project-stack-item";
+            const vid = `proj-vid-${idx}`;
             item.innerHTML = `
               <div class="project-card">
-                <video src="${p.videoUrl}" controls muted loop></video>
+                <div class="project-peek-bar">
+                  <div class="project-peek-index">${String(idx + 1).padStart(2, "0")}</div>
+                  <div class="project-peek-text">
+                    <span class="project-cat">${p.category}</span>
+                    <h3>${p.title}</h3>
+                  </div>
+                </div>
+                <div class="project-video-wrap">
+                  <video id="${vid}" src="${p.videoUrl}" muted loop playsinline preload="metadata"></video>
+                  <div class="project-video-controls">
+                    <button type="button" class="project-video-btn" onclick="toggleProjectVideo('${vid}', this)" aria-label="Play">▶</button>
+                    <div class="project-video-progress" onclick="seekProjectVideo(event, '${vid}')">
+                      <div class="project-video-progress-fill" id="${vid}-fill"></div>
+                    </div>
+                    <button type="button" class="project-video-btn" onclick="toggleProjectMute('${vid}', this)" aria-label="Mute">🔇</button>
+                  </div>
+                </div>
                 <div class="project-body">
-                  <span class="project-cat">${p.category}</span>
-                  <h3>${p.title}</h3>
                   <p>${p.description}</p>
                   <button class="btn-order-project" onclick="openInquiryModal('${p.title.replace(/'/g, "\\'")}')">🎯 Order With This Style</button>
                 </div>
               </div>
             `;
             container.appendChild(item);
+
+            const videoEl = item.querySelector(`#${vid}`);
+            videoEl.addEventListener("timeupdate", () => {
+              const fill = document.getElementById(`${vid}-fill`);
+              if (fill && videoEl.duration) {
+                fill.style.width = `${(videoEl.currentTime / videoEl.duration) * 100}%`;
+              }
+            });
+            videoEl.addEventListener("ended", () => {
+              const btn = item.querySelector(".project-video-btn");
+              if (btn) btn.innerText = "▶";
+            });
+            // Video ölçüləri yükləndikdən sonra stack hündürlüyünü yenidən hesabla
+            videoEl.addEventListener("loadedmetadata", () => {
+              if (window.ScrollTrigger) ScrollTrigger.refresh();
+            });
           });
 
           // Kartlar DOM-a düşdükdən sonra animasiyanı işə salırıq
           setTimeout(initPinnedCardsAnimation, 100);
         } catch (err) {}
+      }
+
+      function toggleProjectVideo(id, btn) {
+        const video = document.getElementById(id);
+        if (!video) return;
+        if (video.paused) {
+          video.play();
+          btn.innerText = "⏸";
+        } else {
+          video.pause();
+          btn.innerText = "▶";
+        }
+      }
+
+      function toggleProjectMute(id, btn) {
+        const video = document.getElementById(id);
+        if (!video) return;
+        video.muted = !video.muted;
+        btn.innerText = video.muted ? "🔇" : "🔊";
+      }
+
+      function seekProjectVideo(e, id) {
+        const video = document.getElementById(id);
+        if (!video || !video.duration) return;
+        const bar = e.currentTarget;
+        const rect = bar.getBoundingClientRect();
+        const ratio = (e.clientX - rect.left) / rect.width;
+        video.currentTime = ratio * video.duration;
       }
 
       async function loadPublicTestimonials() {
