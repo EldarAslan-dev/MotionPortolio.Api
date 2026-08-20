@@ -31,6 +31,12 @@ builder.Services.AddSingleton<MotionPortfolio.Api.Services.RabbitMqService>();
 builder.Services.AddHostedService<MotionPortfolio.Api.Services.InquiryConsumerService>();
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 500_000_000; // Kestrel limiti ilə eyni
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
 builder.Services.AddOpenApi();
 builder.WebHost.ConfigureKestrel(options =>
 {

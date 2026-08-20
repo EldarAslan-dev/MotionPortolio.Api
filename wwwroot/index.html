@@ -952,13 +952,24 @@
       .project-video-wrap {
         position: relative;
         width: 100%;
-        height: 280px;
+        /* Fallback ratio until the real video metadata loads and sets its
+           own aspect-ratio via JS — prevents a layout jump on load. */
+        aspect-ratio: 16 / 9;
+        max-height: 70vh;
         background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
       }
+      /* object-fit: contain (not cover) — combined with the JS below that
+         sets this wrapper's aspect-ratio to match the video's real
+         dimensions, the video is never cropped or zoomed, regardless of
+         whether the source is landscape, portrait, or square. */
       .project-video-wrap video {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         display: block;
       }
       .project-video-wrap::after {
@@ -1035,7 +1046,7 @@
           border-radius: 32px 32px 0 0;
         }
         .project-video-wrap {
-          height: 220px;
+          max-height: 50vh;
         }
       }
 
@@ -1625,21 +1636,21 @@
       <div class="marquee">
         <div class="marquee-track">
           <span class="tool-chip">After Effects</span>
-          <span class="tool-chip">Adobe Illustrator</span>
-          <span class="tool-chip">InDesign</span>
-          <span class="tool-chip">Photoshop</span>
-          <span class="tool-chip">Premiere Pro</span>
-          <span class="tool-chip">Figma</span>
-          <span class="tool-chip">Adobe Illustrator</span>
-          <span class="tool-chip">InDesign</span>
-          <span class="tool-chip">After Effects</span>
-          <span class="tool-chip">Photoshop</span>
+          <span class="tool-chip">Cinema 4D</span>
           <span class="tool-chip">Blender</span>
-          <span class="tool-chip">Adobe Illustrator</span>
+          <span class="tool-chip">Redshift</span>
           <span class="tool-chip">Premiere Pro</span>
           <span class="tool-chip">Figma</span>
+          <span class="tool-chip">DaVinci Resolve</span>
+          <span class="tool-chip">Octane</span>
+          <span class="tool-chip">After Effects</span>
+          <span class="tool-chip">Cinema 4D</span>
+          <span class="tool-chip">Blender</span>
+          <span class="tool-chip">Redshift</span>
           <span class="tool-chip">Premiere Pro</span>
-          <span class="tool-chip">InDesign</span>
+          <span class="tool-chip">Figma</span>
+          <span class="tool-chip">DaVinci Resolve</span>
+          <span class="tool-chip">Octane</span>
         </div>
       </div>
     </div>
@@ -2478,7 +2489,16 @@
               const btn = item.querySelector(".project-video-btn");
               if (btn) btn.innerText = "▶";
             });
+            // Match the wrapper's box to the video's own native aspect
+            // ratio, so the frame is never stretched, cropped, or zoomed —
+            // whatever the admin uploads (portrait, square, widescreen)
+            // shows at full quality, uncut.
             videoEl.addEventListener("loadedmetadata", () => {
+              if (videoEl.videoWidth && videoEl.videoHeight) {
+                const wrap = videoEl.closest(".project-video-wrap");
+                if (wrap)
+                  wrap.style.aspectRatio = `${videoEl.videoWidth} / ${videoEl.videoHeight}`;
+              }
               if (window.ScrollTrigger) ScrollTrigger.refresh();
             });
           });
