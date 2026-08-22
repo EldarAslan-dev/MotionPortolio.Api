@@ -17,7 +17,6 @@ Müasir veb texnologiyaları, Next.js və mikroservis arxitekturası ilə qurulm
 ## ✨ Əsas Xüsusiyyətlər
 
 - **Müasir Next.js Frontend (`/`):** 
-  - Orijinal akışkan "About" bölməsi, hərf-hərf scroll-reveal mətn effekti və GSAP pin-effektli proyekt yığını (card stack).
   - İnteraktiv portfel vitrini (video oynatma, vaxt çubuğu və nisbət itirmədən adaptiv kadr göstərilməsi).
   - 24 saatlıq avtomatik silinən Story sistemi (video/şəkil dəstəyi ilə).
 - **Canlı Dəstək və Çat Sistemi (SignalR):** 
