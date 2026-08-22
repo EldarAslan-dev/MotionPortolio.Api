@@ -1591,10 +1591,8 @@
       </nav>
 
       <section class="hero">
-        <h1 class="hero-title display-font" id="header-name">Motion Studio</h1>
-        <p class="hero-desc" id="header-bio">
-          Motion Design & Animation Studio
-        </p>
+        <h1 class="hero-title display-font" id="header-name"></h1>
+        <p class="hero-desc" id="header-bio"></p>
 
         <div class="hero-badges">
           <a class="hero-badge" href="#projects-section"
@@ -1619,8 +1617,9 @@
             <img
               id="header-avatar"
               class="avatar-img"
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+              src=""
               alt="Avatar"
+              style="visibility: hidden"
             />
           </div>
         </div>
@@ -1674,14 +1673,15 @@
         </p>
 
         <div class="about-profile-row">
-          <img
+            <img
             id="story-avatar-img-inline"
             class="about-avatar-mini"
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+            src=""
             alt="Avatar"
+            style="visibility: hidden"
           />
           <div class="about-profile-text">
-            <h3 id="header-name-2">Motion Studio</h3>
+            <h3 id="header-name-2"></h3>
             <p>Motion Design &amp; Animation</p>
           </div>
         </div>
@@ -1993,10 +1993,10 @@
           <div class="story-header-info">
             <img
               id="story-avatar-img"
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+              src=""
               alt="Avatar"
             />
-            <span id="story-studio-name">Motion Studio</span>
+            <span id="story-studio-name"></span>
           </div>
           <button
             class="close-modal"
@@ -2332,6 +2332,9 @@
 
               showClientBadge(clientId);
               document.getElementById("register-modal").style.display = "none";
+              if (chatConnection) {
+                chatConnection.invoke("JoinClientGroup", clientId).catch(() => {});
+              }
               alert(`Registration successful! Your ID: ${clientId}`);
             }
           } catch (err) {
@@ -2426,12 +2429,18 @@
             const avatarFull = prof.avatarUrl.startsWith("http")
               ? prof.avatarUrl
               : `${window.location.origin}${prof.avatarUrl}`;
-            document.getElementById("header-avatar").src = avatarFull;
-            document.getElementById("story-avatar-img").src = avatarFull;
+            const headerAvatar = document.getElementById("header-avatar");
+            headerAvatar.src = avatarFull;
+            headerAvatar.style.visibility = "visible";
+            const storyAvatar = document.getElementById("story-avatar-img");
+            if (storyAvatar) storyAvatar.src = avatarFull;
             const miniAvatar = document.getElementById(
               "story-avatar-img-inline",
             );
-            if (miniAvatar) miniAvatar.src = avatarFull;
+            if (miniAvatar) {
+              miniAvatar.src = avatarFull;
+              miniAvatar.style.visibility = "visible";
+            }
           }
         } catch (err) {}
       }
@@ -2645,7 +2654,8 @@
           .withUrl("/notificationHub")
           .withAutomaticReconnect()
           .build();
-        chatConnection.on("ReceiveGeneralMessage", (sender, content) => {
+        chatConnection.on("ReceiveGeneralMessage", (sender, content, msgClientId) => {
+          if (msgClientId && clientId && msgClientId !== clientId) return;
           if (sender === "Admin") {
             playNotificationSound();
             appendGeneralMessage("Admin", content);
@@ -2656,9 +2666,18 @@
         chatConnection
           .start()
           .then(() => {
-            if (clientId) chatConnection.invoke("JoinClientGroup", clientId);
+            if (clientId) {
+              chatConnection.invoke("JoinClientGroup", clientId);
+              loadClientChatHistory();
+            }
           })
           .catch(() => {});
+        chatConnection.onreconnected(() => {
+          if (clientId) {
+            chatConnection.invoke("JoinClientGroup", clientId);
+            loadClientChatHistory();
+          }
+        });
       }
 
       function toggleFloatingChat(force = false) {
@@ -2671,6 +2690,25 @@
         card.style.display =
           force || card.style.display === "none" ? "block" : "none";
         document.getElementById("client-chat-badge").style.display = "none";
+        if (card.style.display === "block") loadClientChatHistory();
+      }
+
+      async function loadClientChatHistory() {
+        if (!clientId) return;
+        const chatBox = document.getElementById("client-general-chat-box");
+        if (!chatBox) return;
+        try {
+          const res = await fetch(`${API_BASE}/messages/client/${encodeURIComponent(clientId)}`);
+          if (!res.ok) return;
+          const history = await res.json();
+          chatBox.innerHTML = "";
+          if (!history.length) {
+            chatBox.innerHTML =
+              '<p style="color: var(--text-muted); text-align: center; margin-top: 60px; font-size: 0.85rem;">Welcome to live support! You can send your message here.</p>';
+            return;
+          }
+          history.forEach((m) => appendGeneralMessage(m.sender, m.content));
+        } catch (e) {}
       }
       function closeClientChat() {
         document.getElementById("client-chat-card").style.display = "none";

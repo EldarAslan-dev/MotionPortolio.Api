@@ -188,14 +188,24 @@ public class NotificationHub : Hub
 
         await _context.SaveChangesAsync();
 
+        var payload = new
+        {
+            id = message.Id,
+            clientId,
+            clientName = displayName,
+            sender,
+            content,
+            sentAt = now
+        };
+
         // Yalnız bu müştəriyə (onlayn olarsa) və admin(lər)ə canlı çatdır
-        await Clients.Group("client_" + clientId).SendAsync("ReceiveGeneralMessage", sender, content, clientId, displayName);
-        await Clients.Group("general").SendAsync("ReceiveGeneralMessage", sender, content, clientId, displayName);
+        await Clients.Group("client_" + clientId).SendAsync("ReceiveGeneralMessage", sender, content, clientId, displayName, false, payload);
+        await Clients.Group("general").SendAsync("ReceiveGeneralMessage", sender, content, clientId, displayName, false, payload);
 
         if (sendAutoReply)
         {
             // 5-ci arqument (isAuto) admin panelinə bunun avtomatik cavab
-            // olduğunu bildirir; müştəri səhifəsi onu sadəcə nəzərə almır.
+            // olduğunu bildirir.
             await Clients.Group("client_" + clientId).SendAsync("ReceiveGeneralMessage", "Admin", AutoReplyText, clientId, displayName, true);
             await Clients.Group("general").SendAsync("ReceiveGeneralMessage", "Admin", AutoReplyText, clientId, displayName, true);
         }

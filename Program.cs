@@ -29,6 +29,19 @@ builder.Services.AddAuthorization();
 // 3. Servislər, Controller-lər və SignalR
 builder.Services.AddSingleton<MotionPortfolio.Api.Services.RabbitMqService>();
 builder.Services.AddHostedService<MotionPortfolio.Api.Services.InquiryConsumerService>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("frontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "https://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
@@ -183,6 +196,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("frontend");
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -191,7 +205,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<MotionPortfolio.Api.Hubs.NotificationHub>("/notificationHub");
+app.MapHub<MotionPortfolio.Api.Hubs.NotificationHub>("/notificationHub")
+    .RequireCors("frontend");
 
 // Avtomatik Admin Hesabının Yaradılması
 using (var scope = app.Services.CreateScope())
