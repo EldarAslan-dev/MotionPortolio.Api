@@ -42,9 +42,12 @@ export function SectionTitle({
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // Unified dark graphite canvas: default stroke is a faint warm-ivory
+  // outline (reads against graphite/panel backgrounds); the `light`
+  // variant swaps in a faint electric-cobalt outline for accent headings.
   const strokeColor = light
-    ? "rgba(20,17,14,0.45)"
-    : "rgba(244,239,230,0.5)";
+    ? "rgba(91,97,230,0.45)"
+    : "rgba(245,242,234,0.5)";
 
   return (
     <div

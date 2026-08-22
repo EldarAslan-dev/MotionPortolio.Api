@@ -9,12 +9,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        paper: "#f4efe6",
-        ink: "#14110e",
-        muted: "#6d6458",
-        amber: "#c45c26",
-        "amber-soft": "#e8b089",
-        panel: "#1c1814",
+        // Cinematic "Graphite + Warm Ivory + Electric Cobalt" system.
+        // Names kept stable so every existing bg-ink/text-paper/etc. class
+        // keeps compiling — only the rendered hues change.
+        paper: "#F5F2EA", // warm ivory — text-on-dark + light surface accents
+        ink: "#0B0C0F", // deep graphite — dominant background
+        muted: "rgba(245,242,234,0.55)", // ivory-based muted text on dark
+        amber: "#5B61E6", // electric cobalt — the single restrained accent
+        "amber-soft": "#8B90F2", // lighter cobalt tint
+        panel: "#141519", // elevated graphite surface (cards/footer/modals)
       },
     },
   },

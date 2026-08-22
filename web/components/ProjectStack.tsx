@@ -114,8 +114,8 @@ export function ProjectStack({
           className="project-stack-item absolute left-0 top-0 w-full will-change-transform"
           style={{ backfaceVisibility: "hidden" }}
         >
-          <div className="film-frame overflow-hidden rounded-2xl bg-[#0e0c09]">
-            <div className="flex items-center gap-4 border-b border-white/10 bg-gradient-to-r from-[#241c14] to-[#120f0b] px-5 py-4">
+          <div className="film-frame overflow-hidden rounded-2xl border border-paper/10 bg-panel">
+            <div className="flex items-center gap-4 border-b border-paper/10 bg-gradient-to-r from-[#1a1b21] to-[#0e0f12] px-5 py-4">
               <span className="font-display text-3xl text-white/90">
                 {String(i + 1).padStart(2, "0")}
               </span>
@@ -130,7 +130,7 @@ export function ProjectStack({
               <button
                 type="button"
                 onClick={() => onOrder(p.title)}
-                className="shrink-0 rounded-full border border-white/25 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-white transition hover:bg-white hover:text-ink"
+                className="shrink-0 rounded-full border border-amber/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-white transition hover:border-amber hover:bg-amber hover:text-white"
               >
                 Sifariş
               </button>

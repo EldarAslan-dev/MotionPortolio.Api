@@ -3,13 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --paper: #f4efe6;
-  --ink: #14110e;
-  --muted: #6d6458;
-  --line: rgba(20, 17, 14, 0.12);
-  --amber: #c45c26;
-  --amber-soft: #e8b089;
-  --panel: #1c1814;
+  /* Cinematic "Graphite + Warm Ivory + Electric Cobalt" system. */
+  --paper: #f5f2ea;
+  --ink: #0b0c0f;
+  --muted: rgba(245, 242, 234, 0.55);
+  --line: rgba(245, 242, 234, 0.1);
+  --amber: #5b61e6;
+  --amber-soft: #8b90f2;
+  --panel: #141519;
 }
 
 html {
@@ -17,8 +18,8 @@ html {
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
@@ -29,15 +30,15 @@ body {
 }
 
 .perforation {
-  background-image: radial-gradient(circle, #c9bfb0 1.4px, transparent 1.6px);
+  background-image: radial-gradient(circle, rgba(245, 242, 234, 0.25) 1.4px, transparent 1.6px);
   background-size: 12px 18px;
   background-position: center;
 }
 
 .film-frame {
   box-shadow:
-    inset 0 0 0 10px #111,
-    0 18px 40px rgba(20, 17, 14, 0.18);
+    inset 0 0 0 10px #050506,
+    0 18px 40px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes drift {
@@ -59,15 +60,15 @@ body {
   border-radius: 50%;
   display: inline-grid;
   place-items: center;
-  filter: drop-shadow(0 20px 30px rgba(20, 17, 14, 0.35));
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.5));
 }
 .story-ring.has-stories {
-  background: linear-gradient(45deg, #c45c26, #e8b089, #14110e, #e8b089, #c45c26);
+  background: linear-gradient(45deg, #5b61e6, #8b90f2, #0b0c0f, #8b90f2, #5b61e6);
   background-size: 300% 300%;
   animation: ringRotate 6s linear infinite;
 }
 .story-ring.no-stories {
-  background: rgba(20, 17, 14, 0.15);
+  background: rgba(245, 242, 234, 0.15);
 }
 @keyframes ringRotate {
   0% {
@@ -83,7 +84,7 @@ body {
   position: absolute;
   pointer-events: none;
   will-change: transform;
-  filter: drop-shadow(0 12px 20px rgba(20, 17, 14, 0.18));
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.35));
 }
 @keyframes iconWiggle {
   0% {
@@ -163,6 +164,6 @@ body {
 }
 .story-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #c45c26, #e8b089);
+  background: linear-gradient(90deg, #5b61e6, #8b90f2);
   width: 0%;
 }

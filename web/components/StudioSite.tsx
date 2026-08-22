@@ -60,10 +60,10 @@ function Modal({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md rounded-3xl bg-paper p-6 shadow-2xl">
+      <div className="w-full max-w-md rounded-3xl border border-paper/10 bg-panel p-6 text-paper shadow-2xl shadow-black/50">
         {children}
       </div>
     </div>
@@ -222,32 +222,32 @@ export function StudioSite() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-black/10 bg-paper/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-paper/10 bg-ink/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-          <a href="#top" className="font-display text-2xl">
+          <a href="#top" className="font-display text-2xl text-paper">
             {ready ? (
               name
             ) : (
-              <span className="inline-block h-7 w-40 animate-pulse rounded bg-black/10" />
+              <span className="inline-block h-7 w-40 animate-pulse rounded bg-paper/10" />
             )}
           </a>
-          <nav className="hidden items-center gap-6 text-sm md:flex">
-            <a href="#about">Haqqında</a>
-            <a href="#services">Xidmətlər</a>
-            <a href="#work">İşlər</a>
-            <a href="#notes">Rəylər</a>
-            <a href="#contact">Əlaqə</a>
+          <nav className="hidden items-center gap-6 text-sm text-paper/70 md:flex">
+            <a href="#about" className="transition hover:text-paper">Haqqında</a>
+            <a href="#services" className="transition hover:text-paper">Xidmətlər</a>
+            <a href="#work" className="transition hover:text-paper">İşlər</a>
+            <a href="#notes" className="transition hover:text-paper">Rəylər</a>
+            <a href="#contact" className="transition hover:text-paper">Əlaqə</a>
           </nav>
           <div className="flex items-center gap-3">
             {clientId ? (
-              <span className="hidden rounded-full border border-black/10 px-3 py-1 font-mono text-[11px] sm:inline">
+              <span className="hidden rounded-full border border-paper/15 px-3 py-1 font-mono text-[11px] text-paper/60 sm:inline">
                 {clientId}
               </span>
             ) : null}
             <button
               type="button"
               onClick={() => openInquiry("Ümumi əməkdaşlıq")}
-              className="rounded-full bg-ink px-4 py-2 text-sm text-paper"
+              className="rounded-full bg-amber px-4 py-2 text-sm font-medium text-white shadow-md shadow-amber/20 transition hover:bg-amber-soft"
             >
               Layihə başlat
             </button>
@@ -258,15 +258,15 @@ export function StudioSite() {
       {/* ===== Hero ===== */}
       <section
         id="top"
-        className="relative mx-auto grid max-w-6xl gap-10 overflow-hidden px-5 py-16 md:grid-cols-[1.2fr_0.8fr] md:py-24"
+        className="relative mx-auto grid max-w-6xl gap-10 overflow-hidden px-5 py-16 text-paper md:grid-cols-[1.2fr_0.8fr] md:py-24"
       >
         <div
           className="pointer-events-none absolute -right-20 top-10 h-72 w-72 rounded-full opacity-25 blur-[100px]"
-          style={{ background: "#c45c26" }}
+          style={{ background: "#5B61E6" }}
         />
         <div
           className="pointer-events-none absolute -left-16 bottom-0 h-64 w-64 rounded-full opacity-20 blur-[100px]"
-          style={{ background: "#8a7a5f" }}
+          style={{ background: "#8B90F2" }}
         />
         <div className="relative">
           <p className="mb-4 text-xs uppercase tracking-[0.35em] text-muted">
@@ -283,14 +283,14 @@ export function StudioSite() {
             </>
           ) : (
             <div className="space-y-4">
-              <div className="h-16 w-3/4 animate-pulse rounded bg-black/10" />
-              <div className="h-6 w-1/2 animate-pulse rounded bg-black/10" />
+              <div className="h-16 w-3/4 animate-pulse rounded bg-paper/10" />
+              <div className="h-6 w-1/2 animate-pulse rounded bg-paper/10" />
             </div>
           )}
           <div className="mt-10 flex flex-wrap gap-3">
             <a
               href="#work"
-              className="rounded-full border border-ink px-5 py-2 text-sm transition hover:bg-ink hover:text-paper"
+              className="rounded-full border border-paper/25 px-5 py-2 text-sm transition hover:border-paper hover:bg-paper hover:text-ink"
             >
               Portfelə bax
             </a>
@@ -317,7 +317,7 @@ export function StudioSite() {
           >
             <div className="film-frame h-full w-full overflow-hidden rounded-full bg-panel">
               {!ready ? (
-                <div className="h-full w-full animate-pulse bg-[#2a2420]" />
+                <div className="h-full w-full animate-pulse bg-[#1c1d22]" />
               ) : avatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -340,14 +340,14 @@ export function StudioSite() {
             <button
               type="button"
               onClick={() => setStoryIndex(0)}
-              className="mt-4 w-full max-w-[260px] rounded-full border border-black/10 bg-white px-4 py-2 text-center text-sm"
+              className="mt-4 w-full max-w-[260px] rounded-full border border-paper/15 bg-panel px-4 py-2 text-center text-sm text-paper"
             >
               {liveStories.length} aktiv story — bax
             </button>
           ) : null}
           <a
             href="#contact"
-            className="mt-6 rounded-full bg-amber px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber/30 transition hover:scale-105"
+            className="mt-6 rounded-full bg-amber px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber/30 transition hover:scale-105 hover:bg-amber-soft"
           >
             Əlaqə saxla
           </a>
@@ -355,7 +355,7 @@ export function StudioSite() {
       </section>
 
       {/* ===== Tools marquee ===== */}
-      <div className="overflow-hidden border-y border-black/10 py-4">
+      <div className="overflow-hidden border-y border-paper/10 py-4">
         <p className="mb-3 text-center font-mono text-[11px] uppercase tracking-[0.25em] text-muted">
           Tools &amp; software
         </p>
@@ -363,7 +363,7 @@ export function StudioSite() {
           {[...TOOLS, ...TOOLS].map((t, i) => (
             <span
               key={`${t}-${i}`}
-              className="rounded-full border border-black/10 px-4 py-2"
+              className="rounded-full border border-paper/10 px-4 py-2"
             >
               {t}
             </span>
@@ -372,7 +372,7 @@ export function StudioSite() {
       </div>
 
       {/* ===== About ===== */}
-      <section id="about" className="relative mx-auto max-w-3xl px-5 py-24">
+      <section id="about" className="relative mx-auto max-w-3xl px-5 py-24 text-paper">
         <span className="float-icon icon-wiggle-a text-4xl" style={{ top: "4%", left: "0%" }}>
           🎬
         </span>
@@ -399,14 +399,14 @@ export function StudioSite() {
               <img
                 src={avatar}
                 alt={name}
-                className="h-14 w-14 rounded-full border-2 border-black/10 object-cover"
+                className="h-14 w-14 rounded-full border-2 border-paper/15 object-cover"
               />
             ) : (
-              <div className="h-14 w-14 rounded-full border-2 border-black/10 bg-panel" />
+              <div className="h-14 w-14 rounded-full border-2 border-paper/15 bg-panel" />
             )}
             <div className="text-left">
               <h3 className="text-base font-semibold">{name}</h3>
-              <p className="font-mono text-[11px] uppercase tracking-wider text-amber">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-amber-soft">
                 Motion Design &amp; Animation
               </p>
             </div>
@@ -432,15 +432,15 @@ export function StudioSite() {
       </section>
 
       {/* ===== Services ===== */}
-      <section id="services" className="mx-auto max-w-6xl px-5 py-20">
+      <section id="services" className="mx-auto max-w-6xl px-5 py-20 text-paper">
         <SectionTitle className="text-4xl md:text-5xl">Xidmətlər</SectionTitle>
-        <div className="mt-10 divide-y divide-black/10 border-y border-black/10">
+        <div className="mt-10 divide-y divide-paper/10 border-y border-paper/10">
           {SERVICES.map((s) => (
             <div
               key={s.n}
               className="grid gap-4 py-8 md:grid-cols-[80px_1fr_1.4fr]"
             >
-              <p className="font-mono text-sm text-amber">{s.n}</p>
+              <p className="font-mono text-sm text-amber-soft">{s.n}</p>
               <h3 className="text-xl font-medium">{s.title}</h3>
               <RevealText text={s.body} className="text-muted" />
             </div>
@@ -454,7 +454,7 @@ export function StudioSite() {
           <SectionTitle light={false} className="text-4xl md:text-5xl">
             Seçilmiş kadrlar
           </SectionTitle>
-          <p className="mt-3 max-w-lg text-white/50">
+          <p className="mt-3 max-w-lg text-paper/50">
             Hər iş öz nisbətində göstərilir — kəsilmədən, şişirdilmədən.
           </p>
           <div className="mt-12">
@@ -463,7 +463,7 @@ export function StudioSite() {
                 {[0, 1].map((i) => (
                   <div
                     key={i}
-                    className="aspect-video animate-pulse rounded-2xl bg-white/10"
+                    className="aspect-video animate-pulse rounded-2xl bg-paper/10"
                   />
                 ))}
               </div>
@@ -475,9 +475,9 @@ export function StudioSite() {
       </section>
 
       {/* ===== Testimonials ===== */}
-      <section id="notes" className="overflow-hidden bg-paper py-20">
+      <section id="notes" className="overflow-hidden bg-ink py-20 text-paper">
         <div className="mx-auto max-w-6xl px-5 text-center">
-          <SectionTitle light className="text-4xl md:text-5xl">
+          <SectionTitle light={false} className="text-4xl md:text-5xl">
             Müştəri qeydləri
           </SectionTitle>
         </div>
@@ -487,10 +487,10 @@ export function StudioSite() {
               {doubled.map((t, i) => (
                 <figure
                   key={`${t.id}-${i}`}
-                  className="w-80 shrink-0 rounded-2xl border border-black/10 bg-white p-5 shadow-sm"
+                  className="w-80 shrink-0 rounded-2xl border border-paper/10 bg-panel p-5 shadow-lg shadow-black/20"
                 >
-                  <p className="text-amber">{"★".repeat(t.rating || 5)}</p>
-                  <blockquote className="mt-3 text-sm leading-relaxed">
+                  <p className="text-amber-soft">{"★".repeat(t.rating || 5)}</p>
+                  <blockquote className="mt-3 text-sm leading-relaxed text-paper/90">
                     &ldquo;{t.comment}&rdquo;
                   </blockquote>
                   <figcaption className="mt-4 text-xs text-muted">
@@ -511,7 +511,7 @@ export function StudioSite() {
       {/* ===== Contact ===== */}
       <section
         id="contact"
-        className="relative overflow-hidden border-t border-black/10 bg-panel px-5 py-24 text-paper"
+        className="relative overflow-hidden border-t border-paper/10 bg-panel px-5 py-24 text-paper"
       >
         <span className="float-icon icon-wiggle-a text-4xl" style={{ top: "8%", right: "8%" }}>
           💌
@@ -523,13 +523,13 @@ export function StudioSite() {
           <h2 className="font-display text-5xl md:text-6xl">
             Bir kadrdan başlayaq.
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-white/55">
+          <p className="mx-auto mt-4 max-w-lg text-paper/55">
             Büdcəni və ehtiyacı yazın — studio desk-dən cavab gələcək.
           </p>
           <button
             type="button"
             onClick={() => openInquiry("Ümumi əməkdaşlıq")}
-            className="mt-8 rounded-full bg-amber px-8 py-3 font-medium text-white shadow-lg shadow-amber/30 transition hover:scale-105"
+            className="mt-8 rounded-full bg-amber px-8 py-3 font-medium text-white shadow-lg shadow-amber/30 transition hover:scale-105 hover:bg-amber-soft"
           >
             Əlaqə saxla
           </button>
@@ -537,7 +537,7 @@ export function StudioSite() {
       </section>
 
       {/* ===== Footer ===== */}
-      <footer className="border-t border-black/10 bg-panel px-5 pb-8 pt-16 text-paper">
+      <footer className="border-t border-paper/10 bg-ink px-5 pb-8 pt-16 text-paper">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-wrap items-start justify-between gap-8">
             <h2 className="font-display text-4xl leading-tight md:text-5xl">
@@ -546,40 +546,41 @@ export function StudioSite() {
               Studio
             </h2>
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-paper/40">
                 Studio
               </p>
-              <p className="mt-3 text-sm text-white/70">
+              <p className="mt-3 text-sm text-paper/70">
                 Motion Design &amp; Video Editing
               </p>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-paper/70">
                 Logo · Explainer · Sosial · Promo
               </p>
             </div>
           </div>
-          <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6">
-            <span className="h-10 w-10 rotate-45 rounded-[30%]" style={{ background: "#c9b8f0" }} />
-            <span className="h-10 w-10 rounded-r-full" style={{ background: "#f4efe6" }} />
-            <span className="h-10 w-10 rounded-full" style={{ background: "#7c5cff" }} />
+          <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-paper/10 pt-6">
+            <span className="h-10 w-10 rotate-45 rounded-[30%]" style={{ background: "#8B90F2" }} />
+            <span className="h-10 w-10 rounded-r-full" style={{ background: "#F5F2EA" }} />
+            <span className="h-10 w-10 rounded-full" style={{ background: "#5B61E6" }} />
             <span
               className="h-10 w-10"
               style={{
-                background: "#e8b089",
+                background: "#141519",
+                border: "1px solid rgba(245,242,234,0.15)",
                 clipPath:
                   "polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%)",
               }}
             />
             <span
               className="h-10 w-10 rounded-full"
-              style={{ border: "8px solid #c45c26" }}
+              style={{ border: "8px solid #5B61E6" }}
             />
           </div>
-          <div className="mt-6 flex flex-wrap justify-between gap-2 text-xs text-white/40">
+          <div className="mt-6 flex flex-wrap justify-between gap-2 text-xs text-paper/40">
             <span>
               © {new Date().getFullYear()} {ready ? name : "Motion Studio"}
             </span>
             {profile?.instagramUrl ? (
-              <a href={profile.instagramUrl} target="_blank" rel="noreferrer">
+              <a href={profile.instagramUrl} target="_blank" rel="noreferrer" className="transition hover:text-amber-soft">
                 Instagram
               </a>
             ) : (
@@ -605,16 +606,16 @@ export function StudioSite() {
             name="name"
             required
             placeholder="Adınız"
-            className="w-full rounded-xl border border-black/10 px-3 py-2"
+            className="w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper placeholder:text-paper/40 outline-none transition focus:border-amber"
           />
           <input
             name="email"
             type="email"
             required
             placeholder="E-poçt"
-            className="w-full rounded-xl border border-black/10 px-3 py-2"
+            className="w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper placeholder:text-paper/40 outline-none transition focus:border-amber"
           />
-          <button type="submit" className="w-full rounded-xl bg-ink py-2 text-paper">
+          <button type="submit" className="w-full rounded-xl bg-amber py-2 font-medium text-white transition hover:bg-amber-soft">
             Davam et
           </button>
         </form>
@@ -632,7 +633,7 @@ export function StudioSite() {
                 setPkg(e.target.value);
                 setBudget(`$${e.target.value}`);
               }}
-              className="mt-1 w-full rounded-xl border border-black/10 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper outline-none transition focus:border-amber"
             >
               <option value="150">Qısa logo — $150</option>
               <option value="300">Standart — $300</option>
@@ -644,7 +645,7 @@ export function StudioSite() {
             <input
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-black/10 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper outline-none transition focus:border-amber"
             />
           </label>
           <textarea
@@ -653,9 +654,9 @@ export function StudioSite() {
             onChange={(e) => setInquiryMsg(e.target.value)}
             placeholder="Nə lazımdır?"
             rows={4}
-            className="w-full rounded-xl border border-black/10 px-3 py-2"
+            className="w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper placeholder:text-paper/40 outline-none transition focus:border-amber"
           />
-          <button type="submit" className="w-full rounded-xl bg-amber py-2 text-white">
+          <button type="submit" className="w-full rounded-xl bg-amber py-2 font-medium text-white transition hover:bg-amber-soft">
             Göndər
           </button>
         </form>
@@ -668,17 +669,17 @@ export function StudioSite() {
             name="name"
             required
             placeholder="Ad"
-            className="w-full rounded-xl border border-black/10 px-3 py-2"
+            className="w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper placeholder:text-paper/40 outline-none transition focus:border-amber"
           />
           <input
             name="company"
             placeholder="Şirkət (opsional)"
-            className="w-full rounded-xl border border-black/10 px-3 py-2"
+            className="w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper placeholder:text-paper/40 outline-none transition focus:border-amber"
           />
           <select
             name="rating"
             defaultValue="5"
-            className="w-full rounded-xl border border-black/10 px-3 py-2"
+            className="w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper outline-none transition focus:border-amber"
           >
             <option value="5">5 ulduz</option>
             <option value="4">4 ulduz</option>
@@ -690,9 +691,9 @@ export function StudioSite() {
             name="comment"
             required
             rows={3}
-            className="w-full rounded-xl border border-black/10 px-3 py-2"
+            className="w-full rounded-xl border border-paper/15 bg-ink px-3 py-2 text-paper outline-none transition focus:border-amber"
           />
-          <button type="submit" className="w-full rounded-xl bg-ink py-2 text-paper">
+          <button type="submit" className="w-full rounded-xl bg-amber py-2 font-medium text-white transition hover:bg-amber-soft">
             Göndər
           </button>
         </form>
@@ -700,11 +701,11 @@ export function StudioSite() {
 
       {currentStory ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-6"
           onClick={() => setStoryIndex(null)}
         >
           <div
-            className="w-full max-w-sm overflow-hidden rounded-2xl bg-black p-4"
+            className="w-full max-w-sm overflow-hidden rounded-2xl border border-paper/10 bg-panel p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-3 flex gap-1">
