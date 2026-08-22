@@ -53,9 +53,53 @@ export function PortfolioSection({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-5">
+    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 sm:p-5">
       <h2 className="mb-4 text-lg font-bold text-white">🎬 Mövcud Portfel İdarəsi</h2>
-      <div className="overflow-x-auto">
+
+      {/* Mobile / tablet: stacked cards */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {projects.map((p) => (
+          <div
+            key={p.id}
+            className="flex gap-3 rounded-xl border border-white/10 bg-neutral-950 p-3 text-white"
+          >
+            <div className="flex h-[64px] w-[92px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black">
+              {p.videoUrl ? (
+                <video
+                  src={mediaUrl(p.videoUrl)}
+                  muted
+                  preload="metadata"
+                  playsInline
+                  className="h-full w-full object-contain"
+                />
+              ) : null}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-semibold">{p.title}</div>
+              <div className="text-xs text-indigo-300">{p.category}</div>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(p)}
+                  className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white"
+                >
+                  Redaktə
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(p.id)}
+                  className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white"
+                >
+                  Sil
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="text-left text-[11px] uppercase tracking-wide text-neutral-500">

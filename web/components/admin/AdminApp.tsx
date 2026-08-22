@@ -587,15 +587,15 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           className="fixed inset-0 z-[170] flex items-center justify-center bg-black/70 p-4"
           onClick={(e) => e.target === e.currentTarget && setClientsModalOpen(false)}
         >
-          <div className="max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 p-6">
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-indigo-300">👥 Qeydiyyatlı Müştərilər</h2>
               <button type="button" onClick={() => setClientsModalOpen(false)} className="text-2xl">
                 ×
               </button>
             </div>
-            <div className="max-h-[60vh] overflow-y-auto">
-              <table className="w-full border-collapse text-sm">
+            <div className="max-h-[65vh] overflow-x-auto overflow-y-auto">
+              <table className="w-full min-w-[520px] border-collapse text-sm">
                 <thead>
                   <tr className="text-left text-[11px] uppercase text-neutral-500">
                     <th className="border-b border-white/10 px-2 py-2">Müştəri ID</th>
