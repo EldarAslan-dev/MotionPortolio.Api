@@ -6,6 +6,7 @@ export type StudioProfile = {
   instagramUrl: string;
   announcementText: string;
   showAnnouncement: boolean;
+  notesJson?: string;
 };
 
 export type Project = {
@@ -41,4 +42,57 @@ export type ChatMessage = {
   sender: string;
   content: string;
   sentAt: string;
+};
+
+export type OrderMessage = {
+  id: number;
+  orderNumber: string;
+  sender: string;
+  content: string;
+  sentAt: string;
+};
+
+export type Conversation = {
+  clientId: string;
+  clientName: string;
+  lastMessage: string | null;
+  lastSender: string | null;
+  lastAt: string | null;
+  hasMessages: boolean;
+};
+
+export type Inquiry = {
+  id: number;
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  budget: string;
+  message: string;
+  selectedProjectTitle: string | null;
+  status: string;
+  orderNumber: string;
+  deliveredFileUrl: string | null;
+  createdAt: string;
+  assignedStaffUsername: string | null;
+  staffFileUrl: string | null;
+  staffFileReady: boolean;
+  clientChatEnabled: boolean;
+};
+
+export type StaffJob = {
+  id: number;
+  orderNumber: string;
+  selectedProjectTitle: string | null;
+  budget: string;
+  message: string;
+  status: string;
+  staffFileUrl: string | null;
+  staffFileReady: boolean;
+  clientChatEnabled: boolean;
+  createdAt: string;
+};
+
+export type StaffUser = {
+  id: number;
+  username: string;
 };

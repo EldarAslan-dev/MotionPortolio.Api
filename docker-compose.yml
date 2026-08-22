@@ -42,7 +42,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  # 3. .NET Web API & Frontend Tətbiqi
+  # 3. .NET Web API (yalnız /api, /uploads, /notificationHub — Nginx tərəfindən proxy olunur)
   api:
     build:
       context: .
@@ -52,6 +52,8 @@ services:
       - ConnectionStrings__DefaultConnection=Server=motion_sqlserver,1433;Database=MotionPortfolioDb;User Id=sa;Password=Your_Strong_Password123!;TrustServerCertificate=True;
       - RabbitMQ__Host=rabbitmq
       - ASPNETCORE_ENVIRONMENT=Development
+      - Cors__Origins__0=https://www.bilgeyismirzazada.com
+      - Cors__Origins__1=https://bilgeyismirzazada.com
     ports:
       - "127.0.0.1:5118:8080"
     depends_on:
@@ -61,6 +63,23 @@ services:
         condition: service_started
     volumes:
       - uploads_data:/app/wwwroot/uploads
+
+  # 4. Next.js Frontend (public sayt + /admin + /team) — Nginx "/" üçün buraya proxy edir
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        # Eyni domendə Nginx /api-ni API konteynerinə yönləndirdiyi üçün boş
+        # buraxılır — brauzer nisbi (relative) "/api/..." yollarından istifadə edir.
+        NEXT_PUBLIC_API_URL: ""
+    container_name: motion_web
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - api
 
 volumes:
   sql_data:

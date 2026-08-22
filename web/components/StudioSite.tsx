@@ -162,7 +162,7 @@ export function StudioSite() {
   async function onReview(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    await api.testimonial({
+    await api.createTestimonial({
       clientName: String(form.get("name") || ""),
       company: String(form.get("company") || ""),
       comment: String(form.get("comment") || ""),

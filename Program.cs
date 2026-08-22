@@ -29,14 +29,19 @@ builder.Services.AddAuthorization();
 // 3. Servislər, Controller-lər və SignalR
 builder.Services.AddSingleton<MotionPortfolio.Api.Services.RabbitMqService>();
 builder.Services.AddHostedService<MotionPortfolio.Api.Services.InquiryConsumerService>();
+var configuredOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>();
+var frontendOrigins = new[]
+{
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://localhost:3000",
+}.Concat(configuredOrigins).Distinct().ToArray();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("frontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "https://localhost:3000")
+        policy.WithOrigins(frontendOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
