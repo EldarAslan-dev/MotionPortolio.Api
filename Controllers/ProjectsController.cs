@@ -131,6 +131,19 @@ public class ProjectsController : ControllerBase
                 project.VideoUrl = updatedProject.VideoUrl;
             }
 
+            if (updatedProject.Year != null)
+            {
+                project.Year = updatedProject.Year;
+            }
+            if (updatedProject.ProcessNotes != null)
+            {
+                project.ProcessNotes = updatedProject.ProcessNotes;
+            }
+            if (!string.IsNullOrEmpty(updatedProject.GalleryJson))
+            {
+                project.GalleryJson = updatedProject.GalleryJson;
+            }
+
             await _context.SaveChangesAsync();
             return Ok(new { message = "Layihə uğurla yeniləndi!", data = project });
         }

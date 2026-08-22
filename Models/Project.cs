@@ -13,4 +13,9 @@ public class Project
     // Yeni əlavələr (Like və Şərhlər üçün)
     public int LikesCount { get; set; } = 0;
     public List<ProjectComment> Comments { get; set; } = new();
+
+    // Layihə case-study səhifəsi üçün əlavə, opsional sahələr.
+    public string? Year { get; set; }
+    public string? ProcessNotes { get; set; }
+    public string GalleryJson { get; set; } = "[]";
 }

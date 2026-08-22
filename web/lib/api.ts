@@ -45,6 +45,7 @@ export const api = {
   updateProfile: (profile: StudioProfile) => json("/api/profile", "PUT", profile),
 
   projects: () => getJson<Project[]>("/api/projects"),
+  projectById: (id: number) => getJson<Project>(`/api/projects/${id}`),
   createProject: (payload: Partial<Project>, token: string) =>
     json("/api/projects", "POST", payload, token),
   updateProject: (id: number, payload: Partial<Project>, token: string) =>

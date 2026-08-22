@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { mediaUrl } from "@/lib/config";
+import { mediaUrl, parseGallery } from "@/lib/config";
 import type { Project } from "@/lib/types";
 
 const CATEGORIES = [
@@ -25,11 +25,39 @@ export function PortfolioSection({
   onToast: (msg: string) => void;
 }) {
   const [editing, setEditing] = useState<Project | null>(null);
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+
+  useEffect(() => {
+    setGalleryUrls(editing ? parseGallery(editing.galleryJson) : []);
+  }, [editing]);
 
   async function onDelete(id: number) {
     if (!confirm("Layihəni silmək istəyirsiniz?")) return;
     const res = await api.deleteProject(id, token);
     if (res.ok) onChanged();
+  }
+
+  async function onGalleryFilesSelected(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setGalleryUploading(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of Array.from(files)) {
+        const res = await api.upload(file);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.url) uploaded.push(data.url);
+        }
+      }
+      setGalleryUrls((prev) => [...prev, ...uploaded]);
+    } finally {
+      setGalleryUploading(false);
+    }
+  }
+
+  function removeGalleryImage(url: string) {
+    setGalleryUrls((prev) => prev.filter((u) => u !== url));
   }
 
   async function onSaveEdit(e: FormEvent<HTMLFormElement>) {
@@ -42,6 +70,9 @@ export function PortfolioSection({
         title: String(form.get("title") || ""),
         category: String(form.get("category") || ""),
         description: String(form.get("description") || ""),
+        year: String(form.get("year") || "") || null,
+        processNotes: String(form.get("processNotes") || "") || null,
+        galleryJson: JSON.stringify(galleryUrls),
       },
       token,
     );
@@ -183,6 +214,55 @@ export function PortfolioSection({
                 required
                 className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
               />
+              <input
+                name="year"
+                defaultValue={editing.year || ""}
+                placeholder="İl (opsional, məs: 2026)"
+                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+              />
+              <textarea
+                name="processNotes"
+                defaultValue={editing.processNotes || ""}
+                rows={3}
+                placeholder="Proses qeydləri (opsional)"
+                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+              />
+
+              <div>
+                <label className="mb-1 block font-mono text-xs text-neutral-400">
+                  Qalereya (opsional):
+                </label>
+                {galleryUrls.length > 0 ? (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {galleryUrls.map((url) => (
+                      <div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-black">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={mediaUrl(url)} alt="" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(url)}
+                          className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center bg-red-600 text-xs text-white"
+                          aria-label="Şəkli sil"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/mp4,video/quicktime,video/webm"
+                  disabled={galleryUploading}
+                  onChange={(e) => onGalleryFilesSelected(e.target.files)}
+                  className="w-full text-sm text-neutral-300"
+                />
+                {galleryUploading ? (
+                  <p className="mt-1 font-mono text-[11px] text-neutral-500">Yüklənir…</p>
+                ) : null}
+              </div>
+
               <div className="flex gap-2">
                 <button
                   type="button"

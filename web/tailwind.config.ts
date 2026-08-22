@@ -9,15 +9,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Cinematic "Graphite + Warm Ivory + Electric Cobalt" system.
-        // Names kept stable so every existing bg-ink/text-paper/etc. class
-        // keeps compiling — only the rendered hues change.
-        paper: "#F5F2EA", // warm ivory — text-on-dark + light surface accents
-        ink: "#0B0C0F", // deep graphite — dominant background
-        muted: "rgba(245,242,234,0.55)", // ivory-based muted text on dark
-        amber: "#5B61E6", // electric cobalt — the single restrained accent
-        "amber-soft": "#8B90F2", // lighter cobalt tint
-        panel: "#141519", // elevated graphite surface (cards/footer/modals)
+        // "Tally" system: a near-black screening-room canvas, warm paper
+        // type, and exactly one accent — the red of an active-recording
+        // tally light / NLE playhead.
+        void: "#0A0A09", // dominant background
+        surface: "#141311", // elevated panels / modals
+        bone: "#F3EFE6", // primary text
+        mist: "rgba(243,239,230,0.55)", // secondary text
+        cue: "#FF3B2F", // the single accent
+        "cue-soft": "#FF6F63", // accent hover tint
+        line: "rgba(243,239,230,0.12)", // hairline borders
+      },
+      fontFamily: {
+        display: ["var(--font-display)", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
     },
   },

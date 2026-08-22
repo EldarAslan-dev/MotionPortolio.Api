@@ -44,6 +44,8 @@ export function UploadSection({
           videoUrl: uploaded.url,
           description: String(form.get("description") || ""),
           thumbnailUrl: "",
+          year: String(form.get("year") || "") || null,
+          processNotes: String(form.get("processNotes") || "") || null,
         },
         token,
       );
@@ -110,6 +112,27 @@ export function UploadSection({
             rows={2}
             required
             placeholder="Cinema4D, After Effects..."
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block font-mono text-xs text-neutral-400">
+            İl (opsional):
+          </label>
+          <input
+            name="year"
+            placeholder="Məs: 2026"
+            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block font-mono text-xs text-neutral-400">
+            Proses Qeydləri (opsional, case-study səhifəsində göstərilir):
+          </label>
+          <textarea
+            name="processNotes"
+            rows={3}
+            placeholder="İş prosesi haqqında ətraflı qeydlər..."
             className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none"
           />
         </div>

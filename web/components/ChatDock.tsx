@@ -151,34 +151,35 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
     <>
       <button
         type="button"
+        data-cursor="link"
         onClick={toggle}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-amber text-white shadow-lg shadow-amber/30 transition hover:bg-amber-soft"
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-bone/20 bg-surface text-bone shadow-lg shadow-black/40 transition hover:border-cue hover:text-cue"
         aria-label="Canlı dəstək"
       >
         <span className="text-lg">✉</span>
         {badge && !open ? (
-          <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-paper ring-2 ring-ink" />
+          <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-cue ring-2 ring-void" />
         ) : null}
       </button>
 
       {open ? (
-        <div className="fixed bottom-24 right-6 z-40 flex h-[420px] w-[min(92vw,360px)] flex-col overflow-hidden rounded-2xl border border-paper/10 bg-panel text-paper shadow-2xl shadow-black/50">
-          <div className="flex items-center justify-between border-b border-paper/10 px-4 py-3">
+        <div className="fixed bottom-24 right-6 z-40 flex h-[420px] w-[min(92vw,360px)] flex-col overflow-hidden border border-line bg-surface text-bone shadow-2xl shadow-black/50">
+          <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted">
+              <p className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
                 Studio desk
               </p>
-              <p className="font-display text-xl">Canlı dəstək</p>
+              <p className="font-display text-xl italic text-bone">Canlı dəstək</p>
             </div>
-            <button type="button" onClick={() => setOpen(false)} className="text-2xl leading-none text-paper/60 transition hover:text-paper">
+            <button type="button" onClick={() => setOpen(false)} className="text-2xl leading-none text-mist transition hover:text-bone">
               ×
             </button>
           </div>
           <div ref={boxRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
             {!loaded ? (
-              <p className="pt-16 text-center text-sm text-muted">Mesajlar yüklənir…</p>
+              <p className="pt-16 text-center text-sm text-mist">Mesajlar yüklənir…</p>
             ) : messages.length === 0 ? (
-              <p className="pt-16 text-center text-sm text-muted">
+              <p className="pt-16 text-center text-sm text-mist">
                 Mesajınızı yazın — cavab burada qalacaq.
               </p>
             ) : (
@@ -187,13 +188,13 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
                 return (
                   <div
                     key={keyOf(m) + m.sentAt}
-                    className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm ${
+                    className={`max-w-[82%] px-3 py-2 text-sm ${
                       mine
-                        ? "ml-auto bg-amber text-white"
-                        : "border border-paper/10 bg-ink text-paper"
+                        ? "ml-auto border border-cue/40 bg-cue/10 text-bone"
+                        : "border border-line bg-void text-bone"
                     }`}
                   >
-                    <p className="mb-1 text-[10px] uppercase tracking-wider opacity-60">
+                    <p className="mb-1 font-mono-tech text-[10px] uppercase tracking-wider text-mist">
                       {mine ? "Siz" : "Studio"}
                     </p>
                     <p className="whitespace-pre-wrap">{m.content}</p>
@@ -202,18 +203,19 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
               })
             )}
           </div>
-          <div className="flex gap-2 border-t border-paper/10 p-3">
+          <div className="flex gap-2 border-t border-line p-3">
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="Mesaj yazın…"
-              className="flex-1 rounded-full border border-paper/15 bg-ink px-4 py-2 text-sm text-paper placeholder:text-paper/40 outline-none transition focus:border-amber"
+              className="flex-1 border border-line bg-void px-4 py-2 text-sm text-bone placeholder:text-mist outline-none transition focus:border-cue"
             />
             <button
               type="button"
+              data-cursor="link"
               onClick={send}
-              className="rounded-full bg-amber px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-soft"
+              className="border border-bone/30 px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.1em] text-bone transition hover:border-cue hover:text-cue"
             >
               Göndər
             </button>

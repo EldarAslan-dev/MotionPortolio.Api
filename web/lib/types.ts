@@ -17,6 +17,10 @@ export type Project = {
   thumbnailUrl: string;
   category: string;
   likesCount: number;
+  createdAt?: string;
+  year?: string | null;
+  processNotes?: string | null;
+  galleryJson?: string;
 };
 
 export type Story = {

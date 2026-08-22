@@ -181,6 +181,16 @@ using (var scope = app.Services.CreateScope())
                 Content NVARCHAR(MAX) NOT NULL DEFAULT '',
                 SentAt DATETIME2 NOT NULL DEFAULT GETDATE()
             );
+
+            -- Layihə case-study səhifəsi üçün opsional sütunlar
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'Year' AND Object_ID = Object_ID(N'Projects'))
+            ALTER TABLE Projects ADD Year NVARCHAR(50) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'ProcessNotes' AND Object_ID = Object_ID(N'Projects'))
+            ALTER TABLE Projects ADD ProcessNotes NVARCHAR(MAX) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'GalleryJson' AND Object_ID = Object_ID(N'Projects'))
+            ALTER TABLE Projects ADD GalleryJson NVARCHAR(MAX) NOT NULL DEFAULT '[]';
         ");
 
         // Köhnə müştərilər: onlara artıq admin cavabı gedibsə, salamlama
