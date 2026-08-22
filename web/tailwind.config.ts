@@ -13,6 +13,7 @@ export default {
         ink: "#14110e",
         muted: "#6d6458",
         amber: "#c45c26",
+        "amber-soft": "#e8b089",
         panel: "#1c1814",
       },
     },

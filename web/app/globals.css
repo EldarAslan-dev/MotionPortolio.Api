@@ -52,3 +52,117 @@ body {
 .marquee-run {
   animation: drift 28s linear infinite;
 }
+
+/* ===== Story ring (avatar) ===== */
+.story-ring {
+  padding: 4px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  filter: drop-shadow(0 20px 30px rgba(20, 17, 14, 0.35));
+}
+.story-ring.has-stories {
+  background: linear-gradient(45deg, #c45c26, #e8b089, #14110e, #e8b089, #c45c26);
+  background-size: 300% 300%;
+  animation: ringRotate 6s linear infinite;
+}
+.story-ring.no-stories {
+  background: rgba(20, 17, 14, 0.15);
+}
+@keyframes ringRotate {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ===== Floating decorative icons ===== */
+.float-icon {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 12px 20px rgba(20, 17, 14, 0.18));
+}
+@keyframes iconWiggle {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(7px, -9px) rotate(2.5deg);
+  }
+  50% {
+    transform: translate(-8px, 3px) rotate(-2deg);
+  }
+  75% {
+    transform: translate(4px, 8px) rotate(1.5deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+.icon-wiggle-a {
+  animation: iconWiggle 8s ease-in-out infinite;
+}
+.icon-wiggle-b {
+  animation: iconWiggle 9.5s ease-in-out infinite;
+  animation-delay: -2.5s;
+}
+.icon-wiggle-c {
+  animation: iconWiggle 7.5s ease-in-out infinite;
+  animation-delay: -1.2s;
+}
+.icon-wiggle-d {
+  animation: iconWiggle 10s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+/* ===== About "play" button pulse ===== */
+@keyframes playPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+.play-pulse {
+  animation: playPulse 2.6s ease-in-out infinite;
+}
+.play-pulse:hover {
+  animation-play-state: paused;
+}
+
+/* ===== Edge-fade mask for scrolling rows ===== */
+.orbit-mask {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+/* ===== Story progress bars ===== */
+.story-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.story-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #c45c26, #e8b089);
+  width: 0%;
+}
