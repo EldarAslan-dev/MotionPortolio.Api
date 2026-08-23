@@ -290,14 +290,25 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   async function saveProfile(patch: Partial<StudioProfile>) {
     if (!profile) return;
-    const updated = { ...profile, ...patch, notesJson: JSON.stringify(notes) };
+    const updated = {
+      ...profile,
+      ...patch,
+      notesJson: JSON.stringify(notes),
+      heroVideoUrl: patch.heroVideoUrl !== undefined ? patch.heroVideoUrl : profile.heroVideoUrl || "",
+    };
     setProfile(updated);
     await api.updateProfile(updated);
   }
 
   useEffect(() => {
     if (!profile) return;
-    api.updateProfile({ ...profile, notesJson: JSON.stringify(notes) }).catch(() => {});
+    api
+      .updateProfile({
+        ...profile,
+        notesJson: JSON.stringify(notes),
+        heroVideoUrl: profile.heroVideoUrl || "",
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes]);
 

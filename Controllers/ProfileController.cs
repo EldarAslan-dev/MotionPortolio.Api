@@ -48,6 +48,8 @@ public class ProfileController : ControllerBase
                 profile.AvatarUrl = updated.AvatarUrl;
             }
 
+            // string? — JSON-da sahə yoxdursa null qalır və mövcud video silinmir.
+            // Admin "Sil" düyməsi açıq "" göndərir, o zaman təmizlənir.
             if (updated.HeroVideoUrl != null)
             {
                 profile.HeroVideoUrl = updated.HeroVideoUrl;

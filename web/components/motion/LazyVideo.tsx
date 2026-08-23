@@ -4,29 +4,30 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * A muted/looping background video that only fetches its source and plays
- * once it's near the viewport, and pauses again once it scrolls away —
- * keeps pages with several full-bleed project videos (the Work stack,
- * next-project teasers) from downloading/decoding all of them at once.
+ * once it's near the viewport, and pauses again once it scrolls away.
  *
- * When `hoverToPlay` is set, playback on pointer devices is driven by
- * hover instead of scroll visibility (a silent preview that starts on
- * mouse-enter and stops on mouse-leave) — the source itself still only
- * loads once the element is near the viewport. Touch devices (no real
- * hover) fall back to the normal visibility-based autoplay.
+ * Observe the wrapper (not the video): an unloaded <video> has 0 height, so
+ * IntersectionObserver never fires and the source never attaches.
+ *
+ * `eager` loads and plays immediately — used for the hero reel.
+ * `hoverToPlay` plays on hover (touch falls back to visibility autoplay).
  */
 export function LazyVideo({
   src,
   className,
   poster,
   hoverToPlay = false,
+  eager = false,
 }: {
   src: string;
   className?: string;
   poster?: string;
   hoverToPlay?: boolean;
+  eager?: boolean;
 }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLVideoElement>(null);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(eager);
   const [hovering, setHovering] = useState(false);
   const [supportsHover, setSupportsHover] = useState(false);
 
@@ -37,24 +38,31 @@ export function LazyVideo({
   const hoverMode = hoverToPlay && supportsHover;
 
   useEffect(() => {
+    const wrap = wrapRef.current;
     const el = ref.current;
-    if (!el) return;
+    if (!wrap) return;
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = !!entries[0]?.isIntersecting;
-        setInView((prev) => prev || visible);
-        if (hoverMode) return;
-        if (visible) {
+        setInView((prev) => prev || visible || eager);
+        if (hoverMode || !el) return;
+        if (visible || eager) {
           el.play().catch(() => {});
         } else {
           el.pause();
         }
       },
-      { rootMargin: "60% 0px 60% 0px", threshold: 0.01 },
+      { rootMargin: "80% 0px 80% 0px", threshold: 0.01 },
     );
-    observer.observe(el);
+    observer.observe(wrap);
     return () => observer.disconnect();
-  }, [hoverMode]);
+  }, [hoverMode, eager]);
+
+  useEffect(() => {
+    if (eager) {
+      ref.current?.play().catch(() => {});
+    }
+  }, [eager, inView, src]);
 
   useEffect(() => {
     if (!hoverMode) return;
@@ -70,18 +78,20 @@ export function LazyVideo({
 
   return (
     <div
-      className="h-full w-full"
+      ref={wrapRef}
+      className="relative h-full w-full"
       onMouseEnter={hoverMode ? () => setHovering(true) : undefined}
       onMouseLeave={hoverMode ? () => setHovering(false) : undefined}
     >
       <video
         ref={ref}
-        src={inView ? src : undefined}
+        src={inView || eager ? src : undefined}
         poster={poster}
         muted
         loop
         playsInline
-        preload="none"
+        autoPlay={eager}
+        preload={eager ? "auto" : "none"}
         className={className}
       />
     </div>

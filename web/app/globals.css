@@ -188,6 +188,49 @@ body {
   will-change: transform;
 }
 
+.hero-stage {
+  background:
+    radial-gradient(circle at 80% 15%, rgba(255, 59, 47, 0.18), transparent 28%),
+    radial-gradient(circle at 14% 82%, rgba(45, 118, 255, 0.12), transparent 30%),
+    var(--void);
+}
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(120px);
+  opacity: 0.32;
+  z-index: 1;
+}
+
+.hero-orb-a {
+  width: min(320px, 70vw);
+  height: min(320px, 70vw);
+  background: #ff3b2f;
+  right: 6%;
+  top: 18%;
+}
+
+.hero-orb-b {
+  width: min(280px, 60vw);
+  height: min(280px, 60vw);
+  background: #1573ff;
+  left: 4%;
+  bottom: -8%;
+}
+
+.hero-fade-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 220px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(to bottom, rgba(10, 10, 9, 0) 0%, var(--void) 100%);
+}
+
 /* ===== Premium CTA hover — shared, subtle lift + glow ===== */
 .btn-glow {
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease,

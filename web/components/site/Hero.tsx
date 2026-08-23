@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { LazyVideo } from "@/components/motion/LazyVideo";
 import { MaskLines, MaskReveal } from "@/components/motion/MaskReveal";
 import { useFinePointer } from "@/lib/useFinePointer";
 import { useReducedMotion } from "@/lib/useReducedMotion";
@@ -9,17 +8,21 @@ import { mediaUrl } from "@/lib/config";
 import { useStudio } from "@/lib/site/StudioContext";
 
 export function Hero() {
-  const { ready, name, bio, profile, openInquiry } = useStudio();
+  const { ready, name, bio, profile, projects, openInquiry } = useStudio();
   const fine = useFinePointer();
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<HTMLDivElement>(null);
 
-  const bgVideo = profile?.heroVideoUrl ? mediaUrl(profile.heroVideoUrl) : "";
+  const rawHero =
+    profile?.heroVideoUrl ||
+    (profile as { HeroVideoUrl?: string } | null)?.HeroVideoUrl ||
+    projects[0]?.videoUrl ||
+    "";
+  const bgVideo = rawHero ? mediaUrl(rawHero) : "";
 
-  // Restrained pointer-reactive parallax on the background media — desktop, motion-ok only.
   useEffect(() => {
-    if (!fine || reduced) return;
+    if (!fine || reduced || !bgVideo) return;
     const stage = stageRef.current;
     const layer = layerRef.current;
     if (!stage || !layer) return;
@@ -47,7 +50,7 @@ export function Hero() {
       stage.removeEventListener("mousemove", onMove);
       cancelAnimationFrame(raf);
     };
-  }, [fine, reduced]);
+  }, [fine, reduced, bgVideo]);
 
   const nameWords = name.split(" ").filter(Boolean);
 
@@ -55,24 +58,27 @@ export function Hero() {
     <section
       id="top"
       ref={stageRef}
-      className="relative flex min-h-[100svh] flex-col overflow-hidden bg-void"
+      className="hero-stage relative flex min-h-[100svh] flex-col overflow-hidden bg-void"
     >
-      <div ref={layerRef} className="absolute inset-0 will-change-transform">
+      <div ref={layerRef} className="absolute inset-0 z-0 will-change-transform">
         {bgVideo ? (
-          <LazyVideo
+          <video
             key={bgVideo}
             src={bgVideo}
-            className="h-full w-full object-cover opacity-40"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="absolute inset-0 h-full w-full object-cover"
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="h-[46vmin] w-[46vmin] rounded-full border border-line" />
-            <div className="absolute h-[30vmin] w-[30vmin] rounded-full border border-line" />
-          </div>
-        )}
+        ) : null}
       </div>
-      <div className="absolute inset-0 bg-gradient-to-b from-void/70 via-void/55 to-void" />
-      <div className="ambient-glow" />
+
+      <div className="hero-orb hero-orb-a" />
+      <div className="hero-orb hero-orb-b" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-void/20 via-void/10 to-void/85" />
+      <div className="hero-fade-bottom" />
       <div className="grain" />
 
       <div className="relative z-10 flex flex-1 flex-col justify-center px-5 pb-6 pt-28 sm:px-6 md:px-10">

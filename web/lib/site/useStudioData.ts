@@ -30,7 +30,13 @@ export function useStudioData() {
       api.stories(),
       api.testimonials(),
     ]).then((results) => {
-      if (results[0].status === "fulfilled") setProfile(results[0].value);
+      if (results[0].status === "fulfilled") {
+        const p = results[0].value as StudioProfile & { HeroVideoUrl?: string };
+        setProfile({
+          ...p,
+          heroVideoUrl: p.heroVideoUrl || p.HeroVideoUrl || "",
+        });
+      }
       if (results[1].status === "fulfilled") setProjects(results[1].value);
       if (results[2].status === "fulfilled") {
         const now = Date.now();
