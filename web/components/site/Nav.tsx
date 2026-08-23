@@ -7,6 +7,7 @@ import { useStudio } from "@/lib/site/StudioContext";
 
 const LINKS = [
   { href: "/#about", label: "Haqqında" },
+  { href: "/#updates", label: "Duyuru" },
   { href: "/#services", label: "Xidmətlər" },
   { href: "/#work", label: "İşlər" },
   { href: "/#notes", label: "Rəylər" },
@@ -14,7 +15,7 @@ const LINKS = [
 ];
 
 export function Nav() {
-  const { ready, name, liveStories, setStoryIndex, openInquiry } = useStudio();
+  const { ready, name, avatar, liveStories, openInquiry } = useStudio();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -47,15 +48,25 @@ export function Nav() {
           }`}
         >
           <Link
-            href="/#top"
+            href={liveStories.length > 0 ? "/#updates" : "/#top"}
             data-cursor="link"
-            className="max-w-[45vw] truncate font-mono-tech text-[11px] uppercase tracking-[0.2em] text-bone"
+            className="flex min-w-0 max-w-[58vw] items-center gap-2.5 md:max-w-none"
           >
-            {ready ? (
-              name
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatar}
+                alt=""
+                className={`h-8 w-8 shrink-0 rounded-full object-cover md:h-9 md:w-9 ${
+                  liveStories.length > 0 ? "ring-1 ring-cue ring-offset-2 ring-offset-void" : "border border-line"
+                }`}
+              />
             ) : (
-              <span className="inline-block h-3 w-28 animate-pulse bg-bone/10" />
+              <span className="h-8 w-8 shrink-0 rounded-full border border-line bg-surface md:h-9 md:w-9" />
             )}
+            <span className="truncate font-mono-tech text-[11px] uppercase tracking-[0.2em] text-bone">
+              {ready ? name : <span className="inline-block h-3 w-28 animate-pulse bg-bone/10" />}
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-8 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-mist md:flex">
@@ -72,21 +83,6 @@ export function Nav() {
           </nav>
 
           <div className="flex items-center gap-4">
-            {liveStories.length > 0 ? (
-              <button
-                type="button"
-                data-cursor="link"
-                onClick={() => setStoryIndex(0)}
-                className="hidden items-center gap-2 font-mono-tech text-[10px] uppercase tracking-[0.15em] text-mist transition hover:text-bone sm:flex"
-              >
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cue opacity-75" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cue" />
-                </span>
-                Canlı yeniləmə
-              </button>
-            ) : null}
-
             <button
               type="button"
               data-cursor="link"

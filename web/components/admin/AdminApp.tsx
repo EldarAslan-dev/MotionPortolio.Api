@@ -25,7 +25,7 @@ const SECTIONS = [
   { id: "upload", label: "🎬 Animasiya Paylaş" },
   { id: "portfolio", label: "📦 Portfel İdarəsi" },
   { id: "testimonials", label: "💬 Gələn Rəylər" },
-  { id: "announcement", label: "📢 Vitrin Elanı" },
+  { id: "announcement", label: "📢 Vitrin & Hero video" },
   { id: "notes", label: "📝 Qeydlər" },
   { id: "password", label: "🔒 Şifrə Dəyiş" },
   { id: "team", label: "👥 Komanda" },

@@ -191,6 +191,9 @@ using (var scope = app.Services.CreateScope())
 
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'GalleryJson' AND Object_ID = Object_ID(N'Projects'))
             ALTER TABLE Projects ADD GalleryJson NVARCHAR(MAX) NOT NULL DEFAULT '[]';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'HeroVideoUrl' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD HeroVideoUrl NVARCHAR(MAX) NOT NULL DEFAULT '';
         ");
 
         // Köhnə müştərilər: onlara artıq admin cavabı gedibsə, salamlama

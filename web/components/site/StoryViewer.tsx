@@ -18,11 +18,11 @@ export function StoryViewer() {
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-void/90 p-6"
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-void/90 p-4 sm:p-6"
       onClick={() => setStoryIndex(null)}
     >
       <div
-        className="w-full max-w-sm overflow-hidden border border-line bg-surface p-4"
+        className="max-h-[90svh] w-full max-w-sm overflow-y-auto border border-line bg-surface p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex gap-1">

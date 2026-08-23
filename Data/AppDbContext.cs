@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Inquiry> Inquiries => Set<Inquiry>();
     public DbSet<User> Users => Set<User>();
     public DbSet<StudioProfile> StudioProfiles { get; set; }
+    public DbSet<Story> Stories { get; set; }
     public DbSet<Testimonial> Testimonials { get; set; }
     public DbSet<ProjectComment> ProjectComments { get; set; }
     public DbSet<Message> Messages { get; set; }

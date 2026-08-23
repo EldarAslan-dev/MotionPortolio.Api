@@ -48,6 +48,11 @@ public class ProfileController : ControllerBase
                 profile.AvatarUrl = updated.AvatarUrl;
             }
 
+            if (updated.HeroVideoUrl != null)
+            {
+                profile.HeroVideoUrl = updated.HeroVideoUrl;
+            }
+
             profile.InstagramUrl = updated.InstagramUrl;
             profile.AnnouncementText = updated.AnnouncementText;
             profile.ShowAnnouncement = updated.ShowAnnouncement;

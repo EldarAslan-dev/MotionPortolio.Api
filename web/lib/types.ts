@@ -3,6 +3,7 @@ export type StudioProfile = {
   designerName: string;
   bio: string;
   avatarUrl: string;
+  heroVideoUrl?: string;
   instagramUrl: string;
   announcementText: string;
   showAnnouncement: boolean;
