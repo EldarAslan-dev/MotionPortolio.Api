@@ -325,3 +325,15 @@ C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\_verify_build\runtimes\osx-x6
 C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\_verify_build\runtimes\win-arm64\native\msalruntime_arm64.dll
 C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\_verify_build\runtimes\win-x64\native\msalruntime.dll
 C:\Users\eldar\MotionPortfolio\MotionPortfolio.Api\_verify_build\runtimes\win-x86\native\msalruntime_x86.dll
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\appsettings.Development.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\appsettings.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\web\package-lock.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\web\package.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\web\tsconfig.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\MotionPortfolio.Api.staticwebassets.runtime.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\MotionPortfolio.Api.staticwebassets.endpoints.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\MotionPortfolio.Api.exe
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\MotionPortfolio.Api.deps.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\MotionPortfolio.Api.runtimeconfig.json
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\MotionPortfolio.Api.dll
+C:\Users\eldar\AppData\Local\Temp\mp-api-check\MotionPortfolio.Api.pdb

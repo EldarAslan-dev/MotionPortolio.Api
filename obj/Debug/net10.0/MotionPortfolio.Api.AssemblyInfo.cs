@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MotionPortfolio.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ece9f6825806bfa33dbc4de46e91a36f34d386e4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+315e8716c1d4f877ff7df3bf2174b843db75e5fb")]
 [assembly: System.Reflection.AssemblyProductAttribute("MotionPortfolio.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MotionPortfolio.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
