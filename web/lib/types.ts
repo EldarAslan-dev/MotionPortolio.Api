@@ -10,6 +10,11 @@ export type StudioProfile = {
   notesJson?: string;
 };
 
+export type GalleryItem = {
+  url: string;
+  type: "image" | "video";
+};
+
 export type Project = {
   id: number;
   title: string;

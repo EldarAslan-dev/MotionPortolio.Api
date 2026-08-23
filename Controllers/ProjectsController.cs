@@ -61,9 +61,10 @@ public class ProjectsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Project>> CreateProject([FromBody] Project project)
     {
-        if (project == null || string.IsNullOrEmpty(project.Title) || string.IsNullOrEmpty(project.VideoUrl))
+        var hasGalleryMedia = !string.IsNullOrEmpty(project?.GalleryJson) && project.GalleryJson.Trim() is not ("" or "[]" or "null");
+        if (project == null || string.IsNullOrEmpty(project.Title) || (string.IsNullOrEmpty(project.VideoUrl) && !hasGalleryMedia))
         {
-            return BadRequest(new { message = "Layihə başlığı və video linki mütləq təmin edilməlidir." });
+            return BadRequest(new { message = "Layihə başlığı və ən azı bir media (video və ya şəkil) mütləq təmin edilməlidir." });
         }
 
         try

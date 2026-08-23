@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { LazyVideo } from "@/components/motion/LazyVideo";
 import { api } from "@/lib/api";
-import { mediaUrl, parseGallery } from "@/lib/config";
-import type { Project } from "@/lib/types";
+import { mediaUrl, parseGallery, projectCover } from "@/lib/config";
+import type { GalleryItem, Project } from "@/lib/types";
 
 const CATEGORIES = [
   "3D Motion",
@@ -12,6 +13,22 @@ const CATEGORIES = [
   "VFX & Simulation",
   "Logo Animation",
 ];
+
+function CoverThumb({ project }: { project: Project }) {
+  const cover = projectCover(project);
+  if (!cover) return null;
+  if (cover.type === "video") {
+    return (
+      <LazyVideo
+        src={mediaUrl(cover.url)}
+        hoverToPlay
+        className="h-full w-full object-contain"
+      />
+    );
+  }
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={mediaUrl(cover.url)} alt="" className="h-full w-full object-contain" />;
+}
 
 export function PortfolioSection({
   projects,
@@ -25,11 +42,11 @@ export function PortfolioSection({
   onToast: (msg: string) => void;
 }) {
   const [editing, setEditing] = useState<Project | null>(null);
-  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
 
   useEffect(() => {
-    setGalleryUrls(editing ? parseGallery(editing.galleryJson) : []);
+    setGalleryItems(editing ? parseGallery(editing.galleryJson) : []);
   }, [editing]);
 
   async function onDelete(id: number) {
@@ -42,22 +59,24 @@ export function PortfolioSection({
     if (!files || files.length === 0) return;
     setGalleryUploading(true);
     try {
-      const uploaded: string[] = [];
+      const uploaded: GalleryItem[] = [];
       for (const file of Array.from(files)) {
         const res = await api.upload(file);
         if (res.ok) {
           const data = await res.json();
-          if (data?.url) uploaded.push(data.url);
+          if (data?.url) {
+            uploaded.push({ url: data.url, type: file.type.startsWith("video") ? "video" : "image" });
+          }
         }
       }
-      setGalleryUrls((prev) => [...prev, ...uploaded]);
+      setGalleryItems((prev) => [...prev, ...uploaded]);
     } finally {
       setGalleryUploading(false);
     }
   }
 
-  function removeGalleryImage(url: string) {
-    setGalleryUrls((prev) => prev.filter((u) => u !== url));
+  function removeGalleryItem(url: string) {
+    setGalleryItems((prev) => prev.filter((item) => item.url !== url));
   }
 
   async function onSaveEdit(e: FormEvent<HTMLFormElement>) {
@@ -72,7 +91,7 @@ export function PortfolioSection({
         description: String(form.get("description") || ""),
         year: String(form.get("year") || "") || null,
         processNotes: String(form.get("processNotes") || "") || null,
-        galleryJson: JSON.stringify(galleryUrls),
+        galleryJson: JSON.stringify(galleryItems),
       },
       token,
     );
@@ -95,15 +114,7 @@ export function PortfolioSection({
             className="flex gap-3 rounded-xl border border-white/10 bg-neutral-950 p-3 text-white"
           >
             <div className="flex h-[64px] w-[92px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black">
-              {p.videoUrl ? (
-                <video
-                  src={mediaUrl(p.videoUrl)}
-                  muted
-                  preload="metadata"
-                  playsInline
-                  className="h-full w-full object-contain"
-                />
-              ) : null}
+              <CoverThumb project={p} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate font-semibold">{p.title}</div>
@@ -145,15 +156,7 @@ export function PortfolioSection({
               <tr key={p.id} className="border-b border-white/5 text-white">
                 <td className="px-3 py-3">
                   <div className="flex h-[70px] w-[110px] items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black">
-                    {p.videoUrl ? (
-                      <video
-                        src={mediaUrl(p.videoUrl)}
-                        muted
-                        preload="metadata"
-                        playsInline
-                        className="h-full w-full object-contain"
-                      />
-                    ) : null}
+                    <CoverThumb project={p} />
                   </div>
                 </td>
                 <td className="px-3 py-3 font-semibold">{p.title}</td>
@@ -230,19 +233,34 @@ export function PortfolioSection({
 
               <div>
                 <label className="mb-1 block font-mono text-xs text-neutral-400">
-                  Qalereya (opsional):
+                  Qalereya (opsional, istənilən sayda şəkil/video):
                 </label>
-                {galleryUrls.length > 0 ? (
+                {galleryItems.length > 0 ? (
                   <div className="mb-2 flex flex-wrap gap-2">
-                    {galleryUrls.map((url) => (
-                      <div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-black">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={mediaUrl(url)} alt="" className="h-full w-full object-cover" />
+                    {galleryItems.map((item) => (
+                      <div key={item.url} className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-black">
+                        {item.type === "video" ? (
+                          <video
+                            src={mediaUrl(item.url)}
+                            muted
+                            preload="metadata"
+                            playsInline
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={mediaUrl(item.url)} alt="" className="h-full w-full object-cover" />
+                        )}
+                        {item.type === "video" ? (
+                          <span className="pointer-events-none absolute bottom-0.5 left-0.5 rounded bg-black/60 px-1 text-[9px] uppercase text-white">
+                            Video
+                          </span>
+                        ) : null}
                         <button
                           type="button"
-                          onClick={() => removeGalleryImage(url)}
+                          onClick={() => removeGalleryItem(item.url)}
                           className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center bg-red-600 text-xs text-white"
-                          aria-label="Şəkli sil"
+                          aria-label="Media sil"
                         >
                           ×
                         </button>

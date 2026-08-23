@@ -21,9 +21,9 @@ export default {
         line: "rgba(243,239,230,0.12)", // hairline borders
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        display: ["Helvetica", "sans-serif"],
+        sans: ["Helvetica", "sans-serif"],
+        mono: ["Helvetica", "sans-serif"],
       },
     },
   },

@@ -72,6 +72,7 @@ export function Hero() {
         )}
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-void/70 via-void/55 to-void" />
+      <div className="ambient-glow" />
       <div className="grain" />
 
       <div className="relative z-10 flex flex-1 flex-col justify-center px-5 pb-6 pt-28 sm:px-6 md:px-10">
@@ -120,7 +121,7 @@ export function Hero() {
               type="button"
               data-cursor="link"
               onClick={() => openInquiry("Ümumi əməkdaşlıq")}
-              className="group inline-flex items-center justify-center gap-3 rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:justify-start"
+              className="btn-glow group inline-flex items-center justify-center gap-3 rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:justify-start"
             >
               Layihə başlat
               <span className="transition-transform group-hover:translate-x-1">→</span>

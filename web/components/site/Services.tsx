@@ -48,10 +48,10 @@ export function Services() {
               type="button"
               data-cursor="link"
               onClick={() => openInquiry(s.title)}
-              className="group relative block w-full border-b border-line py-8 text-left transition-colors duration-300 hover:bg-surface/40 md:py-10"
+              className="group relative block w-full border-b border-line py-8 text-left transition-all duration-300 hover:bg-surface/40 hover:shadow-[inset_3px_0_0_0_#FF3B2F] md:py-10"
             >
               <div className="flex items-center gap-6 px-2 md:gap-10 md:px-4">
-                <span className="w-10 shrink-0 font-mono-tech text-sm text-mist transition-colors duration-300 group-hover:text-cue">
+                <span className="inline-block w-10 shrink-0 font-mono-tech text-sm text-mist transition-all duration-300 group-hover:scale-125 group-hover:text-cue">
                   {s.n}
                 </span>
                 <h3 className="font-display text-3xl italic text-bone transition-transform duration-500 group-hover:translate-x-2 md:text-5xl">

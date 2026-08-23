@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { MaskReveal } from "@/components/motion/MaskReveal";
 import { useStudio } from "@/lib/site/StudioContext";
 
 const LINKS = [
@@ -30,9 +29,20 @@ export function Nav() {
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
+    document.body.style.touchAction = menuOpen ? "none" : "";
     return () => {
       document.body.style.overflow = "";
+      document.body.style.touchAction = "";
     };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
   return (
@@ -75,9 +85,10 @@ export function Nav() {
                 key={l.href}
                 href={l.href}
                 data-cursor="link"
-                className="relative py-1 transition hover:text-bone"
+                className="group relative py-1 transition hover:text-bone"
               >
                 {l.label}
+                <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-cue transition-all duration-300 ease-out group-hover:w-full" />
               </Link>
             ))}
           </nav>
@@ -87,7 +98,7 @@ export function Nav() {
               type="button"
               data-cursor="link"
               onClick={() => openInquiry("Ümumi əməkdaşlıq")}
-              className="hidden rounded-full border border-bone/30 px-5 py-2 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:inline-block"
+              className="btn-glow hidden rounded-full border border-bone/30 px-5 py-2 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:inline-block"
             >
               Layihə başlat
             </button>
@@ -95,17 +106,23 @@ export function Nav() {
             <button
               type="button"
               aria-label="Menyu"
+              aria-expanded={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-9 w-9 flex-col items-center justify-center gap-[5px] md:hidden"
+              className="relative z-10 flex h-9 w-9 flex-col items-center justify-center gap-1.5 md:hidden"
             >
               <span
-                className={`h-px w-5 bg-bone transition-transform duration-300 ${
-                  menuOpen ? "translate-y-[3px] rotate-45" : ""
+                className={`h-0.5 w-5 bg-bone transition-all duration-300 ${
+                  menuOpen ? "translate-y-2 rotate-45" : ""
                 }`}
               />
               <span
-                className={`h-px w-5 bg-bone transition-transform duration-300 ${
-                  menuOpen ? "-translate-y-[3px] -rotate-45" : ""
+                className={`h-0.5 w-5 bg-bone transition-all duration-300 ${
+                  menuOpen ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`h-0.5 w-5 bg-bone transition-all duration-300 ${
+                  menuOpen ? "-translate-y-2 -rotate-45" : ""
                 }`}
               />
             </button>
@@ -115,22 +132,22 @@ export function Nav() {
 
       {/* Mobile full-screen menu */}
       <div
-        className={`fixed inset-0 z-40 flex flex-col justify-center bg-void px-8 transition-opacity duration-500 md:hidden ${
+        className={`fixed inset-0 z-40 flex flex-col justify-center overflow-y-auto bg-void px-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(6rem,env(safe-area-inset-top))] transition-opacity duration-500 md:hidden ${
           menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
-        <nav key={menuOpen ? "open" : "closed"} className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1">
           {LINKS.map((l, i) => (
-            <Link key={l.href} href={l.href} onClick={() => setMenuOpen(false)}>
-              <MaskReveal
-                as="span"
-                className="block py-2"
-                innerClassName="font-display text-4xl italic text-bone"
-                trigger="mount"
-                delay={i * 60}
-              >
-                {l.label}
-              </MaskReveal>
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setMenuOpen(false)}
+              className={`block py-2 font-display text-4xl italic text-bone transition-all duration-500 ease-out ${
+                menuOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+              }`}
+              style={{ transitionDelay: menuOpen ? `${80 + i * 60}ms` : "0ms" }}
+            >
+              {l.label}
             </Link>
           ))}
         </nav>
@@ -140,7 +157,7 @@ export function Nav() {
             setMenuOpen(false);
             openInquiry("Ümumi əməkdaşlıq");
           }}
-          className="mt-10 self-start rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone"
+          className="btn-glow mt-10 self-start rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
         >
           Layihə başlat
         </button>

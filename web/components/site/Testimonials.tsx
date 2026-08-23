@@ -30,7 +30,7 @@ export function Testimonials() {
             {doubled.map((t, i) => (
               <figure
                 key={`${t.id}-${i}`}
-                className="w-80 shrink-0 border border-line bg-surface p-6"
+                className="w-80 shrink-0 border border-line bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-cue/50 hover:shadow-[0_16px_40px_rgba(0,0,0,0.4)]"
               >
                 <p className="text-cue">{"★".repeat(t.rating || 5)}</p>
                 <blockquote className="mt-4 text-sm leading-relaxed text-bone/90">

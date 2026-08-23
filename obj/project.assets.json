@@ -3347,7 +3347,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\eldar\\.nuget\\packages\\": {},
+    "C:\\Users\\eldar\\AppData\\Local\\Temp\\cursor-sandbox-cache\\51a4a0c6bb412f9d64125da4610597d0\\nuget": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
@@ -3356,7 +3356,7 @@
       "projectUniqueName": "C:\\Users\\eldar\\MotionPortfolio\\MotionPortfolio.Api\\MotionPortfolio.Api.csproj",
       "projectName": "MotionPortfolio.Api",
       "projectPath": "C:\\Users\\eldar\\MotionPortfolio\\MotionPortfolio.Api\\MotionPortfolio.Api.csproj",
-      "packagesPath": "C:\\Users\\eldar\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\eldar\\AppData\\Local\\Temp\\cursor-sandbox-cache\\51a4a0c6bb412f9d64125da4610597d0\\nuget",
       "outputPath": "C:\\Users\\eldar\\MotionPortfolio\\MotionPortfolio.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
@@ -3871,7 +3871,7 @@
       "code": "NU1903",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
+      "message": "'Microsoft.OpenApi' 2.0.0 paketinde önem derecesi yüksek olan bilinen bir https://github.com/advisories/GHSA-v5pm-xwqc-g5wc güvenlik açığı var",
       "libraryId": "Microsoft.OpenApi",
       "targetGraphs": [
         "net10.0"

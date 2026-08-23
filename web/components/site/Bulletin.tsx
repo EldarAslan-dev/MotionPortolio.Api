@@ -1,5 +1,6 @@
 "use client";
 
+import { LazyVideo } from "@/components/motion/LazyVideo";
 import { mediaUrl } from "@/lib/config";
 import { useStudio } from "@/lib/site/StudioContext";
 import type { Story } from "@/lib/types";
@@ -104,11 +105,9 @@ export function Bulletin() {
             </span>
             <span className="relative h-12 w-12 shrink-0 overflow-hidden border border-line bg-surface md:h-14 md:w-14">
               {isVideo(story) ? (
-                <video
+                <LazyVideo
                   src={mediaUrl(story.mediaUrl)}
-                  muted
-                  playsInline
-                  preload="metadata"
+                  hoverToPlay
                   className="h-full w-full object-cover opacity-80"
                 />
               ) : (
@@ -116,6 +115,7 @@ export function Bulletin() {
                 <img
                   src={mediaUrl(story.mediaUrl)}
                   alt=""
+                  loading="lazy"
                   className="h-full w-full object-cover opacity-80"
                 />
               )}

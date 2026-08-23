@@ -11,6 +11,9 @@
   --cue: #ff3b2f;
   --cue-soft: #ff6f63;
   --line: rgba(243, 239, 230, 0.12);
+  --font-sans: Helvetica, sans-serif;
+  --font-display: Helvetica, sans-serif;
+  --font-mono: Helvetica, sans-serif;
 }
 
 html {
@@ -21,7 +24,7 @@ html {
 body {
   background: var(--void);
   color: var(--bone);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: Helvetica, sans-serif;
   overflow-x: hidden;
 }
 
@@ -36,13 +39,13 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: Helvetica, sans-serif;
   font-weight: 400;
   letter-spacing: -0.02em;
 }
 
 .font-mono-tech {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: Helvetica, sans-serif;
 }
 
 /* ===== Film grain — a static, GPU-cheap texture over the whole page ===== */
@@ -106,7 +109,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: Helvetica, sans-serif;
   font-size: 9px;
   letter-spacing: 0.1em;
   color: var(--bone);
@@ -163,6 +166,42 @@ body {
   height: 100%;
   background: var(--cue);
   width: 0%;
+}
+
+/* ===== Ambient glow — soft drifting accent light, used behind hero content ===== */
+@keyframes ambientDrift {
+  0%,
+  100% {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, 3%, 0) scale(1.12);
+  }
+}
+.ambient-glow {
+  position: absolute;
+  inset: -10%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 59, 47, 0.16), transparent 70%);
+  filter: blur(40px);
+  animation: ambientDrift 14s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ===== Premium CTA hover — shared, subtle lift + glow ===== */
+.btn-glow {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease,
+    border-color 0.3s ease, color 0.3s ease;
+}
+.btn-glow:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 0 22px rgba(255, 59, 47, 0.35);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ===== Motion accessibility ===== */
