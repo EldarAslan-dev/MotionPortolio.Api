@@ -42,7 +42,7 @@ export function CustomCursor() {
       if (el) {
         const kind = el.getAttribute("data-cursor") === "view" ? "view" : "link";
         setMode(kind);
-        setLabel(el.getAttribute("data-cursor-label") || (kind === "view" ? "BAX" : ""));
+        setLabel(el.getAttribute("data-cursor-label") || (kind === "view" ? "VIEW" : ""));
       }
     }
     function onOut(e: MouseEvent) {

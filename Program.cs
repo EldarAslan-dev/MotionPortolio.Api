@@ -194,6 +194,23 @@ using (var scope = app.Services.CreateScope())
 
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'HeroVideoUrl' AND Object_ID = Object_ID(N'StudioProfiles'))
             ALTER TABLE StudioProfiles ADD HeroVideoUrl NVARCHAR(MAX) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AboutPhotoUrl' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD AboutPhotoUrl NVARCHAR(MAX) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'HeroGalleryJson' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD HeroGalleryJson NVARCHAR(MAX) NOT NULL DEFAULT '[]';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'CardImageUrl' AND Object_ID = Object_ID(N'Projects'))
+            ALTER TABLE Projects ADD CardImageUrl NVARCHAR(MAX) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ClientLogos' and xtype='U')
+            CREATE TABLE ClientLogos (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                Name NVARCHAR(MAX) NOT NULL DEFAULT '',
+                LogoUrl NVARCHAR(MAX) NOT NULL DEFAULT '',
+                SortOrder INT NOT NULL DEFAULT 0
+            );
         ");
 
         // Köhnə müştərilər: onlara artıq admin cavabı gedibsə, salamlama
@@ -243,6 +260,26 @@ using (var scope = app.Services.CreateScope())
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                     Role = "Admin"
                 });
+                db.SaveChanges();
+            }
+
+            if (!db.ClientLogos.Any())
+            {
+                var names = new[]
+                {
+                    "JFA Partnership", "VRM Group", "VNM Agency", "INVESTxBAKU",
+                    "Magnific", "Ganja Park City", "Kormotech", "NAVA",
+                    "Aslanov Group", "Unipoland"
+                };
+                for (var i = 0; i < names.Length; i++)
+                {
+                    db.ClientLogos.Add(new ClientLogo
+                    {
+                        Name = names[i],
+                        LogoUrl = "",
+                        SortOrder = i
+                    });
+                }
                 db.SaveChanges();
             }
         }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MotionPortfolio.Api.Data;
@@ -30,6 +31,7 @@ public class ProfileController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProfile([FromBody] StudioProfile updated)
     {
         var profile = await _context.StudioProfiles.FirstOrDefaultAsync();
@@ -46,6 +48,16 @@ public class ProfileController : ControllerBase
             if (!string.IsNullOrEmpty(updated.AvatarUrl))
             {
                 profile.AvatarUrl = updated.AvatarUrl;
+            }
+
+            if (updated.AboutPhotoUrl != null)
+            {
+                profile.AboutPhotoUrl = updated.AboutPhotoUrl;
+            }
+
+            if (updated.HeroGalleryJson != null)
+            {
+                profile.HeroGalleryJson = updated.HeroGalleryJson;
             }
 
             // string? — JSON-da sahə yoxdursa null qalır və mövcud video silinmir.

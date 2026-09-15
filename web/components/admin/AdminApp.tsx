@@ -10,6 +10,7 @@ import { InquiriesSection } from "@/components/admin/sections/InquiriesSection";
 import { NotesSection } from "@/components/admin/sections/NotesSection";
 import { PasswordSection } from "@/components/admin/sections/PasswordSection";
 import { PortfolioSection } from "@/components/admin/sections/PortfolioSection";
+import { SiteImagesSection } from "@/components/admin/sections/SiteImagesSection";
 import { TeamSection } from "@/components/admin/sections/TeamSection";
 import { TestimonialsSection } from "@/components/admin/sections/TestimonialsSection";
 import { UploadSection } from "@/components/admin/sections/UploadSection";
@@ -18,7 +19,7 @@ import { playNotificationSound, useToasts } from "@/hooks/useToasts";
 import { api } from "@/lib/api";
 import { adminAuth } from "@/lib/auth";
 import { API_URL, mediaUrl } from "@/lib/config";
-import type { Inquiry, Project, StaffUser, StudioProfile, Testimonial } from "@/lib/types";
+import type { ClientLogo, Inquiry, Project, StaffUser, StudioProfile, Testimonial } from "@/lib/types";
 
 const SECTIONS = [
   { id: "inquiries", label: "📥 Müraciətlər" },
@@ -26,6 +27,7 @@ const SECTIONS = [
   { id: "portfolio", label: "📦 Portfel İdarəsi" },
   { id: "testimonials", label: "💬 Gələn Rəylər" },
   { id: "announcement", label: "📢 Vitrin & Hero video" },
+  { id: "siteImages", label: "🖼️ Sayt şəkilləri" },
   { id: "notes", label: "📝 Qeydlər" },
   { id: "password", label: "🔒 Şifrə Dəyiş" },
   { id: "team", label: "👥 Komanda" },
@@ -55,6 +57,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [profile, setProfile] = useState<StudioProfile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [clientLogos, setClientLogos] = useState<ClientLogo[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [staffList, setStaffList] = useState<StaffUser[]>([]);
   const [notes, setNotes] = useState<string[]>([]);
@@ -76,7 +79,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   const loadProfile = useCallback(async () => {
     const p = await api.profile();
-    setProfile(p);
+    setProfile({
+      ...p,
+      heroVideoUrl: p.heroVideoUrl || "",
+      aboutPhotoUrl: p.aboutPhotoUrl || "",
+      heroGalleryJson: p.heroGalleryJson || "[]",
+    });
     try {
       setNotes(JSON.parse(p.notesJson || "[]"));
     } catch {
@@ -85,12 +93,34 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }, []);
 
   const loadProjects = useCallback(async () => {
-    setProjects(await api.projects());
+    const list = await api.projects();
+    setProjects(
+      list.map((p) => ({
+        ...p,
+        cardImageUrl: p.cardImageUrl || (p as { CardImageUrl?: string }).CardImageUrl || "",
+      })),
+    );
   }, []);
 
   const loadTestimonials = useCallback(async () => {
     try {
       setTestimonials(await api.testimonials());
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const loadClientLogos = useCallback(async () => {
+    try {
+    const logos = await api.clientLogos();
+      setClientLogos(
+        logos.map((l) => ({
+          id: l.id || (l as { Id?: number }).Id || 0,
+          name: l.name || (l as { Name?: string }).Name || "",
+          logoUrl: l.logoUrl || (l as { LogoUrl?: string }).LogoUrl || "",
+          sortOrder: l.sortOrder ?? (l as { SortOrder?: number }).SortOrder ?? 0,
+        })),
+      );
     } catch {
       /* ignore */
     }
@@ -137,9 +167,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     loadProfile();
     loadProjects();
     loadTestimonials();
+    loadClientLogos();
     loadStaffList().then(loadInquiries);
     loadClientsForDm();
-  }, [loadProfile, loadProjects, loadTestimonials, loadStaffList, loadInquiries, loadClientsForDm]);
+  }, [loadProfile, loadProjects, loadTestimonials, loadClientLogos, loadStaffList, loadInquiries, loadClientsForDm]);
 
   const addMessageToStore = useCallback(
     (clientId: string, sender: string, content: string, label?: string) => {
@@ -295,9 +326,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       ...patch,
       notesJson: JSON.stringify(notes),
       heroVideoUrl: patch.heroVideoUrl !== undefined ? patch.heroVideoUrl : profile.heroVideoUrl || "",
+      aboutPhotoUrl: patch.aboutPhotoUrl !== undefined ? patch.aboutPhotoUrl : profile.aboutPhotoUrl || "",
+      heroGalleryJson:
+        patch.heroGalleryJson !== undefined ? patch.heroGalleryJson : profile.heroGalleryJson || "[]",
     };
     setProfile(updated);
-    await api.updateProfile(updated);
+    await api.updateProfile(updated, token);
   }
 
   useEffect(() => {
@@ -307,7 +341,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         ...profile,
         notesJson: JSON.stringify(notes),
         heroVideoUrl: profile.heroVideoUrl || "",
-      })
+        aboutPhotoUrl: profile.aboutPhotoUrl || "",
+        heroGalleryJson: profile.heroGalleryJson || "[]",
+      }, token)
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes]);
@@ -409,7 +445,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       title: String(form.get("title") || ""),
       mediaUrl: uploaded.url,
       mediaType: storyFile.type.startsWith("video") ? "video" : "image",
-    });
+    }, token);
     if (res.ok) {
       toast("✨ Story uğurla paylaşıldı!");
       setStoryModalOpen(false);
@@ -560,6 +596,16 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             ) : null}
             {section === "announcement" ? (
               <AnnouncementSection profile={profile} onSave={saveProfile} />
+            ) : null}
+            {section === "siteImages" ? (
+              <SiteImagesSection
+                profile={profile}
+                logos={clientLogos}
+                token={token}
+                onSaveProfile={saveProfile}
+                onLogosChanged={loadClientLogos}
+                onToast={toast}
+              />
             ) : null}
             {section === "notes" ? <NotesSection notes={notes} onChange={setNotes} /> : null}
             {section === "password" ? <PasswordSection token={token} /> : null}

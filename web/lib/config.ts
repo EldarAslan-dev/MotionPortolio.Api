@@ -50,6 +50,11 @@ export function parseGallery(json: string | null | undefined): GalleryItem[] {
   }
 }
 
+/** Dedicated hero-gallery images from the profile field — never mixed with project covers. */
+export function parseHeroGallery(json: string | null | undefined): GalleryItem[] {
+  return parseGallery(json).filter((item) => item.type === "image");
+}
+
 /** Cover media for work-grid cards: primary video, else first gallery item, else thumbnail. */
 export function projectCover(
   project: Pick<Project, "videoUrl" | "thumbnailUrl" | "galleryJson">,

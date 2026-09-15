@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<StudioProfile> StudioProfiles { get; set; }
     public DbSet<Story> Stories { get; set; }
     public DbSet<Testimonial> Testimonials { get; set; }
+    public DbSet<ClientLogo> ClientLogos { get; set; }
     public DbSet<ProjectComment> ProjectComments { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<ChatClient> ChatClients { get; set; }

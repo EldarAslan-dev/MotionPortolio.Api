@@ -121,13 +121,13 @@ export function ProjectDetail({ id }: { id: number }) {
   if (failed || !project) {
     return (
       <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 px-5 pt-24 text-center">
-        <p className="font-display text-4xl italic text-bone">Layihə tapılmadı.</p>
+        <p className="font-display text-4xl text-bone">Project not found.</p>
         <Link
           href="/#work"
           data-cursor="link"
           className="font-mono-tech text-xs uppercase tracking-[0.15em] text-mist transition hover:text-bone"
         >
-          ← İşlərə qayıt
+          ← Back to work
         </Link>
       </div>
     );
@@ -145,18 +145,12 @@ export function ProjectDetail({ id }: { id: number }) {
           data-cursor="link"
           className="font-mono-tech text-xs uppercase tracking-[0.15em] text-mist transition hover:text-bone"
         >
-          ← İşlər
+          ← Work
         </Link>
 
-        <MaskReveal
-          as="h1"
-          trigger="mount"
-          delay={80}
-          className="mt-6"
-          innerClassName="font-display text-[clamp(2.5rem,13vw,7.5rem)] italic leading-[0.95] text-bone [word-break:break-word]"
-        >
+        <h1 className="font-display mt-6 text-[clamp(2.5rem,13vw,7.5rem)] leading-[0.95] text-bone [word-break:break-word]">
           {project.title}
-        </MaskReveal>
+        </h1>
 
         <div className="mt-6 flex flex-wrap gap-6 font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
           <span>{project.category}</span>
@@ -184,12 +178,12 @@ export function ProjectDetail({ id }: { id: number }) {
         <div className="border-t border-line px-5 py-20 md:px-10">
           <div className="mx-auto grid max-w-[1600px] gap-8 md:grid-cols-[240px_1fr]">
             <span className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
-              Proses
+              Process
             </span>
             <MaskReveal
               as="p"
               className="max-w-3xl"
-              innerClassName="font-display text-2xl italic leading-snug text-bone md:text-3xl"
+              innerClassName="font-display text-2xl leading-snug text-bone md:text-3xl"
             >
               {project.processNotes}
             </MaskReveal>
@@ -201,7 +195,7 @@ export function ProjectDetail({ id }: { id: number }) {
         <div className="border-t border-line px-5 py-20 md:px-10">
           <div className="mx-auto max-w-[1600px]">
             <span className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
-              Qalereya
+              Gallery
             </span>
             <div className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:overflow-visible md:pb-0">
               {galleryItems.map((item, i) => (
@@ -209,7 +203,7 @@ export function ProjectDetail({ id }: { id: number }) {
                   key={`${item.url}-${i}`}
                   type="button"
                   data-cursor="view"
-                  data-cursor-label="BAX"
+                  data-cursor-label="VIEW"
                   onClick={() => setLightboxIndex(i)}
                   className="w-[85vw] shrink-0 snap-center overflow-hidden bg-surface text-left transition duration-500 hover:-translate-y-0.5 md:w-auto"
                 >
@@ -226,20 +220,14 @@ export function ProjectDetail({ id }: { id: number }) {
       ) : null}
 
       <div className="border-t border-line px-5 py-24 text-center md:px-10">
-        <MaskReveal
-          as="h2"
-          className="mx-auto flex justify-center"
-          innerClassName="font-display text-4xl italic text-bone md:text-6xl"
-        >
-          Bir kadrdan başlayaq.
-        </MaskReveal>
+        <h2 className="font-display text-4xl text-bone md:text-6xl">Start with one frame.</h2>
         <button
           type="button"
           data-cursor="link"
           onClick={() => openInquiry(project.title)}
           className="btn-glow mt-8 inline-flex items-center gap-3 rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
         >
-          Sifariş et
+          Book this
         </button>
       </div>
 
@@ -247,7 +235,7 @@ export function ProjectDetail({ id }: { id: number }) {
         <Link
           href={`/work/${next.id}`}
           data-cursor="view"
-          data-cursor-label="NÖVBƏTİ"
+          data-cursor-label="NEXT"
           className="group relative block h-[60vh] w-full overflow-hidden border-t border-line bg-surface"
         >
           {nextCover?.type === "video" ? (
@@ -266,9 +254,9 @@ export function ProjectDetail({ id }: { id: number }) {
           <div className="absolute inset-0 bg-void/40" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
-              Növbəti iş
+              Next piece
             </span>
-            <h3 className="mt-3 font-display text-4xl italic text-bone md:text-6xl">
+            <h3 className="mt-3 font-display text-4xl text-bone md:text-6xl">
               {next.title}
             </h3>
           </div>
@@ -282,16 +270,16 @@ export function ProjectDetail({ id }: { id: number }) {
         >
           <button
             type="button"
-            aria-label="Bağla"
+            aria-label="Close"
             className="absolute right-5 top-5 font-mono-tech text-xs uppercase tracking-[0.15em] text-mist hover:text-bone"
             onClick={() => setLightboxIndex(null)}
           >
-            Bağla
+            Close
           </button>
           {galleryItems.length > 1 ? (
             <button
               type="button"
-              aria-label="Əvvəlki"
+              aria-label="Previous"
               className="absolute left-4 top-1/2 -translate-y-1/2 font-mono-tech text-sm text-mist hover:text-bone md:left-8"
               onClick={(e) => {
                 e.stopPropagation();
@@ -313,7 +301,7 @@ export function ProjectDetail({ id }: { id: number }) {
           {galleryItems.length > 1 ? (
             <button
               type="button"
-              aria-label="Növbəti"
+              aria-label="Next"
               className="absolute right-4 top-1/2 -translate-y-1/2 font-mono-tech text-sm text-mist hover:text-bone md:right-8"
               onClick={(e) => {
                 e.stopPropagation();

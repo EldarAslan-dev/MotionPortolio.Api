@@ -1,65 +1,70 @@
 "use client";
 
-import { MaskReveal } from "@/components/motion/MaskReveal";
+import { INQUIRY_GENERAL, SOCIALS } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
 
 export function Contact() {
   const { profile, openInquiry } = useStudio();
+  const instagram = profile?.instagramUrl || SOCIALS.instagramFallback;
 
   return (
     <section
       id="contact"
-      className="relative overflow-hidden border-t border-line px-5 py-32 text-center md:px-10"
+      className="relative scroll-mt-28 overflow-visible border-t border-line px-5 py-32 text-center md:px-10"
     >
       <div className="grain" />
       <div className="relative z-10 mx-auto max-w-4xl">
-        <MaskReveal innerClassName="block font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
-          05 — Əlaqə
-        </MaskReveal>
+        <p className="mb-5 font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
+          06 — Contact
+        </p>
 
-        <MaskReveal
-          as="h2"
-          className="mt-8 flex justify-center"
-          innerClassName="font-display text-5xl italic leading-[0.95] text-bone md:text-7xl"
-          delay={80}
-        >
-          Bir kadrdan başlayaq.
-        </MaskReveal>
+        <h2 className="font-display mt-8 text-4xl leading-[1.05] text-bone sm:text-5xl md:text-7xl md:leading-[0.95]">
+          Start with one frame.
+        </h2>
 
-        <MaskReveal
-          as="p"
-          className="mx-auto mt-6 max-w-lg"
-          innerClassName="text-mist"
-          delay={160}
-        >
-          Büdcəni və ehtiyacı yazın — studio desk-dən cavab gələcək.
-        </MaskReveal>
+        <p className="mx-auto mt-6 max-w-lg text-mist">
+          Send the brief and the budget. Studio desk replies.
+        </p>
 
-        <div className="mt-12 flex flex-col items-center gap-8">
+        <div className="mt-12 flex flex-col items-center gap-10">
           <button
             type="button"
             data-cursor="link"
-            onClick={() => openInquiry("Ümumi əməkdaşlıq")}
+            onClick={() => openInquiry(INQUIRY_GENERAL)}
             className="rounded-full border border-bone/30 px-8 py-4 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
           >
-            Əlaqə saxla
+            Get in touch
           </button>
 
-          {profile?.instagramUrl ? (
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
             <a
-              href={profile.instagramUrl}
+              href={instagram}
               target="_blank"
               rel="noreferrer"
-              data-cursor="view"
-              data-cursor-label="AÇ"
-              className="group font-display text-3xl italic text-bone transition-colors hover:text-cue md:text-4xl"
+              data-cursor="link"
+              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
             >
               Instagram
-              <span className="ml-2 inline-block transition-transform group-hover:translate-x-1 group-hover:-translate-y-1">
-                ↗
-              </span>
             </a>
-          ) : null}
+            <a
+              href={SOCIALS.linkedin}
+              target="_blank"
+              rel="noreferrer"
+              data-cursor="link"
+              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+            >
+              LinkedIn
+            </a>
+            <a
+              href={SOCIALS.behance}
+              target="_blank"
+              rel="noreferrer"
+              data-cursor="link"
+              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+            >
+              Behance
+            </a>
+          </div>
         </div>
       </div>
     </section>

@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { INQUIRY_GENERAL } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
+import { useTheme } from "@/lib/site/ThemeProvider";
 
 const LINKS = [
-  { href: "/#about", label: "Haqqında" },
-  { href: "/#updates", label: "Duyuru" },
-  { href: "/#services", label: "Xidmətlər" },
-  { href: "/#work", label: "İşlər" },
-  { href: "/#notes", label: "Rəylər" },
-  { href: "/#contact", label: "Əlaqə" },
+  { href: "/#about", label: "About" },
+  { href: "/#updates", label: "Updates" },
+  { href: "/#work", label: "Work" },
+  { href: "/#contact", label: "Contact" },
 ];
 
 export function Nav() {
   const { ready, name, avatar, liveStories, openInquiry } = useStudio();
+  const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -93,19 +94,29 @@ export function Nav() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               type="button"
               data-cursor="link"
-              onClick={() => openInquiry("Ümumi əməkdaşlıq")}
-              className="btn-glow hidden rounded-full border border-bone/30 px-5 py-2 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:inline-block"
+              onClick={toggle}
+              className="theme-toggle"
+              aria-label={theme === "day" ? "Switch to night mode" : "Switch to day mode"}
             >
-              Layihə başlat
+              <span className="theme-toggle-knob" />
             </button>
 
             <button
               type="button"
-              aria-label="Menyu"
+              data-cursor="link"
+              onClick={() => openInquiry(INQUIRY_GENERAL)}
+              className="btn-glow hidden rounded-full border border-bone/30 px-5 py-2 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:inline-block"
+            >
+              Start a project
+            </button>
+
+            <button
+              type="button"
+              aria-label="Menu"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
               className="relative z-10 flex h-9 w-9 flex-col items-center justify-center gap-1.5 md:hidden"
@@ -130,7 +141,6 @@ export function Nav() {
         </div>
       </header>
 
-      {/* Mobile full-screen menu */}
       <div
         className={`fixed inset-0 z-40 flex flex-col justify-center overflow-y-auto bg-void px-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(6rem,env(safe-area-inset-top))] transition-opacity duration-500 md:hidden ${
           menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
@@ -142,7 +152,7 @@ export function Nav() {
               key={l.href}
               href={l.href}
               onClick={() => setMenuOpen(false)}
-              className={`block py-2 font-display text-4xl italic text-bone transition-all duration-500 ease-out ${
+              className={`font-display block py-2 text-4xl text-bone transition-all duration-500 ease-out ${
                 menuOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
               }`}
               style={{ transitionDelay: menuOpen ? `${80 + i * 60}ms` : "0ms" }}
@@ -155,11 +165,11 @@ export function Nav() {
           type="button"
           onClick={() => {
             setMenuOpen(false);
-            openInquiry("Ümumi əməkdaşlıq");
+            openInquiry(INQUIRY_GENERAL);
           }}
           className="btn-glow mt-10 self-start rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
         >
-          Layihə başlat
+          Start a project
         </button>
       </div>
     </>

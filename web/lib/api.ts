@@ -1,4 +1,4 @@
-import { authHeader } from "./auth";
+import { adminAuth, authHeader } from "./auth";
 import { API_URL } from "./config";
 import type {
   ChatMessage,
@@ -11,6 +11,7 @@ import type {
   Story,
   StudioProfile,
   Testimonial,
+  ClientLogo,
 } from "./types";
 
 async function getJson<T>(path: string, token?: string | null): Promise<T> {
@@ -42,7 +43,8 @@ function del(path: string, token?: string | null) {
 
 export const api = {
   profile: () => getJson<StudioProfile>("/api/profile"),
-  updateProfile: (profile: StudioProfile) => json("/api/profile", "PUT", profile),
+  updateProfile: (profile: StudioProfile, token: string) =>
+    json("/api/profile", "PUT", profile, token),
 
   projects: () => getJson<Project[]>("/api/projects"),
   projectById: (id: number) => getJson<Project>(`/api/projects/${id}`),
@@ -53,16 +55,26 @@ export const api = {
   deleteProject: (id: number, token: string) => del(`/api/projects/${id}`, token),
 
   stories: () => getJson<Story[]>("/api/stories"),
-  createStory: (payload: { title: string; mediaUrl: string; mediaType: string }) =>
-    json("/api/stories", "POST", payload),
+  createStory: (
+    payload: { title: string; mediaUrl: string; mediaType: string },
+    token: string,
+  ) => json("/api/stories", "POST", payload, token),
 
   testimonials: () => getJson<Testimonial[]>("/api/testimonials"),
   createTestimonial: (
     payload: { clientName: string; company: string; comment: string; rating: number },
-    token?: string,
+    token: string,
   ) => json("/api/testimonials", "POST", payload, token),
   deleteTestimonial: (id: number, token: string) =>
     del(`/api/testimonials/${id}`, token),
+
+  clientLogos: () => getJson<ClientLogo[]>("/api/clientlogos"),
+  createClientLogo: (payload: Partial<ClientLogo>, token: string) =>
+    json("/api/clientlogos", "POST", payload, token),
+  updateClientLogo: (id: number, payload: Partial<ClientLogo>, token: string) =>
+    json(`/api/clientlogos/${id}`, "PUT", payload, token),
+  deleteClientLogo: (id: number, token: string) =>
+    del(`/api/clientlogos/${id}`, token),
 
   messages: (clientId: string) =>
     getJson<ChatMessage[]>(`/api/messages/client/${encodeURIComponent(clientId)}`),
@@ -145,9 +157,14 @@ export const api = {
     json("/api/auth/staff", "POST", { username, password }, token),
   deleteStaff: (id: number, token: string) => del(`/api/auth/staff/${id}`, token),
 
-  upload: (file: File) => {
+  upload: (file: File, token?: string | null) => {
     const formData = new FormData();
     formData.append("file", file);
-    return fetch(`${API_URL}/api/upload`, { method: "POST", body: formData });
+    const auth = token ?? adminAuth.getToken();
+    return fetch(`${API_URL}/api/upload`, {
+      method: "POST",
+      headers: { ...authHeader(auth) },
+      body: formData,
+    });
   },
 };

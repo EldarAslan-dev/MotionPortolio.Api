@@ -5,20 +5,7 @@ import { mediaUrl } from "@/lib/config";
 import { useStudio } from "@/lib/site/StudioContext";
 import type { Story } from "@/lib/types";
 
-const MONTHS = [
-  "YAN",
-  "FEV",
-  "MAR",
-  "APR",
-  "MAY",
-  "İYN",
-  "İYL",
-  "AVQ",
-  "SEN",
-  "OKT",
-  "NOY",
-  "DEK",
-];
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 function stamp(iso: string): string {
   const d = new Date(iso);
@@ -39,28 +26,19 @@ export function Bulletin() {
 
   if (!pinned && liveStories.length === 0) {
     return (
-      <div
-        id="updates"
-        className="mt-12 border-t border-line pt-8"
-      >
-        <p className="font-mono-tech text-[10px] uppercase tracking-[0.2em] text-mist">
-          Duyuru
-        </p>
-        <p className="mt-3 text-sm text-mist">Hazırda yeni duyuru yoxdur.</p>
+      <div id="updates" className="mt-12 scroll-mt-28 border-t border-line pt-8">
+        <p className="font-mono-tech text-[10px] uppercase tracking-[0.2em] text-mist">Updates</p>
+        <p className="mt-3 text-sm text-mist">No updates right now.</p>
       </div>
     );
   }
 
   return (
-    <div id="updates" className="mt-12 border-t border-line pt-8">
+    <div id="updates" className="mt-12 scroll-mt-28 border-t border-line pt-8">
       <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <p className="font-mono-tech text-[10px] uppercase tracking-[0.2em] text-mist">
-            Studiya lövhəsi
-          </p>
-          <p className="mt-1 font-display text-2xl italic text-bone md:text-3xl">
-            Duyuru
-          </p>
+          <p className="font-mono-tech text-[10px] uppercase tracking-[0.2em] text-mist">Studio board</p>
+          <p className="font-display mt-1 text-2xl text-bone md:text-3xl">Updates</p>
         </div>
         {liveStories.length > 0 ? (
           <span className="inline-flex items-center gap-2 font-mono-tech text-[10px] uppercase tracking-[0.18em] text-cue">
@@ -68,7 +46,7 @@ export function Bulletin() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cue opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cue" />
             </span>
-            Canlı
+            Live
           </span>
         ) : null}
       </div>
@@ -88,7 +66,7 @@ export function Bulletin() {
             key={story.id}
             type="button"
             data-cursor="view"
-            data-cursor-label="BAX"
+            data-cursor-label="VIEW"
             onClick={() => setStoryIndex(i)}
             className="group flex w-full items-center gap-4 py-5 text-left md:gap-8"
           >
@@ -96,20 +74,16 @@ export function Bulletin() {
               {stamp(story.createdAt)}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-display text-xl italic text-bone transition group-hover:text-cue md:text-2xl">
-                {story.title || "Yeni paylaşım"}
+              <span className="font-display block truncate text-xl text-bone transition group-hover:text-cue md:text-2xl">
+                {story.title || "New post"}
               </span>
               <span className="mt-1 block font-mono-tech text-[10px] uppercase tracking-[0.16em] text-mist">
-                {isVideo(story) ? "Video" : "Kadr"} · 24 saat
+                {isVideo(story) ? "Video" : "Still"} · 24h
               </span>
             </span>
             <span className="relative h-12 w-12 shrink-0 overflow-hidden border border-line bg-surface md:h-14 md:w-14">
               {isVideo(story) ? (
-                <LazyVideo
-                  src={mediaUrl(story.mediaUrl)}
-                  hoverToPlay
-                  className="h-full w-full object-cover opacity-80"
-                />
+                <LazyVideo src={mediaUrl(story.mediaUrl)} hoverToPlay className="h-full w-full object-cover opacity-80" />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

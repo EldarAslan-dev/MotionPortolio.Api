@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MotionPortfolio.Api.Data;
@@ -26,6 +27,7 @@ public class StoriesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Story>> AddStory([FromBody] Story newItem)
     {
         if (string.IsNullOrEmpty(newItem.MediaUrl))
@@ -39,6 +41,7 @@ public class StoriesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteStory(int id)
     {
         var story = await _context.Stories.FindAsync(id);

@@ -3,7 +3,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { mediaUrl } from "@/lib/config";
-import type { Project, Story, StudioProfile, Testimonial } from "@/lib/types";
+import type { ClientLogo, Project, Story, StudioProfile, Testimonial } from "@/lib/types";
+
+function normalizeProject(p: Project & { CardImageUrl?: string }): Project {
+  return {
+    ...p,
+    cardImageUrl: p.cardImageUrl || p.CardImageUrl || "",
+  };
+}
+
+function normalizeLogo(
+  l: ClientLogo & { Id?: number; Name?: string; LogoUrl?: string; SortOrder?: number },
+): ClientLogo {
+  return {
+    id: l.id || l.Id || 0,
+    name: l.name || l.Name || "",
+    logoUrl: l.logoUrl || l.LogoUrl || "",
+    sortOrder: l.sortOrder ?? l.SortOrder ?? 0,
+  };
+}
 
 const STORY_DURATION_MS = 6000;
 
@@ -20,6 +38,7 @@ export function useStudioData() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [clientLogos, setClientLogos] = useState<ClientLogo[]>([]);
   const [storyIndex, setStoryIndex] = useState<number | null>(null);
   const [storyProgress, setStoryProgress] = useState(0);
 
@@ -29,15 +48,24 @@ export function useStudioData() {
       api.projects(),
       api.stories(),
       api.testimonials(),
+      api.clientLogos(),
     ]).then((results) => {
       if (results[0].status === "fulfilled") {
-        const p = results[0].value as StudioProfile & { HeroVideoUrl?: string };
+        const p = results[0].value as StudioProfile & {
+          HeroVideoUrl?: string;
+          AboutPhotoUrl?: string;
+          HeroGalleryJson?: string;
+        };
         setProfile({
           ...p,
           heroVideoUrl: p.heroVideoUrl || p.HeroVideoUrl || "",
+          aboutPhotoUrl: p.aboutPhotoUrl || p.AboutPhotoUrl || "",
+          heroGalleryJson: p.heroGalleryJson || p.HeroGalleryJson || "[]",
         });
       }
-      if (results[1].status === "fulfilled") setProjects(results[1].value);
+      if (results[1].status === "fulfilled") {
+        setProjects(results[1].value.map((p) => normalizeProject(p)));
+      }
       if (results[2].status === "fulfilled") {
         const now = Date.now();
         setStories(
@@ -49,15 +77,19 @@ export function useStudioData() {
         );
       }
       if (results[3].status === "fulfilled") setTestimonials(results[3].value);
+      if (results[4].status === "fulfilled") {
+        setClientLogos(results[4].value.map((l) => normalizeLogo(l)));
+      }
       setReady(true);
     });
   }, []);
 
-  const name = profile?.designerName || "Motion Studio";
+  const name = profile?.designerName?.trim() || "Motion Studio";
   const bio =
     profile?.bio ||
-    "Motion Designer və Video Editor — logo animasiyaları, izahedici videolar və sosial media montajı ilə brend hekayələrini canlandırıram.";
+    "Motion designer. Logo films, explainers, reels — brands that move.";
   const avatar = mediaUrl(profile?.avatarUrl);
+  const aboutPhoto = mediaUrl(profile?.aboutPhotoUrl);
   const liveStories = stories.filter((s) => mediaUrl(s.mediaUrl));
   const doubled = useMemo(
     () => (testimonials.length ? [...testimonials, ...testimonials] : []),
@@ -99,6 +131,8 @@ export function useStudioData() {
     name,
     bio,
     avatar,
+    aboutPhoto,
+    clientLogos,
     liveStories,
     doubled,
     storyIndex,

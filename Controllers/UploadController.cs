@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MotionPortfolio.Api.Controllers;
@@ -14,6 +15,7 @@ public class UploadController : ControllerBase
     }
 
    [HttpPost]
+[Authorize(Roles = "Admin")]
 [RequestSizeLimit(500_000_000)] // məs. 500 MB
 public async Task<IActionResult> UploadVideo(IFormFile file)
     {

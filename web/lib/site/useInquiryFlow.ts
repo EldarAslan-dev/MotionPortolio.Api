@@ -12,7 +12,7 @@ import type { Testimonial } from "@/lib/types";
  * page (homepage + project detail pages).
  */
 export function useInquiryFlow({
-  setTestimonials,
+  setTestimonials: _setTestimonials,
 }: {
   setTestimonials: (list: Testimonial[]) => void;
 }) {
@@ -23,7 +23,7 @@ export function useInquiryFlow({
   const [registerOpen, setRegisterOpen] = useState(false);
   const [inquiryOpen, setInquiryOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [inquiryTitle, setInquiryTitle] = useState("Ümumi əməkdaşlıq");
+  const [inquiryTitle, setInquiryTitle] = useState("General collaboration");
   const [pkg, setPkg] = useState("300");
   const [budget, setBudget] = useState("$300");
   const [inquiryMsg, setInquiryMsg] = useState("");
@@ -85,16 +85,7 @@ export function useInquiryFlow({
 
   async function onReview(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    await api.createTestimonial({
-      clientName: String(form.get("name") || ""),
-      company: String(form.get("company") || ""),
-      comment: String(form.get("comment") || ""),
-      rating: Number(form.get("rating") || 5),
-    });
     setReviewOpen(false);
-    const list = await api.testimonials().catch(() => null);
-    if (list) setTestimonials(list);
   }
 
   return {

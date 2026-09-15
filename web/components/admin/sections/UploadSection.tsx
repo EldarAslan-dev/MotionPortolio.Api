@@ -23,6 +23,7 @@ export function UploadSection({
   onToast: (msg: string) => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  const [cardFile, setCardFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,8 +37,8 @@ export function UploadSection({
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!file && galleryFiles.length === 0) {
-      alert("Ən azı bir video və ya şəkil seçin.");
+    if (!file && galleryFiles.length === 0 && !cardFile) {
+      alert("Ən azı bir video, şəkil və ya Work Item Image seçin.");
       return;
     }
     const form = new FormData(e.currentTarget);
@@ -65,12 +66,22 @@ export function UploadSection({
         }
       }
 
+      let cardImageUrl = "";
+      if (cardFile) {
+        const cardRes = await api.upload(cardFile);
+        if (cardRes.ok) {
+          const cardData = await cardRes.json();
+          cardImageUrl = cardData.url || "";
+        }
+      }
+
       const payload: Partial<Project> = {
         title: String(form.get("title") || ""),
         category: String(form.get("category") || CATEGORIES[0]),
         videoUrl,
         description: String(form.get("description") || ""),
         thumbnailUrl: "",
+        cardImageUrl,
         year: String(form.get("year") || "") || null,
         processNotes: String(form.get("processNotes") || "") || null,
       };
@@ -83,6 +94,7 @@ export function UploadSection({
         onToast("Yeni iş vitrinə əlavə edildi!");
         (e.target as HTMLFormElement).reset();
         setFile(null);
+        setCardFile(null);
         setGalleryFiles([]);
         onUploaded();
       }
@@ -132,6 +144,18 @@ export function UploadSection({
             className="w-full text-sm text-neutral-300"
           />
           <FilePreview file={file} showQualityBadge />
+        </div>
+        <div>
+          <label className="mb-1 block font-mono text-xs text-neutral-400">
+            Work Item Image (card image on the site):
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setCardFile(e.target.files?.[0] || null)}
+            className="w-full text-sm text-neutral-300"
+          />
+          <FilePreview file={cardFile} />
         </div>
         <div>
           <label className="mb-1 block font-mono text-xs text-neutral-400">

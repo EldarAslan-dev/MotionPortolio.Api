@@ -3,6 +3,8 @@ export type StudioProfile = {
   designerName: string;
   bio: string;
   avatarUrl: string;
+  aboutPhotoUrl?: string;
+  heroGalleryJson?: string;
   heroVideoUrl?: string;
   instagramUrl: string;
   announcementText: string;
@@ -21,6 +23,7 @@ export type Project = {
   description: string;
   videoUrl: string;
   thumbnailUrl: string;
+  cardImageUrl?: string;
   category: string;
   likesCount: number;
   createdAt?: string;
@@ -35,6 +38,13 @@ export type Story = {
   mediaUrl: string;
   mediaType: string;
   createdAt: string;
+};
+
+export type ClientLogo = {
+  id: number;
+  name: string;
+  logoUrl: string;
+  sortOrder: number;
 };
 
 export type Testimonial = {

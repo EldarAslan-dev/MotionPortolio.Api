@@ -7,6 +7,7 @@ public class Project
     public string Description { get; set; } = string.Empty;
     public string VideoUrl { get; set; } = string.Empty;
     public string ThumbnailUrl { get; set; } = string.Empty;
+    public string CardImageUrl { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

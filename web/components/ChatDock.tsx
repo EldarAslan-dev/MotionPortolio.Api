@@ -154,7 +154,7 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
         data-cursor="link"
         onClick={toggle}
         className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-bone/20 bg-surface text-bone shadow-lg shadow-black/40 transition hover:border-cue hover:text-cue"
-        aria-label="Canlı dəstək"
+        aria-label="Live desk"
       >
         <span className="text-lg">✉</span>
         {badge && !open ? (
@@ -169,7 +169,7 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
               <p className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
                 Studio desk
               </p>
-              <p className="font-display text-xl italic text-bone">Canlı dəstək</p>
+              <p className="font-display text-xl text-bone">Live desk</p>
             </div>
             <button type="button" onClick={() => setOpen(false)} className="text-2xl leading-none text-mist transition hover:text-bone">
               ×
@@ -177,10 +177,10 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
           </div>
           <div ref={boxRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
             {!loaded ? (
-              <p className="pt-16 text-center text-sm text-mist">Mesajlar yüklənir…</p>
+              <p className="pt-16 text-center text-sm text-mist">Loading messages…</p>
             ) : messages.length === 0 ? (
               <p className="pt-16 text-center text-sm text-mist">
-                Mesajınızı yazın — cavab burada qalacaq.
+                Write a message — replies stay here.
               </p>
             ) : (
               messages.map((m) => {
@@ -195,7 +195,7 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
                     }`}
                   >
                     <p className="mb-1 font-mono-tech text-[10px] uppercase tracking-wider text-mist">
-                      {mine ? "Siz" : "Studio"}
+                      {mine ? "You" : "Studio"}
                     </p>
                     <p className="whitespace-pre-wrap">{m.content}</p>
                   </div>
@@ -208,7 +208,7 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Mesaj yazın…"
+              placeholder="Write a message…"
               className="flex-1 border border-line bg-void px-4 py-2 text-sm text-bone placeholder:text-mist outline-none transition focus:border-cue"
             />
             <button
@@ -217,7 +217,7 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
               onClick={send}
               className="border border-bone/30 px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.1em] text-bone transition hover:border-cue hover:text-cue"
             >
-              Göndər
+              Send
             </button>
           </div>
         </div>

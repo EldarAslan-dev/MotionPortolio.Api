@@ -28,9 +28,9 @@ public class ProjectsController : ControllerBase
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { message = "Server xətası baş verdi.", error = ex.Message });
+            return StatusCode(500, new { message = "Server xətası baş verdi." });
         }
     }
 
@@ -50,9 +50,9 @@ public class ProjectsController : ControllerBase
             }
             return project;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { message = "Server xətası baş verdi.", error = ex.Message });
+            return StatusCode(500, new { message = "Server xətası baş verdi." });
         }
     }
 
@@ -62,7 +62,8 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<Project>> CreateProject([FromBody] Project project)
     {
         var hasGalleryMedia = !string.IsNullOrEmpty(project?.GalleryJson) && project.GalleryJson.Trim() is not ("" or "[]" or "null");
-        if (project == null || string.IsNullOrEmpty(project.Title) || (string.IsNullOrEmpty(project.VideoUrl) && !hasGalleryMedia))
+        var hasCardImage = !string.IsNullOrEmpty(project?.CardImageUrl);
+        if (project == null || string.IsNullOrEmpty(project.Title) || (string.IsNullOrEmpty(project.VideoUrl) && !hasGalleryMedia && !hasCardImage))
         {
             return BadRequest(new { message = "Layihə başlığı və ən azı bir media (video və ya şəkil) mütləq təmin edilməlidir." });
         }
@@ -143,6 +144,11 @@ public class ProjectsController : ControllerBase
             if (!string.IsNullOrEmpty(updatedProject.GalleryJson))
             {
                 project.GalleryJson = updatedProject.GalleryJson;
+            }
+
+            if (updatedProject.CardImageUrl != null)
+            {
+                project.CardImageUrl = updatedProject.CardImageUrl;
             }
 
             await _context.SaveChangesAsync();

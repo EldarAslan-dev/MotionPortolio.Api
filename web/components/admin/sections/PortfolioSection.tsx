@@ -1,9 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { LazyVideo } from "@/components/motion/LazyVideo";
 import { api } from "@/lib/api";
-import { mediaUrl, parseGallery, projectCover } from "@/lib/config";
+import { mediaUrl, parseGallery } from "@/lib/config";
 import type { GalleryItem, Project } from "@/lib/types";
 
 const CATEGORIES = [
@@ -15,19 +14,11 @@ const CATEGORIES = [
 ];
 
 function CoverThumb({ project }: { project: Project }) {
-  const cover = projectCover(project);
-  if (!cover) return null;
-  if (cover.type === "video") {
-    return (
-      <LazyVideo
-        src={mediaUrl(cover.url)}
-        hoverToPlay
-        className="h-full w-full object-contain"
-      />
-    );
+  if (project.cardImageUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={mediaUrl(project.cardImageUrl)} alt="" className="h-full w-full object-contain" />;
   }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={mediaUrl(cover.url)} alt="" className="h-full w-full object-contain" />;
+  return <div className="h-full w-full bg-neutral-950" />;
 }
 
 export function PortfolioSection({
@@ -44,9 +35,12 @@ export function PortfolioSection({
   const [editing, setEditing] = useState<Project | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
+  const [cardImageUrl, setCardImageUrl] = useState("");
+  const [cardUploading, setCardUploading] = useState(false);
 
   useEffect(() => {
     setGalleryItems(editing ? parseGallery(editing.galleryJson) : []);
+    setCardImageUrl(editing?.cardImageUrl || "");
   }, [editing]);
 
   async function onDelete(id: number) {
@@ -92,6 +86,7 @@ export function PortfolioSection({
         year: String(form.get("year") || "") || null,
         processNotes: String(form.get("processNotes") || "") || null,
         galleryJson: JSON.stringify(galleryItems),
+        cardImageUrl,
       },
       token,
     );
@@ -230,6 +225,43 @@ export function PortfolioSection({
                 placeholder="Proses qeydləri (opsional)"
                 className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
               />
+
+              <div>
+                <label className="mb-1 block font-mono text-xs text-neutral-400">
+                  Work Item Image — {editing.title}
+                </label>
+                {cardImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={mediaUrl(cardImageUrl)}
+                    alt=""
+                    className="mb-2 h-24 w-full rounded-lg object-cover"
+                  />
+                ) : (
+                  <p className="mb-2 text-xs text-neutral-500">No card image. Placeholder on site.</p>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={cardUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.currentTarget.value = "";
+                    if (!file) return;
+                    setCardUploading(true);
+                    try {
+                      const res = await api.upload(file);
+                      if (res.ok) {
+                        const data = await res.json();
+                        setCardImageUrl(data.url || "");
+                      }
+                    } finally {
+                      setCardUploading(false);
+                    }
+                  }}
+                  className="w-full text-sm text-neutral-300"
+                />
+              </div>
 
               <div>
                 <label className="mb-1 block font-mono text-xs text-neutral-400">

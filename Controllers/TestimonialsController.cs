@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MotionPortfolio.Api.Data;
 
@@ -13,6 +14,7 @@ public class TestimonialsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public IActionResult CreateTestimonial([FromBody] Testimonial model)
     {
         if (model == null)
@@ -34,6 +36,7 @@ public class TestimonialsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public IActionResult DeleteTestimonial(int id)
     {
         var testimonial = _context.Testimonials.Find(id);

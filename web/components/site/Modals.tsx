@@ -35,8 +35,6 @@ export function Modals() {
     setRegisterOpen,
     inquiryOpen,
     setInquiryOpen,
-    reviewOpen,
-    setReviewOpen,
     inquiryTitle,
     pkg,
     setPkg,
@@ -46,39 +44,28 @@ export function Modals() {
     setInquiryMsg,
     onRegister,
     onInquiry,
-    onReview,
   } = useStudio();
 
   return (
     <>
       <Modal open={registerOpen} onClose={() => setRegisterOpen(false)}>
-        <h3 className="font-display text-3xl italic text-bone">Qeydiyyat</h3>
-        <p className="mt-2 text-sm text-mist">
-          Çat və sifariş üçün ad və e-poçt kifayətdir.
-        </p>
+        <h3 className="font-display text-3xl text-bone">Register</h3>
+        <p className="mt-2 text-sm text-mist">Name and email. Enough for chat and orders.</p>
         <form onSubmit={onRegister} className="mt-5 space-y-3">
-          <input name="name" required placeholder="Adınız" className={inputClass} />
-          <input
-            name="email"
-            type="email"
-            required
-            placeholder="E-poçt"
-            className={inputClass}
-          />
+          <input name="name" required placeholder="Your name" className={inputClass} />
+          <input name="email" type="email" required placeholder="Email" className={inputClass} />
           <button type="submit" className={buttonClass}>
-            Davam et
+            Continue
           </button>
         </form>
       </Modal>
 
       <Modal open={inquiryOpen} onClose={() => setInquiryOpen(false)}>
-        <h3 className="font-display text-3xl italic text-bone">Sifariş</h3>
-        <p className="mt-1 font-mono-tech text-xs uppercase tracking-[0.1em] text-mist">
-          {inquiryTitle}
-        </p>
+        <h3 className="font-display text-3xl text-bone">Brief</h3>
+        <p className="mt-1 font-mono-tech text-xs uppercase tracking-[0.1em] text-mist">{inquiryTitle}</p>
         <form onSubmit={onInquiry} className="mt-5 space-y-3">
           <label className="block text-sm text-mist">
-            Paket
+            Package
             <select
               value={pkg}
               onChange={(e) => {
@@ -87,48 +74,25 @@ export function Modals() {
               }}
               className={`mt-1 ${inputClass}`}
             >
-              <option value="150">Qısa logo — $150</option>
-              <option value="300">Standart — $300</option>
-              <option value="600">Kampaniya — $600</option>
+              <option value="150">Logo short — $150</option>
+              <option value="300">Standard — $300</option>
+              <option value="600">Campaign — $600</option>
             </select>
           </label>
           <label className="block text-sm text-mist">
-            Təklif etdiyiniz büdcə
-            <input
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              className={`mt-1 ${inputClass}`}
-            />
+            Your budget
+            <input value={budget} onChange={(e) => setBudget(e.target.value)} className={`mt-1 ${inputClass}`} />
           </label>
           <textarea
             required
             value={inquiryMsg}
             onChange={(e) => setInquiryMsg(e.target.value)}
-            placeholder="Nə lazımdır?"
+            placeholder="What do you need?"
             rows={4}
             className={inputClass}
           />
           <button type="submit" className={buttonClass}>
-            Göndər
-          </button>
-        </form>
-      </Modal>
-
-      <Modal open={reviewOpen} onClose={() => setReviewOpen(false)}>
-        <h3 className="font-display text-3xl italic text-bone">Rəy</h3>
-        <form onSubmit={onReview} className="mt-5 space-y-3">
-          <input name="name" required placeholder="Ad" className={inputClass} />
-          <input name="company" placeholder="Şirkət (opsional)" className={inputClass} />
-          <select name="rating" defaultValue="5" className={inputClass}>
-            <option value="5">5 ulduz</option>
-            <option value="4">4 ulduz</option>
-            <option value="3">3 ulduz</option>
-            <option value="2">2 ulduz</option>
-            <option value="1">1 ulduz</option>
-          </select>
-          <textarea name="comment" required rows={3} className={inputClass} />
-          <button type="submit" className={buttonClass}>
-            Göndər
+            Send
           </button>
         </form>
       </Modal>

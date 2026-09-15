@@ -27,6 +27,9 @@ public class AuthController : ControllerBase
     [HttpPost("register-admin")]
     public async Task<IActionResult> RegisterAdmin([FromBody] LoginDto model)
     {
+        if (await _context.Users.AnyAsync(u => u.Role == "Admin"))
+            return StatusCode(403, "Admin artıq mövcuddur.");
+
         if (await _context.Users.AnyAsync(u => u.Username == model.Username))
             return BadRequest("Bu istifadəçi adı artıq mövcuddur.");
 

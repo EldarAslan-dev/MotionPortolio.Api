@@ -68,7 +68,7 @@ export function StoryViewer() {
             data-cursor="link"
             onClick={() => setStoryIndex((i: number | null) => (i && i > 0 ? i - 1 : 0))}
           >
-            Əvvəl
+            Prev
           </button>
           <button
             type="button"
@@ -79,7 +79,7 @@ export function StoryViewer() {
               )
             }
           >
-            Növbəti
+            Next
           </button>
         </div>
       </div>
