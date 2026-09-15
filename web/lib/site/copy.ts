@@ -1,4 +1,4 @@
-export const STUDIO_NAME = "Bilgeyis Mirzazada";
+export const STUDIO_NAME = "BILGEYIS MIRZAZADA";
 
 export const ABOUT_TEASER =
   "Motion that lands in a second. Logo films, explainers, reels — built for brands that need to move.";

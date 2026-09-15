@@ -5,8 +5,8 @@ import { useStudio } from "@/lib/site/StudioContext";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 const FILL_MS = 1250;
-const DOOR_HOLD_MS = 380;
-const OPEN_MS = 1400;
+const HOLD_MS = 280;
+const LIFT_MS = 900;
 const READY_FALLBACK_MS = 5000;
 
 export function Intro() {
@@ -26,11 +26,10 @@ export function Intro() {
     let poll = 0;
     let fallbackTimer = 0;
     let holdTimer = 0;
-    let openTimer = 0;
+    let liftTimer = 0;
 
     const finish = () => {
       html.classList.remove("intro-pending");
-      html.classList.remove("intro-opening");
       html.removeAttribute("data-intro-at");
     };
 
@@ -44,25 +43,10 @@ export function Intro() {
         finish();
         return;
       }
-      screen?.classList.add("is-door");
       holdTimer = window.setTimeout(() => {
         screen?.classList.add("is-open");
-        html.classList.add("intro-opening");
-        const opts: KeyframeAnimationOptions = {
-          duration: OPEN_MS,
-          easing: "cubic-bezier(0.65, 0, 0.35, 1)",
-          fill: "forwards",
-        };
-        screen?.querySelector(".intro-door-l")?.animate(
-          [{ transform: "rotateY(0deg)" }, { transform: "rotateY(-108deg)" }],
-          opts,
-        );
-        screen?.querySelector(".intro-door-r")?.animate(
-          [{ transform: "rotateY(0deg)" }, { transform: "rotateY(108deg)" }],
-          opts,
-        );
-        openTimer = window.setTimeout(finish, OPEN_MS);
-      }, DOOR_HOLD_MS);
+        liftTimer = window.setTimeout(finish, LIFT_MS);
+      }, HOLD_MS);
     };
 
     const fillTimer = window.setTimeout(() => {
@@ -81,7 +65,7 @@ export function Intro() {
       window.clearInterval(poll);
       window.clearTimeout(fallbackTimer);
       window.clearTimeout(holdTimer);
-      window.clearTimeout(openTimer);
+      window.clearTimeout(liftTimer);
     };
   }, [reduced]);
 

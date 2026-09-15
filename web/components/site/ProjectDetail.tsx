@@ -148,7 +148,7 @@ export function ProjectDetail({ id }: { id: number }) {
           ← Work
         </Link>
 
-        <h1 className="font-display mt-6 text-[clamp(2.5rem,13vw,7.5rem)] leading-[0.95] text-bone [word-break:break-word]">
+        <h1 className="font-display mt-6 text-[clamp(2.5rem,13vw,7.5rem)] uppercase leading-[0.95] text-bone [word-break:break-word]">
           {project.title}
         </h1>
 

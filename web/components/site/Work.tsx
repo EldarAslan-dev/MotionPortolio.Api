@@ -41,7 +41,7 @@ function WorkCard({ project, index, total }: { project: Project; index: number; 
           </div>
           <div className="work-card-meta flex items-baseline justify-between gap-4">
             <div className="min-w-0">
-              <h3 className="font-display truncate text-2xl text-bone md:text-3xl">{project.title}</h3>
+              <h3 className="font-display truncate text-2xl uppercase text-bone md:text-3xl">{project.title}</h3>
               <p className="mt-1 font-mono-tech text-[11px] uppercase tracking-[0.16em] text-mist">
                 {project.category}
               </p>

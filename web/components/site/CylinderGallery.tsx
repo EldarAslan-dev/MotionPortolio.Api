@@ -17,15 +17,14 @@ function padItems(items: GalleryItem[], min = 8): GalleryItem[] {
 }
 
 function useCylinderMetrics(count: number) {
-  const [m, setM] = useState({ w: 180, h: 236, r: 260 });
+  const [m, setM] = useState({ w: 180, r: 220 });
 
   useEffect(() => {
     const compute = () => {
       const mobile = window.innerWidth < 768;
-      const w = mobile ? 128 : 196;
-      const h = mobile ? 168 : 256;
-      const r = Math.round(w / 2 / Math.tan(Math.PI / Math.max(count, 3)) + (mobile ? 20 : 36));
-      setM({ w, h, r });
+      const w = mobile ? 132 : 180;
+      const r = Math.round(w / 2 / Math.tan(Math.PI / Math.max(count, 8)));
+      setM({ w, r });
     };
     compute();
     window.addEventListener("resize", compute, { passive: true });
@@ -46,12 +45,12 @@ function Slide({ item }: { item: GalleryItem }) {
         playsInline
         autoPlay
         preload="metadata"
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover object-center"
       />
     );
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt="" className="h-full w-full object-cover" />;
+  return <img src={src} alt="" className="h-full w-full object-cover object-center" />;
 }
 
 export function CylinderGallery({
@@ -101,7 +100,6 @@ export function CylinderGallery({
           className="cyl-rig"
           style={{
             width: metrics.w,
-            height: metrics.h,
             ["--cyl-r" as string]: `${metrics.r}px`,
           }}
         >
@@ -127,10 +125,9 @@ export function CylinderGallery({
         ref={rigRef}
         className="cyl-rig"
         style={{
-          width: metrics.w,
-          height: metrics.h,
-          ["--cyl-r" as string]: `${metrics.r}px`,
-        }}
+            width: metrics.w,
+            ["--cyl-r" as string]: `${metrics.r}px`,
+          }}
       >
         <div className="cyl-spin">
           {slides.map((item, i) => (

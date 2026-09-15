@@ -1,14 +1,15 @@
 "use client";
 
 import { CylinderGallery } from "@/components/site/CylinderGallery";
-import { parseHeroGallery } from "@/lib/config";
 import { STUDIO_NAME } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
 
 export function Hero() {
-  const { ready, name, profile } = useStudio();
-  const items = parseHeroGallery(profile?.heroGalleryJson);
-  const display = ready ? name.trim() || STUDIO_NAME : STUDIO_NAME;
+  const { ready, name, projects } = useStudio();
+  const items = projects
+    .filter((p) => p.cardImageUrl)
+    .map((p) => ({ url: p.cardImageUrl, type: "image" as const }));
+  const display = (ready ? name.trim() || STUDIO_NAME : STUDIO_NAME).toUpperCase();
 
   return (
     <section
@@ -20,7 +21,7 @@ export function Hero() {
         <p className="mb-5 font-mono-tech text-[10px] uppercase tracking-[0.28em] text-mist md:text-[11px]">
           Motion studio
         </p>
-        <h1 className="font-display max-w-[16ch] text-[clamp(2.6rem,10vw,7.2rem)] leading-[0.92] text-bone">
+        <h1 className="font-display max-w-[16ch] text-[clamp(2.6rem,10vw,7.2rem)] uppercase leading-[0.92] text-bone">
           {display}
         </h1>
         <div className="mt-12 w-full md:mt-16">

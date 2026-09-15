@@ -21,23 +21,11 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <div id="site-intro" className="intro-screen" aria-hidden="true">
-          <div className="intro-stage">
-            <div className="intro-door intro-door-l">
-              <div className="intro-door-inner">
-                <p className="intro-name">
-                  <span className="intro-name-ghost">{STUDIO_NAME}</span>
-                  <span className="intro-name-fill">{STUDIO_NAME}</span>
-                </p>
-              </div>
-            </div>
-            <div className="intro-door intro-door-r">
-              <div className="intro-door-inner">
-                <p className="intro-name">
-                  <span className="intro-name-ghost">{STUDIO_NAME}</span>
-                  <span className="intro-name-fill">{STUDIO_NAME}</span>
-                </p>
-              </div>
-            </div>
+          <div className="intro-name-wrap">
+            <p className="intro-name">
+              <span className="intro-name-ghost">{STUDIO_NAME}</span>
+              <span className="intro-name-fill">{STUDIO_NAME}</span>
+            </p>
           </div>
         </div>
         {children}
