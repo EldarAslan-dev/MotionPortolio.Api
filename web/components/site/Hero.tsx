@@ -6,9 +6,9 @@ import { useStudio } from "@/lib/site/StudioContext";
 
 export function Hero() {
   const { ready, name, projects } = useStudio();
-  const items = projects
-    .filter((p) => p.cardImageUrl)
-    .map((p) => ({ url: p.cardImageUrl, type: "image" as const }));
+  const items = projects.flatMap((p) =>
+    p.cardImageUrl ? [{ url: p.cardImageUrl, type: "image" as const }] : [],
+  );
   const display = (ready ? name.trim() || STUDIO_NAME : STUDIO_NAME).toUpperCase();
 
   return (
