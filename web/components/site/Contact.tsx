@@ -42,7 +42,7 @@ export function Contact() {
               target="_blank"
               rel="noreferrer"
               data-cursor="link"
-              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+              className="font-display inline-block text-xl text-bone transition-[color,transform] duration-300 hover:scale-110 hover:text-cue md:text-2xl"
             >
               Instagram
             </a>
@@ -51,7 +51,7 @@ export function Contact() {
               target="_blank"
               rel="noreferrer"
               data-cursor="link"
-              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+              className="font-display inline-block text-xl text-bone transition-[color,transform] duration-300 hover:scale-110 hover:text-cue md:text-2xl"
             >
               LinkedIn
             </a>
@@ -60,7 +60,7 @@ export function Contact() {
               target="_blank"
               rel="noreferrer"
               data-cursor="link"
-              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+              className="font-display inline-block text-xl text-bone transition-[color,transform] duration-300 hover:scale-110 hover:text-cue md:text-2xl"
             >
               Behance
             </a>

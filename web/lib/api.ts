@@ -1,5 +1,5 @@
 import { adminAuth, authHeader } from "./auth";
-import { API_URL } from "./config";
+import { getApiUrl } from "./config";
 import type {
   ChatMessage,
   Conversation,
@@ -14,9 +14,25 @@ import type {
   ClientLogo,
 } from "./types";
 
-async function getJson<T>(path: string, token?: string | null): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+function notifyAuthLost(path: string, status: number) {
+  if (status !== 401 && status !== 403) return;
+  if (path.includes("/api/auth/login")) return;
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("admin-auth-lost"));
+}
+
+async function request(path: string, init: RequestInit = {}): Promise<Response> {
+  const res = await fetch(`${getApiUrl()}${path}`, {
     cache: "no-store",
+    ...init,
+  });
+  notifyAuthLost(path, res.status);
+  return res;
+}
+
+async function getJson<T>(path: string, token?: string | null): Promise<T> {
+  const sep = path.includes("?") ? "&" : "?";
+  const res = await request(`${path}${sep}_=${Date.now()}`, {
     headers: { ...authHeader(token ?? null) },
   });
   if (!res.ok) throw new Error(`${path} ${res.status}`);
@@ -24,7 +40,7 @@ async function getJson<T>(path: string, token?: string | null): Promise<T> {
 }
 
 function json(path: string, method: string, body: unknown, token?: string | null) {
-  return fetch(`${API_URL}${path}`, {
+  return request(path, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -35,7 +51,7 @@ function json(path: string, method: string, body: unknown, token?: string | null
 }
 
 function del(path: string, token?: string | null) {
-  return fetch(`${API_URL}${path}`, {
+  return request(path, {
     method: "DELETE",
     headers: { ...authHeader(token ?? null) },
   });
@@ -53,6 +69,13 @@ export const api = {
   updateProject: (id: number, payload: Partial<Project>, token: string) =>
     json(`/api/projects/${id}`, "PUT", payload, token),
   deleteProject: (id: number, token: string) => del(`/api/projects/${id}`, token),
+  likeProject: (id: number) => json(`/api/projects/${id}/like`, "POST", {}),
+  commentProject: (id: number, payload: { authorName: string; content: string }) =>
+    json(`/api/projects/${id}/comment`, "POST", payload),
+  setProjectLikes: (id: number, likesCount: number, token: string) =>
+    json(`/api/projects/${id}/likes`, "PUT", { likesCount }, token),
+  deleteProjectComment: (projectId: number, commentId: number, token: string) =>
+    del(`/api/projects/${projectId}/comments/${commentId}`, token),
 
   stories: () => getJson<Story[]>("/api/stories"),
   createStory: (
@@ -93,11 +116,7 @@ export const api = {
     del(`/api/messages/client/${encodeURIComponent(clientId)}/full`, token),
 
   register: (clientName: string, clientEmail: string) =>
-    fetch(`${API_URL}/api/inquiries/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientName, clientEmail }),
-    }),
+    json("/api/inquiries/register", "POST", { clientName, clientEmail }),
 
   inquiry: (payload: {
     clientId: string;
@@ -115,19 +134,19 @@ export const api = {
   assignStaff: (id: number, staffUsername: string, token: string) =>
     json(`/api/inquiries/${id}/assign`, "POST", { staffUsername }, token),
   approveStaffFile: (id: number, token: string) =>
-    fetch(`${API_URL}/api/inquiries/${id}/approve-staff-file`, {
+    request(`/api/inquiries/${id}/approve-staff-file`, {
       method: "POST",
       headers: { ...authHeader(token) },
     }),
   toggleClientChat: (id: number, token: string) =>
-    fetch(`${API_URL}/api/inquiries/${id}/toggle-client-chat`, {
+    request(`/api/inquiries/${id}/toggle-client-chat`, {
       method: "POST",
       headers: { ...authHeader(token) },
     }),
   deliverFile: (id: number, file: File, token: string) => {
     const formData = new FormData();
     formData.append("file", file);
-    return fetch(`${API_URL}/api/inquiries/${id}/deliver`, {
+    return request(`/api/inquiries/${id}/deliver`, {
       method: "POST",
       headers: { ...authHeader(token) },
       body: formData,
@@ -136,7 +155,7 @@ export const api = {
   staffDeliverFile: (id: number, file: File, token: string) => {
     const formData = new FormData();
     formData.append("file", file);
-    return fetch(`${API_URL}/api/inquiries/${id}/staff-deliver`, {
+    return request(`/api/inquiries/${id}/staff-deliver`, {
       method: "POST",
       headers: { ...authHeader(token) },
       body: formData,
@@ -145,11 +164,8 @@ export const api = {
   deleteInquiry: (id: number, token: string) => del(`/api/inquiries/${id}`, token),
 
   login: (username: string, password: string) =>
-    fetch(`${API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    }),
+    json("/api/auth/login", "POST", { username, password }),
+  me: (token: string) => getJson<{ username: string; role: string }>("/api/auth/me", token),
   changePassword: (oldPassword: string, newPassword: string, token: string) =>
     json("/api/auth/change-password", "POST", { oldPassword, newPassword }, token),
   staffList: (token: string) => getJson<StaffUser[]>("/api/auth/staff", token),
@@ -161,7 +177,7 @@ export const api = {
     const formData = new FormData();
     formData.append("file", file);
     const auth = token ?? adminAuth.getToken();
-    return fetch(`${API_URL}/api/upload`, {
+    return request("/api/upload", {
       method: "POST",
       headers: { ...authHeader(auth) },
       body: formData,

@@ -85,3 +85,10 @@ volumes:
   sql_data:
   uploads_data:
   rabbitmq_data:
+
+# Production SQL/Rabbit already run on this network from /root/MotionPortfolio.
+# web/api must join it or /admin and /api/* cannot reach the database.
+networks:
+  default:
+    name: motionportfolio_default
+    external: true

@@ -8,27 +8,27 @@ Müasir veb texnologiyaları, Next.js və mikroservis arxitekturası ilə qurulm
 
 - **Backend / API:** C#, .NET 10, ASP.NET Core, SignalR (Real-time WebSocket), Entity Framework Core
 - **Verilənlər Bazası və Mesajlaşma:** SQL Server, RabbitMQ
-- **Frontend / UI:** Next.js 14+, React, Tailwind CSS, GSAP (ScrollTrigger üçün)
-- **Video Emalı:** Node.js, Remotion (sosial media Reels/TikTok şablonlarının avtomatlaşdırılmış renderinqi)
+- **Frontend / UI:** Next.js 15, React 19, Tailwind CSS, GSAP, Lenis, Three.js (hero silindr)
 - **DevOps və Yerləşdirmə (Deployment):** Docker, Docker Compose, DigitalOcean Ubuntu Server, Nginx (Reverse Proxy & SSL)
 
 ---
 
 ## ✨ Əsas Xüsusiyyətlər
 
-- **Müasir Next.js Frontend (`/`):** 
-  - İnteraktiv portfel vitrini (video oynatma, vaxt çubuğu və nisbət itirmədən adaptiv kadr göstərilməsi).
+- **Müasir Next.js Frontend (`/`):**
+  - Public sayt ingiliscə; hero silindr, work kartları, `/work/[id]` izləmə səhifəsi.
+  - Video paylaşımda avtomatik poster; like və şərh (Instagram sırası).
   - 24 saatlıq avtomatik silinən Story sistemi (video/şəkil dəstəyi ilə).
-- **Canlı Dəstək və Çat Sistemi (SignalR):** 
+- **Canlı Dəstək və Çat Sistemi (SignalR):**
   - Müştərilər ilə admin/komanda arasında ani (real-time) ikitərəfli mesajlaşma.
   - Müştəri panelində çat tarixçəsinin bazadan avtomatik yüklənməsi (yeniləmədə mesajların itməməsi).
-- **Admin Panel (`/admin`):** 
-  - Tam təhlükəsiz JWT autentifikasiyası.
+- **Admin Panel (`/admin`):**
+  - Azərbaycan dilində, JWT autentifikasiyası, night palitra.
   - Gələn əməkdaşlıq müraciətlərinin idarəsi, status yeniləmə, komanda üzvlərinə iş təyinatı və fayl təhvili.
   - Çoxmüştərili Canlı DM Mərkəzi (SignalR ilə gələn yeni mesaj bildirişləri və səsli xəbərdarlıq).
-  - Animasiya yükləmə, story paylaşma, rəylərin moderasiyası və vitrin elanı idarəsi.
+  - Portfel yükləmə (çoxlu media + kapak kadrı), like/şərh idarəsi, story, rəy və vitrin elanı.
   - **Mobil Uyğunluq:** Telefon və kiçik ekranlar üçün tam optimallaşdırılmış sürüşməyən cədvəllər və adaptiv çat interfeysi.
-- **Komanda Paneli (`/team`):** 
+- **Komanda Paneli (`/team`):**
   - Komanda üzvləri üçün xüsusi giriş və yalnız özlərinə təyin olunan işlərin siyahısı.
   - Hazır faylların yüklənməsi və sifarişə əsaslı birbaşa müştəri çatı.
 

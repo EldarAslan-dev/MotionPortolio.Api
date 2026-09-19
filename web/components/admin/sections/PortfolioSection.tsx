@@ -1,9 +1,19 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import {
+  AdminCard,
+  AdminField,
+  AdminFilePick,
+  adminBtn,
+  adminBtnGhost,
+  adminBtnQuiet,
+  adminFieldClass,
+} from "@/components/admin/ui";
 import { api } from "@/lib/api";
-import { mediaUrl, parseGallery } from "@/lib/config";
-import type { GalleryItem, Project } from "@/lib/types";
+import { blobToPosterFile, capturePosterFromFile } from "@/lib/capturePoster";
+import { mediaUrl, parseGallery, projectPoster } from "@/lib/config";
+import type { GalleryItem, Project, ProjectComment } from "@/lib/types";
 
 const CATEGORIES = [
   "3D Motion",
@@ -14,11 +24,12 @@ const CATEGORIES = [
 ];
 
 function CoverThumb({ project }: { project: Project }) {
-  if (project.cardImageUrl) {
+  const poster = projectPoster(project);
+  if (poster) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={mediaUrl(project.cardImageUrl)} alt="" className="h-full w-full object-contain" />;
+    return <img src={mediaUrl(poster)} alt="" className="h-full w-full object-contain" />;
   }
-  return <div className="h-full w-full bg-neutral-950" />;
+  return <div className="h-full w-full bg-void" />;
 }
 
 export function PortfolioSection({
@@ -37,11 +48,24 @@ export function PortfolioSection({
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [cardImageUrl, setCardImageUrl] = useState("");
   const [cardUploading, setCardUploading] = useState(false);
+  const [social, setSocial] = useState<Project | null>(null);
+  const [author, setAuthor] = useState("");
+  const [commentText, setCommentText] = useState("");
+  const [likesDraft, setLikesDraft] = useState("");
 
   useEffect(() => {
     setGalleryItems(editing ? parseGallery(editing.galleryJson) : []);
     setCardImageUrl(editing?.cardImageUrl || "");
   }, [editing]);
+
+  useEffect(() => {
+    if (!social) return;
+    const next = projects.find((p) => p.id === social.id);
+    if (next) {
+      setSocial(next);
+      setLikesDraft(String(next.likesCount || 0));
+    }
+  }, [projects, social?.id]);
 
   async function onDelete(id: number) {
     if (!confirm("Layihəni silmək istəyirsiniz?")) return;
@@ -49,17 +73,31 @@ export function PortfolioSection({
     if (res.ok) onChanged();
   }
 
-  async function onGalleryFilesSelected(files: FileList | null) {
-    if (!files || files.length === 0) return;
+  async function onGalleryFilesSelected(files: File[]) {
+    if (files.length === 0) return;
     setGalleryUploading(true);
     try {
       const uploaded: GalleryItem[] = [];
-      for (const file of Array.from(files)) {
+      for (const file of files) {
         const res = await api.upload(file);
         if (res.ok) {
           const data = await res.json();
           if (data?.url) {
-            uploaded.push({ url: data.url, type: file.type.startsWith("video") ? "video" : "image" });
+            const item: GalleryItem = {
+              url: data.url,
+              type: file.type.startsWith("video") || /\.(mp4|mov|webm)$/i.test(file.name) ? "video" : "image",
+            };
+            if (item.type === "video") {
+              const poster = await capturePosterFromFile(file);
+              if (poster) {
+                const posterRes = await api.upload(blobToPosterFile(poster));
+                if (posterRes.ok) {
+                  const posterData = await posterRes.json();
+                  if (posterData?.url) item.posterUrl = posterData.url;
+                }
+              }
+            }
+            uploaded.push(item);
           }
         }
       }
@@ -77,6 +115,11 @@ export function PortfolioSection({
     e.preventDefault();
     if (!editing) return;
     const form = new FormData(e.currentTarget);
+    const still =
+      cardImageUrl ||
+      galleryItems.find((item) => item.type === "image")?.url ||
+      galleryItems.find((item) => item.posterUrl)?.posterUrl ||
+      "";
     const res = await api.updateProject(
       editing.id,
       {
@@ -86,118 +129,148 @@ export function PortfolioSection({
         year: String(form.get("year") || "") || null,
         processNotes: String(form.get("processNotes") || "") || null,
         galleryJson: JSON.stringify(galleryItems),
-        cardImageUrl,
+        cardImageUrl: still,
+        thumbnailUrl: still || editing.thumbnailUrl,
       },
       token,
     );
     if (res.ok) {
-      onToast("Layihə yeniləndi!");
+      onToast("Layihə yeniləndi.");
       setEditing(null);
       onChanged();
     }
   }
 
+  function openSocial(p: Project) {
+    setSocial(p);
+    setLikesDraft(String(p.likesCount || 0));
+    setAuthor("");
+    setCommentText("");
+  }
+
+  async function saveLikes(count: number) {
+    if (!social) return;
+    const next = Math.max(0, count);
+    const res = await api.setProjectLikes(social.id, next, token);
+    if (res.ok) {
+      setLikesDraft(String(next));
+      onToast("Bəyənmə yeniləndi.");
+      onChanged();
+    }
+  }
+
+  async function addAdminComment(e: FormEvent) {
+    e.preventDefault();
+    if (!social) return;
+    const name = author.trim();
+    const content = commentText.trim();
+    if (!name || !content) return;
+    const res = await api.commentProject(social.id, { authorName: name, content });
+    if (res.ok) {
+      setAuthor("");
+      setCommentText("");
+      onToast("Şərh əlavə olundu.");
+      onChanged();
+    }
+  }
+
+  async function removeComment(commentId: number) {
+    if (!social) return;
+    if (!confirm("Bu şərhi silmək istəyirsiniz?")) return;
+    const res = await api.deleteProjectComment(social.id, commentId, token);
+    if (res.ok) {
+      onToast("Şərh silindi.");
+      onChanged();
+    }
+  }
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 sm:p-5">
-      <h2 className="mb-4 text-lg font-bold text-white">🎬 Mövcud Portfel İdarəsi</h2>
-
-      {/* Mobile / tablet: stacked cards */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {projects.map((p) => (
-          <div
-            key={p.id}
-            className="flex gap-3 rounded-xl border border-white/10 bg-neutral-950 p-3 text-white"
-          >
-            <div className="flex h-[64px] w-[92px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black">
-              <CoverThumb project={p} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-semibold">{p.title}</div>
-              <div className="text-xs text-indigo-300">{p.category}</div>
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditing(p)}
-                  className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white"
-                >
-                  Redaktə
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(p.id)}
-                  className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white"
-                >
-                  Sil
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Desktop: table */}
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wide text-neutral-500">
-              <th className="border-b border-white/10 px-3 py-2">Önizləmə</th>
-              <th className="border-b border-white/10 px-3 py-2">Başlıq</th>
-              <th className="border-b border-white/10 px-3 py-2">Kateqoriya</th>
-              <th className="border-b border-white/10 px-3 py-2">Əməliyyat</th>
-            </tr>
-          </thead>
-          <tbody>
+    <AdminCard title="Portfel" hint="Mövcud işləri redaktə et və ya sil.">
+      {projects.length === 0 ? (
+        <p className="py-8 text-center text-sm text-mist">Hələ iş yoxdur.</p>
+      ) : (
+        <>
+          <div className="flex flex-col gap-3 md:hidden">
             {projects.map((p) => (
-              <tr key={p.id} className="border-b border-white/5 text-white">
-                <td className="px-3 py-3">
-                  <div className="flex h-[70px] w-[110px] items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black">
-                    <CoverThumb project={p} />
-                  </div>
-                </td>
-                <td className="px-3 py-3 font-semibold">{p.title}</td>
-                <td className="px-3 py-3 text-indigo-300">{p.category}</td>
-                <td className="px-3 py-3">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditing(p)}
-                      className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
+              <div key={p.id} className="flex gap-3 rounded-2xl border border-line bg-void p-3">
+                <div className="flex h-[64px] w-[92px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface">
+                  <CoverThumb project={p} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-semibold text-bone">{p.title}</div>
+                  <div className="text-xs text-mist">{p.category}</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button type="button" onClick={() => setEditing(p)} className={adminBtnGhost}>
                       Redaktə
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(p.id)}
-                      className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
+                    <button type="button" onClick={() => openSocial(p)} className={adminBtnGhost}>
+                      Bəyənmə / şərh
+                    </button>
+                    <button type="button" onClick={() => onDelete(p.id)} className={adminBtnQuiet}>
                       Sil
                     </button>
                   </div>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-[0.16em] text-mist">
+                  <th className="border-b border-line px-3 py-2">Önizləmə</th>
+                  <th className="border-b border-line px-3 py-2">Başlıq</th>
+                  <th className="border-b border-line px-3 py-2">Kateqoriya</th>
+                  <th className="border-b border-line px-3 py-2">Bəyənmə</th>
+                  <th className="border-b border-line px-3 py-2">Əməliyyat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projects.map((p) => (
+                  <tr key={p.id} className="border-b border-line text-bone">
+                    <td className="px-3 py-3">
+                      <div className="flex h-[70px] w-[110px] items-center justify-center overflow-hidden rounded-xl border border-line bg-void">
+                        <CoverThumb project={p} />
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 font-semibold">{p.title}</td>
+                    <td className="px-3 py-3 text-mist">{p.category}</td>
+                    <td className="px-3 py-3 text-mist">{p.likesCount || 0}</td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => setEditing(p)} className={adminBtnGhost}>
+                          Redaktə
+                        </button>
+                        <button type="button" onClick={() => openSocial(p)} className={adminBtnGhost}>
+                          Bəyənmə / şərh
+                        </button>
+                        <button type="button" onClick={() => onDelete(p.id)} className={adminBtnQuiet}>
+                          Sil
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {editing ? (
         <div
-          className="fixed inset-0 z-[160] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[160] flex items-center justify-center bg-void/80 p-4"
           onClick={(e) => e.target === e.currentTarget && setEditing(null)}
         >
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6">
-            <h3 className="mb-4 text-lg font-bold text-white">✏️ Layihəni Redaktə Et</h3>
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-surface p-6">
+            <h3 className="mb-4 font-display text-lg font-semibold text-bone">Layihəni redaktə et</h3>
             <form onSubmit={onSaveEdit} className="space-y-3">
-              <input
-                name="title"
-                defaultValue={editing.title}
-                required
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
-              />
+              <input name="title" defaultValue={editing.title} required className={adminFieldClass} />
               <select
                 name="category"
                 defaultValue={editing.category || CATEGORIES[0]}
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                className={adminFieldClass}
               >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
@@ -210,43 +283,40 @@ export function PortfolioSection({
                 defaultValue={editing.description}
                 rows={3}
                 required
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                className={adminFieldClass}
               />
               <input
                 name="year"
                 defaultValue={editing.year || ""}
-                placeholder="İl (opsional, məs: 2026)"
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                placeholder="İl (opsional)"
+                className={adminFieldClass}
               />
               <textarea
                 name="processNotes"
                 defaultValue={editing.processNotes || ""}
                 rows={3}
                 placeholder="Proses qeydləri (opsional)"
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                className={adminFieldClass}
               />
 
-              <div>
-                <label className="mb-1 block font-mono text-xs text-neutral-400">
-                  Work Item Image — {editing.title}
-                </label>
+              <AdminField label="Kart şəkli">
                 {cardImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={mediaUrl(cardImageUrl)}
                     alt=""
-                    className="mb-2 h-24 w-full rounded-lg object-cover"
+                    className="mb-2 h-24 w-full rounded-xl object-cover"
                   />
                 ) : (
-                  <p className="mb-2 text-xs text-neutral-500">No card image. Placeholder on site.</p>
+                  <p className="mb-2 text-xs text-mist">Kart şəkli yoxdur.</p>
                 )}
-                <input
-                  type="file"
+                <AdminFilePick
+                  id="edit-card"
+                  label={cardUploading ? "Yüklənir…" : "Şəkil seç"}
                   accept="image/*"
                   disabled={cardUploading}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    e.currentTarget.value = "";
+                  onChange={async (files) => {
+                    const file = files[0];
                     if (!file) return;
                     setCardUploading(true);
                     try {
@@ -259,39 +329,43 @@ export function PortfolioSection({
                       setCardUploading(false);
                     }
                   }}
-                  className="w-full text-sm text-neutral-300"
                 />
-              </div>
+              </AdminField>
 
-              <div>
-                <label className="mb-1 block font-mono text-xs text-neutral-400">
-                  Qalereya (opsional, istənilən sayda şəkil/video):
-                </label>
+              <AdminField label="Qalereya">
                 {galleryItems.length > 0 ? (
                   <div className="mb-2 flex flex-wrap gap-2">
                     {galleryItems.map((item) => (
-                      <div key={item.url} className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-black">
+                      <div
+                        key={item.url}
+                        className="relative h-16 w-16 overflow-hidden rounded-xl border border-line bg-void"
+                      >
                         {item.type === "video" ? (
-                          <video
-                            src={mediaUrl(item.url)}
-                            muted
-                            preload="metadata"
-                            playsInline
-                            className="h-full w-full object-cover"
-                          />
+                          item.posterUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={mediaUrl(item.posterUrl)} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <video
+                              src={mediaUrl(item.url)}
+                              muted
+                              preload="metadata"
+                              playsInline
+                              className="h-full w-full object-cover"
+                            />
+                          )
                         ) : (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={mediaUrl(item.url)} alt="" className="h-full w-full object-cover" />
                         )}
                         {item.type === "video" ? (
-                          <span className="pointer-events-none absolute bottom-0.5 left-0.5 rounded bg-black/60 px-1 text-[9px] uppercase text-white">
+                          <span className="pointer-events-none absolute bottom-0.5 left-0.5 rounded bg-void/80 px-1 text-[9px] uppercase text-bone">
                             Video
                           </span>
                         ) : null}
                         <button
                           type="button"
                           onClick={() => removeGalleryItem(item.url)}
-                          className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center bg-red-600 text-xs text-white"
+                          className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center bg-bone text-xs text-void"
                           aria-label="Media sil"
                         >
                           ×
@@ -300,31 +374,21 @@ export function PortfolioSection({
                     ))}
                   </div>
                 ) : null}
-                <input
-                  type="file"
-                  multiple
+                <AdminFilePick
+                  id="edit-gallery"
+                  label={galleryUploading ? "Yüklənir…" : "Fayl seç"}
                   accept="image/*,video/mp4,video/quicktime,video/webm"
+                  multiple
                   disabled={galleryUploading}
-                  onChange={(e) => onGalleryFilesSelected(e.target.files)}
-                  className="w-full text-sm text-neutral-300"
+                  onChange={onGalleryFilesSelected}
                 />
-                {galleryUploading ? (
-                  <p className="mt-1 font-mono text-[11px] text-neutral-500">Yüklənir…</p>
-                ) : null}
-              </div>
+              </AdminField>
 
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditing(null)}
-                  className="flex-1 rounded-lg border border-white/10 py-2 text-sm text-white"
-                >
+              <div className="flex gap-2 pt-1">
+                <button type="button" onClick={() => setEditing(null)} className={`${adminBtnGhost} flex-1 py-2.5`}>
                   Ləğv et
                 </button>
-                <button
-                  type="submit"
-                  className="flex-1 rounded-lg bg-indigo-500 py-2 text-sm font-semibold text-white"
-                >
+                <button type="submit" className={`${adminBtn} flex-1`}>
                   Yenilə
                 </button>
               </div>
@@ -332,6 +396,99 @@ export function PortfolioSection({
           </div>
         </div>
       ) : null}
-    </div>
+      {social ? (
+        <div
+          className="fixed inset-0 z-[160] flex items-center justify-center bg-void/80 p-4"
+          onClick={(e) => e.target === e.currentTarget && setSocial(null)}
+        >
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-surface p-6">
+            <h3 className="mb-1 font-display text-lg font-semibold text-bone">{social.title}</h3>
+            <p className="mb-5 text-sm text-mist">Bəyənmə sayını dəyiş və istədiyin adla şərh yaz.</p>
+
+            <AdminField label="Bəyənmə">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className={adminBtnQuiet}
+                  onClick={() => saveLikes(Number(likesDraft || 0) - 1)}
+                >
+                  −
+                </button>
+                <input
+                  value={likesDraft}
+                  onChange={(e) => setLikesDraft(e.target.value.replace(/[^\d]/g, ""))}
+                  onBlur={() => saveLikes(Number(likesDraft || 0))}
+                  className={`${adminFieldClass} max-w-[120px] text-center`}
+                />
+                <button
+                  type="button"
+                  className={adminBtnQuiet}
+                  onClick={() => saveLikes(Number(likesDraft || 0) + 1)}
+                >
+                  +
+                </button>
+              </div>
+            </AdminField>
+
+            <div className="mt-6">
+              <p className="mb-3 text-[11px] uppercase tracking-[0.18em] text-mist">
+                Şərhlər · {(social.comments || []).length}
+              </p>
+              <div className="mb-4 max-h-48 space-y-3 overflow-y-auto">
+                {(social.comments || []).length === 0 ? (
+                  <p className="text-sm text-mist">Hələ şərh yoxdur.</p>
+                ) : (
+                  (social.comments || []).map((c: ProjectComment) => (
+                    <div key={c.id} className="rounded-xl border border-line bg-void p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-bone">{c.authorName}</p>
+                          <p className="mt-1 text-sm text-mist">{c.content}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeComment(c.id)}
+                          className={adminBtnQuiet}
+                        >
+                          Sil
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <form onSubmit={addAdminComment} className="space-y-2">
+                <input
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  required
+                  placeholder="Ad (məs: Aysel)"
+                  className={adminFieldClass}
+                />
+                <textarea
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  required
+                  rows={2}
+                  placeholder="Şərh mətni"
+                  className={adminFieldClass}
+                />
+                <button type="submit" className={adminBtn}>
+                  Şərh əlavə et
+                </button>
+              </form>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSocial(null)}
+              className={`${adminBtnGhost} mt-5 w-full py-2.5`}
+            >
+              Bağla
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </AdminCard>
   );
 }

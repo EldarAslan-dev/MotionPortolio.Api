@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { mediaUrl } from "@/lib/config";
+import { PostStats } from "@/components/site/PostStats";
+import { mediaUrl, projectPoster } from "@/lib/config";
 import { useStudio } from "@/lib/site/StudioContext";
 import type { Project } from "@/lib/types";
 
@@ -17,9 +18,37 @@ function goToWork(router: ReturnType<typeof useRouter>, id: number, e: React.Mou
   }
 }
 
+function WorkPreview({ project, eager }: { project: Project; eager: boolean }) {
+  const poster = mediaUrl(projectPoster(project));
+  const video = mediaUrl(project.videoUrl);
+  if (poster) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={poster}
+        alt=""
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+  if (video) {
+    return (
+      <video
+        src={`${video}#t=0.15`}
+        muted
+        playsInline
+        preload="metadata"
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+  return <div className="h-full w-full bg-void" />;
+}
+
 function WorkCard({ project, index, total }: { project: Project; index: number; total: number }) {
   const router = useRouter();
-  const src = project.cardImageUrl ? mediaUrl(project.cardImageUrl) : "";
 
   return (
     <article className="work-card">
@@ -32,19 +61,17 @@ function WorkCard({ project, index, total }: { project: Project; index: number; 
       >
         <div className="work-card-frame">
           <div className="work-card-media">
-            {src ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
-            ) : (
-              <div className="h-full w-full bg-void" />
-            )}
+            <WorkPreview project={project} eager={index < 2} />
           </div>
+          <PostStats likes={project.likesCount || 0} comments={project.comments?.length || 0} />
           <div className="work-card-meta flex items-baseline justify-between gap-4">
             <div className="min-w-0">
               <h3 className="font-display truncate text-2xl uppercase text-bone md:text-3xl">{project.title}</h3>
-              <p className="mt-1 font-mono-tech text-[11px] uppercase tracking-[0.16em] text-mist">
-                {project.category}
-              </p>
+              {project.category ? (
+                <p className="mt-1 font-mono-tech text-[11px] uppercase tracking-[0.16em] text-mist">
+                  {project.category}
+                </p>
+              ) : null}
             </div>
             <span className="shrink-0 font-mono-tech text-[11px] tracking-[0.16em] text-mist">
               {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
@@ -81,7 +108,7 @@ export function Work() {
           ) : projects.length === 0 ? (
             <p className="text-mist">No work published yet.</p>
           ) : (
-            <div className="work-list mx-auto max-w-5xl">
+            <div className="work-list mx-auto max-w-5xl lg:max-w-none">
               {projects.map((p, i) => (
                 <WorkCard key={p.id} project={p} index={i} total={projects.length} />
               ))}

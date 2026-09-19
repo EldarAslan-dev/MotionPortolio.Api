@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AnnouncementTicker } from "@/components/site/AnnouncementTicker";
 import { INQUIRY_GENERAL } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
 import { useTheme } from "@/lib/site/ThemeProvider";
 
 const LINKS = [
   { href: "/#about", label: "About" },
-  { href: "/#updates", label: "Updates" },
   { href: "/#work", label: "Work" },
   { href: "/#contact", label: "Contact" },
 ];
@@ -53,13 +53,14 @@ export function Nav() {
           scrolled ? "border-b border-line bg-void/75 backdrop-blur-xl" : "border-b border-transparent bg-transparent"
         }`}
       >
+        <AnnouncementTicker />
         <div
           className={`mx-auto flex max-w-[1600px] items-center justify-between px-5 transition-[padding] duration-500 md:px-10 ${
             scrolled ? "py-3" : "py-6"
           }`}
         >
           <Link
-            href={liveStories.length > 0 ? "/#updates" : "/#top"}
+            href="/#top"
             data-cursor="link"
             className="flex min-w-0 max-w-[58vw] items-center gap-2.5 md:max-w-none"
           >

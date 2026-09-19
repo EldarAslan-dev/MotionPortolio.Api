@@ -3,7 +3,7 @@
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
-import { API_URL } from "@/lib/config";
+import { getApiUrl } from "@/lib/config";
 import type { ChatMessage } from "@/lib/types";
 
 type Props = {
@@ -53,7 +53,7 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
 
   useEffect(() => {
     const conn = new HubConnectionBuilder()
-      .withUrl(`${API_URL}/notificationHub`)
+      .withUrl(`${getApiUrl()}/notificationHub`)
       .withAutomaticReconnect()
       .build();
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { adminBtn, adminFieldClass } from "@/components/admin/ui";
 import { api } from "@/lib/api";
 import { adminAuth } from "@/lib/auth";
 
@@ -33,31 +34,28 @@ export function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-950 p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-8">
-        <h1 className="text-center text-xl font-bold uppercase tracking-wide text-white">
-          Studio Ofisinə Giriş
+    <div className="flex min-h-screen items-center justify-center bg-void p-4">
+      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-8">
+        <p className="text-center text-[11px] uppercase tracking-[0.22em] text-mist">Studiya paneli</p>
+        <h1 className="mt-2 text-center font-display text-2xl font-semibold tracking-[-0.03em] text-bone">
+          Giriş
         </h1>
         <form onSubmit={onSubmit} className="mt-6 space-y-3">
           <input
             name="username"
-            placeholder="İstifadəçi adı (admin)"
+            placeholder="İstifadəçi adı"
             required
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-400"
+            className={adminFieldClass}
           />
           <input
             name="password"
             type="password"
             placeholder="Şifrə"
             required
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-400"
+            className={adminFieldClass}
           />
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-          >
+          {error ? <p className="text-sm text-mist">{error}</p> : null}
+          <button type="submit" disabled={loading} className={`${adminBtn} w-full`}>
             {loading ? "Yoxlanılır…" : "Daxil ol"}
           </button>
         </form>

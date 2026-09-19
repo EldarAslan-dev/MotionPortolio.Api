@@ -4,6 +4,9 @@ export type StudioProfile = {
   bio: string;
   avatarUrl: string;
   aboutPhotoUrl?: string;
+  aboutTeaser?: string;
+  aboutBody?: string;
+  toolsJson?: string;
   heroGalleryJson?: string;
   heroVideoUrl?: string;
   instagramUrl: string;
@@ -15,6 +18,20 @@ export type StudioProfile = {
 export type GalleryItem = {
   url: string;
   type: "image" | "video";
+  posterUrl?: string;
+};
+
+export type ToolItem = {
+  id: string;
+  name: string;
+  logoUrl: string;
+};
+
+export type ProjectComment = {
+  id: number;
+  authorName: string;
+  content: string;
+  createdAt: string;
 };
 
 export type Project = {
@@ -26,6 +43,7 @@ export type Project = {
   cardImageUrl?: string;
   category: string;
   likesCount: number;
+  comments?: ProjectComment[];
   createdAt?: string;
   year?: string | null;
   processNotes?: string | null;

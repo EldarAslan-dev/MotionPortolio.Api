@@ -12,7 +12,8 @@ export function SmoothScrollProvider() {
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (reducedMotion) return;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    if (reducedMotion || coarse) return;
     let lenis: import("lenis").default | null = null;
     let tickerFn: ((time: number) => void) | null = null;
     let cancelled = false;
