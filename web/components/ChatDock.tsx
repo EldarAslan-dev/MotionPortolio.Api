@@ -1,10 +1,14 @@
 "use client";
 
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import { AnimatePresence, motion } from "framer-motion";
+import { MessageCircle, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { getApiUrl } from "@/lib/config";
 import type { ChatMessage } from "@/lib/types";
+
+const SPRING = { type: "spring" as const, stiffness: 300, damping: 25 };
 
 type Props = {
   clientId: string | null;
@@ -149,79 +153,99 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
 
   return (
     <>
-      <button
+      <motion.button
         type="button"
         data-cursor="link"
         onClick={toggle}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-bone/20 bg-surface text-bone shadow-lg shadow-black/40 transition hover:border-cue hover:text-cue"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={SPRING}
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-bone/15 bg-surface/80 text-bone shadow-lg shadow-black/30 backdrop-blur-md transition hover:border-cue hover:text-cue"
         aria-label="Live desk"
       >
-        <span className="text-lg">✉</span>
+        <MessageCircle className="h-5 w-5" strokeWidth={1.6} />
         {badge && !open ? (
           <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-cue ring-2 ring-void" />
         ) : null}
-      </button>
+      </motion.button>
 
-      {open ? (
-        <div className="fixed bottom-24 right-6 z-40 flex h-[420px] w-[min(92vw,360px)] flex-col overflow-hidden border border-line bg-surface text-bone shadow-2xl shadow-black/50">
-          <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <div>
-              <p className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
-                Studio desk
-              </p>
-              <p className="font-display text-xl text-bone">Live desk</p>
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.97 }}
+            transition={SPRING}
+            className="fixed bottom-24 right-6 z-40 flex h-[420px] w-[min(92vw,360px)] flex-col overflow-hidden rounded-2xl border border-bone/10 bg-surface/80 text-bone shadow-2xl shadow-black/40 backdrop-blur-xl"
+          >
+            <div className="flex items-center justify-between border-b border-line px-4 py-3">
+              <div>
+                <p className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
+                  Studio desk
+                </p>
+                <p className="font-display text-xl text-bone">Live desk</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+                className="text-mist transition hover:text-bone"
+              >
+                <X className="h-5 w-5" strokeWidth={1.6} />
+              </button>
             </div>
-            <button type="button" onClick={() => setOpen(false)} className="text-2xl leading-none text-mist transition hover:text-bone">
-              ×
-            </button>
-          </div>
-          <div ref={boxRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
-            {!loaded ? (
-              <p className="pt-16 text-center text-sm text-mist">Loading messages…</p>
-            ) : messages.length === 0 ? (
-              <p className="pt-16 text-center text-sm text-mist">
-                Write a message — replies stay here.
-              </p>
-            ) : (
-              messages.map((m) => {
-                const mine = m.sender === "Client";
-                return (
-                  <div
-                    key={keyOf(m) + m.sentAt}
-                    className={`max-w-[82%] px-3 py-2 text-sm ${
-                      mine
-                        ? "ml-auto border border-cue/40 bg-cue/10 text-bone"
-                        : "border border-line bg-void text-bone"
-                    }`}
-                  >
-                    <p className="mb-1 font-mono-tech text-[10px] uppercase tracking-wider text-mist">
-                      {mine ? "You" : "Studio"}
-                    </p>
-                    <p className="whitespace-pre-wrap">{m.content}</p>
-                  </div>
-                );
-              })
-            )}
-          </div>
-          <div className="flex gap-2 border-t border-line p-3">
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Write a message…"
-              className="flex-1 border border-line bg-void px-4 py-2 text-sm text-bone placeholder:text-mist outline-none transition focus:border-cue"
-            />
-            <button
-              type="button"
-              data-cursor="link"
-              onClick={send}
-              className="border border-bone/30 px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.1em] text-bone transition hover:border-cue hover:text-cue"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      ) : null}
+            <div ref={boxRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
+              {!loaded ? (
+                <p className="pt-16 text-center text-sm text-mist">Loading messages…</p>
+              ) : messages.length === 0 ? (
+                <p className="pt-16 text-center text-sm text-mist">
+                  Write a message — replies stay here.
+                </p>
+              ) : (
+                messages.map((m) => {
+                  const mine = m.sender === "Client";
+                  return (
+                    <div
+                      key={keyOf(m) + m.sentAt}
+                      className={`max-w-[82%] rounded-xl px-3 py-2 text-sm ${
+                        mine
+                          ? "ml-auto border border-cue/30 bg-cue/10 text-bone"
+                          : "border border-line bg-void/60 text-bone"
+                      }`}
+                    >
+                      <p className="mb-1 font-mono-tech text-[10px] uppercase tracking-wider text-mist">
+                        {mine ? "You" : "Studio"}
+                      </p>
+                      <p className="whitespace-pre-wrap">{m.content}</p>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            <div className="flex gap-2 border-t border-line p-3">
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && send()}
+                placeholder="Write a message…"
+                className="flex-1 rounded-xl border border-line bg-void/60 px-4 py-2 text-sm text-bone placeholder:text-mist outline-none transition focus:border-cue"
+              />
+              <motion.button
+                type="button"
+                data-cursor="link"
+                onClick={send}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={SPRING}
+                aria-label="Send"
+                className="flex items-center justify-center rounded-xl border border-bone/30 px-4 text-bone transition hover:border-cue hover:text-cue"
+              >
+                <Send className="h-4 w-4" strokeWidth={1.6} />
+              </motion.button>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }

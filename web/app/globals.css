@@ -65,16 +65,26 @@
   font-display: swap;
 }
 
+/*
+ * Design tokens — --bg/--surface/--ink/--muted/--accent/--border.
+ * Tailwind exposes these as void/surface/bone/mist/cue(/accent)/line for
+ * backward-compat with every existing component class (bg-void, text-bone,
+ * border-line, text-cue, ...) — see tailwind.config.ts. Renaming the utility
+ * classes themselves across ~30 files would be a purely cosmetic, high-risk
+ * mechanical change with zero visual benefit, so only the underlying token
+ * *values* changed: --cue is now a real, restrained accent hue (cinematic
+ * amber) instead of being identical to --ink/--bone.
+ */
 :root,
 [data-theme="day"] {
   color-scheme: light;
-  --void: 243 241 236;
+  --bg: 243 241 236;
   --surface: 255 255 255;
-  --bone: 17 17 17;
-  --mist: 110 110 108;
-  --cue: 17 17 17;
-  --cue-soft: 180 180 176;
-  --line: 17 17 17;
+  --ink: 17 17 17;
+  --muted: 110 110 108;
+  --accent: 179 98 48;
+  --accent-soft: 214 172 132;
+  --border: 17 17 17;
   --intro-bg: #f3f1ec;
   --intro-ghost: #9a9a96;
   --intro-fill: #111111;
@@ -82,13 +92,13 @@
 
 html[data-theme="night"] {
   color-scheme: dark;
-  --void: 18 18 18;
+  --bg: 18 18 18;
   --surface: 28 28 28;
-  --bone: 242 242 240;
-  --mist: 152 152 150;
-  --cue: 242 242 240;
-  --cue-soft: 90 90 88;
-  --line: 242 242 240;
+  --ink: 242 242 240;
+  --muted: 152 152 150;
+  --accent: 224 152 92;
+  --accent-soft: 120 88 58;
+  --border: 242 242 240;
   --intro-bg: #f3f1ec;
   --intro-ghost: #9a9a96;
   --intro-fill: #111111;
@@ -96,7 +106,7 @@ html[data-theme="night"] {
 
 html {
   scroll-behavior: smooth;
-  background: rgb(var(--void));
+  background: rgb(var(--bg));
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -116,8 +126,8 @@ html.intro-pending body {
 }
 
 body {
-  background: rgb(var(--void));
-  color: rgb(var(--bone));
+  background: rgb(var(--bg));
+  color: rgb(var(--ink));
   font-family: "SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
   font-style: normal;
   letter-spacing: -0.011em;
@@ -131,12 +141,12 @@ address {
 }
 
 ::selection {
-  background: rgb(var(--cue));
-  color: rgb(var(--void));
+  background: rgb(var(--accent));
+  color: rgb(var(--bg));
 }
 
 :focus-visible {
-  outline: 1.5px solid rgb(var(--cue));
+  outline: 1.5px solid rgb(var(--accent));
   outline-offset: 3px;
 }
 
@@ -179,7 +189,7 @@ address {
   width: 100%;
   transform: scaleX(0);
   transform-origin: 0 50%;
-  background: rgb(var(--cue));
+  background: rgb(var(--accent));
   z-index: 60;
   pointer-events: none;
   will-change: transform;
@@ -208,20 +218,20 @@ address {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgb(var(--cue));
+  background: rgb(var(--accent));
 }
 .cursor-ring {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid rgb(var(--bone) / 0.35);
+  border: 1px solid rgb(var(--ink) / 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: "SF Pro Text", sans-serif;
   font-size: 9px;
   letter-spacing: 0.1em;
-  color: rgb(var(--bone));
+  color: rgb(var(--ink));
   background: transparent;
   transition:
     width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
@@ -232,14 +242,14 @@ address {
 .cursor-ring.is-view {
   width: 76px;
   height: 76px;
-  background: rgb(var(--cue));
-  border-color: rgb(var(--cue));
-  color: rgb(var(--void));
+  background: rgb(var(--accent));
+  border-color: rgb(var(--accent));
+  color: rgb(var(--bg));
 }
 .cursor-ring.is-link {
   width: 52px;
   height: 52px;
-  border-color: rgb(var(--bone));
+  border-color: rgb(var(--ink));
 }
 
 .reveal-line {
@@ -266,12 +276,12 @@ address {
 .story-bar {
   flex: 1;
   height: 2px;
-  background: rgb(var(--bone) / 0.2);
+  background: rgb(var(--ink) / 0.2);
   overflow: hidden;
 }
 .story-bar-fill {
   height: 100%;
-  background: rgb(var(--cue));
+  background: rgb(var(--accent));
   width: 0%;
 }
 
@@ -285,7 +295,7 @@ address {
 }
 .btn-glow:hover {
   transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 0 22px rgb(var(--cue) / 0.28);
+  box-shadow: 0 0 22px rgb(var(--accent) / 0.28);
 }
 
 ::view-transition-old(root),
@@ -408,9 +418,9 @@ html.theme-ready span {
 }
 .announce-ticker {
   overflow: hidden;
-  border-bottom: 1px solid rgb(var(--line) / 0.18);
-  background: rgb(var(--cue));
-  color: rgb(var(--void));
+  border-bottom: 1px solid rgb(var(--border) / 0.18);
+  background: rgb(var(--accent));
+  color: rgb(var(--bg));
 }
 .announce-track {
   display: flex;
@@ -458,7 +468,7 @@ html.theme-ready span {
   overflow: visible;
   box-sizing: border-box;
   padding: 14px;
-  border: 1px solid rgb(var(--line) / 0.14);
+  border: 1px solid rgb(var(--border) / 0.14);
   border-radius: 22px;
   background: rgb(var(--surface));
   transition:
@@ -466,14 +476,14 @@ html.theme-ready span {
     background-color 0.5s ease;
 }
 .work-card-frame:hover {
-  border-color: rgb(var(--cue) / 0.45);
+  border-color: rgb(var(--accent) / 0.45);
 }
 .work-card-media {
   overflow: hidden;
   isolation: isolate;
   border-radius: 12px;
   aspect-ratio: 16 / 10;
-  background: rgb(var(--void));
+  background: rgb(var(--bg));
 }
 .work-card-media img,
 .work-card-media video {
@@ -491,7 +501,7 @@ html.theme-ready span {
   align-items: center;
   gap: 18px;
   padding: 12px 6px 0;
-  color: rgb(var(--bone));
+  color: rgb(var(--ink));
 }
 .post-stat {
   display: inline-flex;
@@ -512,14 +522,14 @@ html.theme-ready span {
   height: 22px;
 }
 .post-stat.is-on {
-  color: rgb(var(--bone));
+  color: rgb(var(--ink));
 }
 
 /* ===== Piece viewer ===== */
 .piece-frame {
   box-sizing: border-box;
   padding: 14px;
-  border: 1px solid rgb(var(--line) / 0.14);
+  border: 1px solid rgb(var(--border) / 0.14);
   border-radius: 22px;
   background: rgb(var(--surface));
 }
@@ -532,7 +542,7 @@ html.theme-ready span {
   isolation: isolate;
   border-radius: 12px;
   aspect-ratio: 16 / 10;
-  background: rgb(var(--void));
+  background: rgb(var(--bg));
 }
 .piece-stage video,
 .piece-stage img {
@@ -553,13 +563,13 @@ html.theme-ready span {
   width: 92px;
   height: 58px;
   overflow: hidden;
-  border: 1px solid rgb(var(--line) / 0.14);
+  border: 1px solid rgb(var(--border) / 0.14);
   border-radius: 10px;
-  background: rgb(var(--void));
+  background: rgb(var(--bg));
   padding: 0;
 }
 .piece-thumb.is-on {
-  border-color: rgb(var(--bone) / 0.65);
+  border-color: rgb(var(--ink) / 0.65);
 }
 .piece-thumb video,
 .piece-thumb img {
@@ -578,10 +588,10 @@ html.theme-ready span {
   transform: translateY(-50%);
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(var(--line) / 0.22);
+  border: 1px solid rgb(var(--border) / 0.22);
   border-radius: 999px;
-  background: rgb(var(--void) / 0.72);
-  color: rgb(var(--bone));
+  background: rgb(var(--bg) / 0.72);
+  color: rgb(var(--ink));
   font-size: 1.25rem;
   line-height: 1;
 }
@@ -634,7 +644,7 @@ html.theme-ready span {
   height: 32px;
   width: 56px;
   align-items: center;
-  border: 1px solid rgb(var(--line) / 0.14);
+  border: 1px solid rgb(var(--border) / 0.14);
   border-radius: 999px;
   padding: 3px;
   background: rgb(var(--surface));
@@ -644,7 +654,7 @@ html.theme-ready span {
   height: 24px;
   width: 24px;
   border-radius: 999px;
-  background: rgb(var(--bone));
+  background: rgb(var(--ink));
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.45s ease;
 }
 html[data-theme="night"] .theme-toggle-knob {
@@ -673,16 +683,16 @@ html[data-theme="night"] .theme-toggle-knob {
 .admin-app {
   min-height: 100svh;
   background:
-    radial-gradient(1200px 480px at 8% -10%, rgb(var(--bone) / 0.04), transparent 55%),
-    rgb(var(--void));
-  color: rgb(var(--bone));
+    radial-gradient(1200px 480px at 8% -10%, rgb(var(--ink) / 0.04), transparent 55%),
+    rgb(var(--bg));
+  color: rgb(var(--ink));
 }
 .admin-app input[type="file"]::file-selector-button {
   margin-right: 12px;
-  border: 1px solid rgb(var(--line) / 0.14);
+  border: 1px solid rgb(var(--border) / 0.14);
   border-radius: 10px;
   background: rgb(var(--surface));
-  color: rgb(var(--bone));
+  color: rgb(var(--ink));
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;

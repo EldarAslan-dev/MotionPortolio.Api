@@ -1,11 +1,14 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { CylinderGallery } from "@/components/site/CylinderGallery";
 import { AboutTeaser } from "@/components/site/AboutTeaser";
 import { isVideoMedia, parseGallery, parseHeroGallery } from "@/lib/config";
-import { STUDIO_NAME } from "@/lib/site/copy";
+import { INQUIRY_GENERAL, STUDIO_NAME } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
 import type { GalleryItem, Project } from "@/lib/types";
+
+const SPRING = { type: "spring" as const, stiffness: 300, damping: 25 };
 
 function uniqueBandItems(profile: { heroGalleryJson?: string } | null, projects: Project[]): GalleryItem[] {
   const seen = new Set<string>();
@@ -35,7 +38,7 @@ function uniqueBandItems(profile: { heroGalleryJson?: string } | null, projects:
 }
 
 export function Hero() {
-  const { ready, name, profile, projects } = useStudio();
+  const { ready, name, profile, projects, openInquiry } = useStudio();
   const items = uniqueBandItems(profile, projects);
   const display = (ready ? name.trim() || STUDIO_NAME : STUDIO_NAME)
     .toUpperCase()
@@ -73,6 +76,19 @@ export function Hero() {
         </div>
         <div className="pointer-events-none hidden md:block md:h-[min(22vw,280px)]" aria-hidden />
         <AboutTeaser />
+        <motion.button
+          type="button"
+          data-cursor="link"
+          onClick={() => openInquiry(INQUIRY_GENERAL)}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...SPRING, delay: 0.15 }}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          className="btn-glow mt-10 rounded-full border border-bone/30 px-7 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
+        >
+          Start a project
+        </motion.button>
       </div>
     </section>
   );

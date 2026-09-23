@@ -1,15 +1,21 @@
 "use client";
 
+import { ChevronDown, ExternalLink, MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { AdminCard, AdminFilePick, adminBtn, adminBtnGhost } from "@/components/admin/ui";
+import { Badge, statusBadgeVariant } from "@/components/ui/badge";
 import {
-  AdminCard,
-  AdminFilePick,
-  adminBtn,
-  adminBtnGhost,
-  adminBtnQuiet,
-  adminSelectClass,
-} from "@/components/admin/ui";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Inquiry, StaffUser } from "@/lib/types";
+
+const STATUSES = ["Yeni", "İcrada", "Tamamlandı"];
 
 type Props = {
   inquiries: Inquiry[];
@@ -21,6 +27,110 @@ type Props = {
   onDeliverFile: (id: number, file: File, orderNumber: string) => void;
   onDelete: (id: number, orderNumber: string) => void;
 };
+
+function StatusMenu({
+  inquiry,
+  onStatusChange,
+}: {
+  inquiry: Inquiry;
+  onStatusChange: Props["onStatusChange"];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" className="inline-flex items-center gap-1">
+          <Badge variant={statusBadgeVariant(inquiry.status)}>
+            {inquiry.status}
+            <ChevronDown className="h-3 w-3" strokeWidth={2} />
+          </Badge>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuLabel>Status</DropdownMenuLabel>
+        {STATUSES.map((s) => (
+          <DropdownMenuItem key={s} onSelect={() => onStatusChange(inquiry.id, s, inquiry.orderNumber)}>
+            <Badge variant={statusBadgeVariant(s)} className="pointer-events-none">
+              {s}
+            </Badge>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function AssignMenu({
+  inquiry,
+  staffList,
+  onAssign,
+}: {
+  inquiry: Inquiry;
+  staffList: StaffUser[];
+  onAssign: Props["onAssign"];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-xs text-bone transition hover:border-bone/30"
+        >
+          {inquiry.assignedStaffUsername || "Komandaya təyin et"}
+          <ChevronDown className="h-3 w-3" strokeWidth={2} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuLabel>Təyin et</DropdownMenuLabel>
+        <DropdownMenuItem onSelect={() => onAssign(inquiry.id, "")} disabled={!inquiry.assignedStaffUsername}>
+          Təyinatı ləğv et
+        </DropdownMenuItem>
+        {staffList.length > 0 ? <DropdownMenuSeparator /> : null}
+        {staffList.map((s) => (
+          <DropdownMenuItem key={s.id} onSelect={() => onAssign(inquiry.id, s.username)}>
+            {s.username}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function MoreActionsMenu({
+  inquiry,
+  onDelete,
+}: {
+  inquiry: Inquiry;
+  onDelete: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="Daha çox əməliyyat"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line text-mist transition hover:border-bone/30 hover:text-bone"
+        >
+          <MoreHorizontal className="h-4 w-4" strokeWidth={1.8} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {inquiry.deliveredFileUrl ? (
+          <DropdownMenuItem
+            onSelect={() => window.open(inquiry.deliveredFileUrl!, "_blank", "noopener,noreferrer")}
+          >
+            <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} />
+            Faylı aç
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem destructive onSelect={onDelete}>
+          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} />
+          Sil
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function InquiryControls({
   inquiry,
@@ -49,27 +159,11 @@ function InquiryControls({
 }) {
   return (
     <div className={stacked ? "space-y-3" : "space-y-2"}>
-      <select
-        value={inquiry.status}
-        onChange={(e) => onStatusChange(inquiry.id, e.target.value, inquiry.orderNumber)}
-        className={`${adminSelectClass} ${stacked ? "w-auto" : "w-full"}`}
-      >
-        <option value="Yeni">Yeni</option>
-        <option value="İcrada">İcrada</option>
-        <option value="Tamamlandı">Tamamlandı</option>
-      </select>
-      <select
-        value={inquiry.assignedStaffUsername || ""}
-        onChange={(e) => onAssign(inquiry.id, e.target.value)}
-        className={`${adminSelectClass} w-full`}
-      >
-        <option value="">Komandaya təyin et</option>
-        {staffList.map((s) => (
-          <option key={s.id} value={s.username}>
-            {s.username}
-          </option>
-        ))}
-      </select>
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusMenu inquiry={inquiry} onStatusChange={onStatusChange} />
+        <AssignMenu inquiry={inquiry} staffList={staffList} onAssign={onAssign} />
+        <MoreActionsMenu inquiry={inquiry} onDelete={onDelete} />
+      </div>
       {inquiry.staffFileReady ? (
         <button
           type="button"
@@ -84,33 +178,20 @@ function InquiryControls({
           type="checkbox"
           checked={inquiry.clientChatEnabled}
           onChange={() => onToggleClientChat(inquiry.id)}
-          className="accent-bone"
+          className="accent-cue"
         />
         Komanda ↔ müştəri çatı
       </label>
-      <AdminFilePick
-        id={`deliver-${inquiry.id}`}
-        label="Fayl seç"
-        accept="*/*"
-        filename={file?.name}
-        onChange={(files) => onFile(files[0] || null)}
-      />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <AdminFilePick
+          id={`deliver-${inquiry.id}`}
+          label="Fayl seç"
+          accept="*/*"
+          filename={file?.name}
+          onChange={(files) => onFile(files[0] || null)}
+        />
         <button type="button" onClick={onDeliver} className={adminBtnGhost}>
           Göndər
-        </button>
-        {inquiry.deliveredFileUrl ? (
-          <a
-            href={inquiry.deliveredFileUrl}
-            target="_blank"
-            rel="noreferrer"
-            className={adminBtnGhost}
-          >
-            Faylı aç
-          </a>
-        ) : null}
-        <button type="button" onClick={onDelete} className={adminBtnQuiet}>
-          Sil
         </button>
       </div>
     </div>
@@ -143,9 +224,7 @@ export function InquiriesSection({
               <div key={i.id} className="rounded-2xl border border-line bg-void p-4">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <span className="font-mono text-sm font-semibold text-bone">{i.orderNumber}</span>
-                  <span className="rounded-full border border-line px-2.5 py-0.5 text-[11px] text-mist">
-                    {i.status}
-                  </span>
+                  <Badge variant={statusBadgeVariant(i.status)}>{i.status}</Badge>
                 </div>
                 <div className="mb-3">
                   <div className="font-semibold text-bone">{i.clientName}</div>
@@ -182,31 +261,31 @@ export function InquiriesSection({
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto lg:block">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="text-left text-[11px] uppercase tracking-[0.16em] text-mist">
-                  <th className="border-b border-line px-3 py-2">Sifariş</th>
-                  <th className="border-b border-line px-3 py-2">Müştəri</th>
-                  <th className="border-b border-line px-3 py-2">Stil</th>
-                  <th className="border-b border-line px-3 py-2">Büdcə</th>
-                  <th className="border-b border-line px-3 py-2">İdarə</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Sifariş</TableHead>
+                  <TableHead>Müştəri</TableHead>
+                  <TableHead>Stil</TableHead>
+                  <TableHead>Büdcə</TableHead>
+                  <TableHead>İdarə</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {inquiries.map((i) => (
-                  <tr key={i.id} className="border-b border-line align-top text-bone">
-                    <td className="px-3 py-4">
+                  <TableRow key={i.id}>
+                    <TableCell>
                       <div className="font-mono text-sm font-semibold">{i.orderNumber}</div>
                       <div className="mt-1 text-[11px] text-mist">{i.clientId || "—"}</div>
-                    </td>
-                    <td className="px-3 py-4">
+                    </TableCell>
+                    <TableCell>
                       <div className="font-semibold">{i.clientName}</div>
                       <div className="text-xs text-mist">{i.clientEmail}</div>
-                    </td>
-                    <td className="px-3 py-4 text-mist">{i.selectedProjectTitle || "Ümumi"}</td>
-                    <td className="px-3 py-4 font-semibold">{i.budget}</td>
-                    <td className="min-w-[240px] px-3 py-4">
+                    </TableCell>
+                    <TableCell className="text-mist">{i.selectedProjectTitle || "Ümumi"}</TableCell>
+                    <TableCell className="font-semibold">{i.budget}</TableCell>
+                    <TableCell className="min-w-[260px]">
                       <InquiryControls
                         inquiry={i}
                         staffList={staffList}
@@ -222,11 +301,11 @@ export function InquiriesSection({
                         }}
                         onDelete={() => onDelete(i.id, i.orderNumber)}
                       />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </>
       )}

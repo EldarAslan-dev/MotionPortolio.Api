@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 export function AdminCard({
@@ -53,6 +54,39 @@ export const adminBtnGhost =
 
 export const adminBtnQuiet =
   "rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-mist transition hover:text-bone";
+
+export function AdminMetricCard({
+  label,
+  value,
+  icon,
+  accent,
+}: {
+  label: string;
+  value: number | string;
+  icon: ReactNode;
+  accent?: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="flex items-center gap-3 rounded-2xl border border-line bg-surface/80 p-4 backdrop-blur-sm"
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+          accent ? "bg-cue/12 text-cue" : "bg-bone/8 text-bone"
+        }`}
+      >
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-2xl font-semibold tracking-[-0.02em] text-bone">{value}</p>
+        <p className="truncate text-[11px] uppercase tracking-[0.14em] text-mist">{label}</p>
+      </div>
+    </motion.div>
+  );
+}
 
 export function AdminFilePick({
   id,

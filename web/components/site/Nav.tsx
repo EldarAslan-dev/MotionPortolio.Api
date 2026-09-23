@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AnnouncementTicker } from "@/components/site/AnnouncementTicker";
@@ -7,7 +8,10 @@ import { INQUIRY_GENERAL } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
 import { useTheme } from "@/lib/site/ThemeProvider";
 
+const SPRING = { type: "spring" as const, stiffness: 300, damping: 25 };
+
 const LINKS = [
+  { href: "/#top", label: "Home" },
   { href: "/#about", label: "About" },
   { href: "/#work", label: "Work" },
   { href: "/#contact", label: "Contact" },
@@ -106,14 +110,17 @@ export function Nav() {
               <span className="theme-toggle-knob" />
             </button>
 
-            <button
+            <motion.button
               type="button"
               data-cursor="link"
               onClick={() => openInquiry(INQUIRY_GENERAL)}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              transition={SPRING}
               className="btn-glow hidden rounded-full border border-bone/30 px-5 py-2 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:inline-block"
             >
               Start a project
-            </button>
+            </motion.button>
 
             <button
               type="button"
@@ -162,16 +169,19 @@ export function Nav() {
             </Link>
           ))}
         </nav>
-        <button
+        <motion.button
           type="button"
           onClick={() => {
             setMenuOpen(false);
             openInquiry(INQUIRY_GENERAL);
           }}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          transition={SPRING}
           className="btn-glow mt-10 self-start rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
         >
           Start a project
-        </button>
+        </motion.button>
       </div>
     </>
   );

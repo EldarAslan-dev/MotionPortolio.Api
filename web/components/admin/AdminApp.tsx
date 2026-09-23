@@ -4,7 +4,13 @@ import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AdminChatDock, AdminChatTrigger, type DmClient } from "@/components/admin/AdminChatDock";
 import { FilePreview } from "@/components/admin/FilePreview";
-import { AdminFilePick, adminBtn, adminBtnGhost, adminFieldClass } from "@/components/admin/ui";
+import {
+  AdminFilePick,
+  AdminMetricCard,
+  adminBtn,
+  adminBtnGhost,
+  adminFieldClass,
+} from "@/components/admin/ui";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { AboutSection } from "@/components/admin/sections/AboutSection";
 import { AnnouncementSection } from "@/components/admin/sections/AnnouncementSection";
@@ -22,6 +28,7 @@ import { api } from "@/lib/api";
 import { adminAuth } from "@/lib/auth";
 import { getApiUrl, mediaUrl, normalizeProject } from "@/lib/config";
 import type { ClientLogo, Inquiry, Project, StaffUser, StudioProfile, Testimonial } from "@/lib/types";
+import { Clapperboard, Inbox, MessageCircle, Zap } from "lucide-react";
 
 const NAV = [
   { id: "inquiries", label: "Müraciətlər", group: "İş axını" },
@@ -591,6 +598,30 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             </button>
           </div>
         </header>
+
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <AdminMetricCard
+            label="Bütün müraciətlər"
+            value={inquiries.length}
+            icon={<Inbox className="h-5 w-5" strokeWidth={1.6} />}
+          />
+          <AdminMetricCard
+            label="Yeni müraciətlər"
+            value={inquiries.filter((i) => i.status === "Yeni").length}
+            icon={<Zap className="h-5 w-5" strokeWidth={1.6} />}
+            accent
+          />
+          <AdminMetricCard
+            label="Aktiv söhbətlər"
+            value={Object.keys(chatStore).length}
+            icon={<MessageCircle className="h-5 w-5" strokeWidth={1.6} />}
+          />
+          <AdminMetricCard
+            label="Portfel işləri"
+            value={projects.length}
+            icon={<Clapperboard className="h-5 w-5" strokeWidth={1.6} />}
+          />
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
           <nav className="flex gap-1.5 overflow-x-auto rounded-2xl border border-line bg-surface p-2 lg:sticky lg:top-5 lg:h-fit lg:flex-col lg:overflow-visible">
