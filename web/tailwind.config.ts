@@ -9,13 +9,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        void: "rgb(var(--void) / <alpha-value>)",
+        // Legacy aliases — kept so every existing component class
+        // (bg-void, text-bone, border-line, text-cue, ...) keeps working
+        // unchanged; they now resolve through the renamed --bg/--ink/
+        // --muted/--accent/--border tokens (see globals.css).
+        void: "rgb(var(--bg) / <alpha-value>)",
         surface: "rgb(var(--surface) / <alpha-value>)",
-        bone: "rgb(var(--bone) / <alpha-value>)",
-        mist: "rgb(var(--mist) / <alpha-value>)",
-        cue: "rgb(var(--cue) / <alpha-value>)",
-        "cue-soft": "rgb(var(--cue-soft) / <alpha-value>)",
-        line: "rgb(var(--line) / 0.14)",
+        bone: "rgb(var(--ink) / <alpha-value>)",
+        mist: "rgb(var(--muted) / <alpha-value>)",
+        cue: "rgb(var(--accent) / <alpha-value>)",
+        "cue-soft": "rgb(var(--accent-soft) / <alpha-value>)",
+        line: "rgb(var(--border) / 0.14)",
+        // New semantic names for new components.
+        bg: "rgb(var(--bg) / <alpha-value>)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        muted: "rgb(var(--muted) / <alpha-value>)",
+        accent: "rgb(var(--accent) / <alpha-value>)",
+        "accent-soft": "rgb(var(--accent-soft) / <alpha-value>)",
+        border: "rgb(var(--border) / 0.14)",
       },
       fontFamily: {
         display: [
