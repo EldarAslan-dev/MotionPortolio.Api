@@ -36,16 +36,24 @@ function WorkPreview({ project, eager }: { project: Project; eager: boolean }) {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Attaching the real `src` and calling `.play()` must happen in separate
+  // effect ticks: setting `videoLoaded` here only schedules a re-render, so
+  // the <video> element's `src` attribute hasn't updated in the DOM yet.
+  // Calling `.play()` immediately would target a still-srcless element and
+  // silently no-op, leaving the video paused with nothing to render.
+  useEffect(() => {
+    if (video && hovering) setVideoLoaded(true);
+  }, [hovering, video]);
+
   useEffect(() => {
     if (!video) return;
-    if (hovering) {
-      setVideoLoaded(true);
+    if (hovering && videoLoaded) {
       videoRef.current?.play().catch(() => {});
     } else if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
-  }, [hovering, video]);
+  }, [hovering, videoLoaded, video]);
 
   if (!poster && !video) return <div className="h-full w-full bg-void" />;
 
