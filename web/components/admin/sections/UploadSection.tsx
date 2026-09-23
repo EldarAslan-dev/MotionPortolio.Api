@@ -129,17 +129,19 @@ export function UploadSection({
     setItems((prev) => [...prev, ...next]);
     for (const item of next) {
       if (item.kind !== "video") continue;
-      void capturePosterFromFile(item.file).then((blob) => {
-        if (!blob) return;
-        const preview = URL.createObjectURL(blob);
-        setItems((prev) =>
-          prev.map((entry) => {
-            if (entry.id !== item.id) return entry;
-            if (entry.posterPreview) URL.revokeObjectURL(entry.posterPreview);
-            return { ...entry, posterBlob: blob, posterPreview: preview };
-          }),
-        );
-      });
+      void capturePosterFromFile(item.file)
+        .catch(() => null)
+        .then((blob) => {
+          if (!blob) return;
+          const preview = URL.createObjectURL(blob);
+          setItems((prev) =>
+            prev.map((entry) => {
+              if (entry.id !== item.id) return entry;
+              if (entry.posterPreview) URL.revokeObjectURL(entry.posterPreview);
+              return { ...entry, posterBlob: blob, posterPreview: preview };
+            }),
+          );
+        });
     }
   }
 

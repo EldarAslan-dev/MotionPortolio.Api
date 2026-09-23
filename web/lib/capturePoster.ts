@@ -1,17 +1,34 @@
 const MAX_EDGE = 1280;
 
 function frameToBlob(video: HTMLVideoElement): Promise<Blob | null> {
-  const vw = video.videoWidth || 0;
-  const vh = video.videoHeight || 0;
-  if (!vw || !vh) return Promise.resolve(null);
-  const scale = Math.min(1, MAX_EDGE / Math.max(vw, vh));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(vw * scale));
-  canvas.height = Math.max(1, Math.round(vh * scale));
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return Promise.resolve(null);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.82));
+  // Frame extraction from an in-flight <video> is inherently flaky across
+  // browsers/codecs (readyState races, tainted/zero-size canvases, HEVC .mov
+  // quirks, etc). Any failure here must degrade to "no poster" — never throw
+  // or reject, since an uncaught rejection from this fire-and-forget path
+  // gets routed by Next.js's App Router to the client error boundary and
+  // crashes the whole admin app ("Application error: a client-side
+  // exception has occurred").
+  try {
+    const vw = video.videoWidth || 0;
+    const vh = video.videoHeight || 0;
+    if (!vw || !vh) return Promise.resolve(null);
+    const scale = Math.min(1, MAX_EDGE / Math.max(vw, vh));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(vw * scale));
+    canvas.height = Math.max(1, Math.round(vh * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return Promise.resolve(null);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return new Promise((resolve) => {
+      try {
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.82);
+      } catch {
+        resolve(null);
+      }
+    });
+  } catch {
+    return Promise.resolve(null);
+  }
 }
 
 async function primeFrame(video: HTMLVideoElement) {
@@ -28,7 +45,7 @@ async function primeFrame(video: HTMLVideoElement) {
 }
 
 export function snapshotVideo(video: HTMLVideoElement): Promise<Blob | null> {
-  return frameToBlob(video);
+  return frameToBlob(video).catch(() => null);
 }
 
 export function capturePosterFromFile(file: File): Promise<Blob | null> {
@@ -57,8 +74,15 @@ export function capturePosterFromFile(file: File): Promise<Blob | null> {
 
     const snap = async () => {
       if (!armed || done) return;
-      await primeFrame(video);
-      finish(await frameToBlob(video));
+      try {
+        await primeFrame(video);
+        finish(await frameToBlob(video));
+      } catch {
+        // Never let a codec/decoder quirk surface as an unhandled rejection —
+        // this is a fire-and-forget background capture; falling back to "no
+        // poster" is always safe and handled by callers.
+        finish(null);
+      }
     };
 
     video.addEventListener("loadeddata", () => {
