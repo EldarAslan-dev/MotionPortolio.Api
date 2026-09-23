@@ -1,33 +1,15 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { Modal } from "@/components/ui/dialog";
 import { useStudio } from "@/lib/site/StudioContext";
 
-function Modal({
-  open,
-  onClose,
-  children,
-}: {
-  open: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  if (!open) return null;
-  return (
-    <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-void/80 p-4 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="w-full max-w-md border border-line bg-surface p-6 text-bone shadow-2xl shadow-black/50">
-        {children}
-      </div>
-    </div>
-  );
-}
+const SPRING = { type: "spring" as const, stiffness: 300, damping: 25 };
 
 const inputClass =
-  "w-full border border-line bg-void px-3 py-2.5 text-sm text-bone placeholder:text-mist outline-none transition focus:border-cue";
+  "w-full rounded-xl border border-line bg-void/70 px-3 py-2.5 text-sm text-bone placeholder:text-mist outline-none transition focus:border-cue";
 const buttonClass =
-  "w-full border border-bone/30 py-2.5 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue";
+  "w-full rounded-full border border-bone/30 py-2.5 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue";
 
 export function Modals() {
   const {
@@ -48,19 +30,25 @@ export function Modals() {
 
   return (
     <>
-      <Modal open={registerOpen} onClose={() => setRegisterOpen(false)}>
+      <Modal open={registerOpen} onClose={() => setRegisterOpen(false)} title="Register">
         <h3 className="font-display text-3xl text-bone">Register</h3>
         <p className="mt-2 text-sm text-mist">Name and email. Enough for chat and orders.</p>
         <form onSubmit={onRegister} className="mt-5 space-y-3">
           <input name="name" required placeholder="Your name" className={inputClass} />
           <input name="email" type="email" required placeholder="Email" className={inputClass} />
-          <button type="submit" className={buttonClass}>
+          <motion.button
+            type="submit"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={SPRING}
+            className={buttonClass}
+          >
             Continue
-          </button>
+          </motion.button>
         </form>
       </Modal>
 
-      <Modal open={inquiryOpen} onClose={() => setInquiryOpen(false)}>
+      <Modal open={inquiryOpen} onClose={() => setInquiryOpen(false)} title="Brief">
         <h3 className="font-display text-3xl text-bone">Brief</h3>
         <p className="mt-1 font-mono-tech text-xs uppercase tracking-[0.1em] text-mist">{inquiryTitle}</p>
         <form onSubmit={onInquiry} className="mt-5 space-y-3">
@@ -91,9 +79,15 @@ export function Modals() {
             rows={4}
             className={inputClass}
           />
-          <button type="submit" className={buttonClass}>
+          <motion.button
+            type="submit"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={SPRING}
+            className={buttonClass}
+          >
             Send
-          </button>
+          </motion.button>
         </form>
       </Modal>
     </>
