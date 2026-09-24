@@ -15,7 +15,7 @@ export function Contact() {
       <div className="grain" />
       <div className="relative z-10 mx-auto max-w-4xl">
         <p className="mb-5 font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
-          06 — Contact
+          CONTACT
         </p>
 
         <h2 className="font-display mt-8 text-4xl leading-[1.05] text-bone sm:text-5xl md:text-7xl md:leading-[0.95]">
@@ -42,7 +42,7 @@ export function Contact() {
               target="_blank"
               rel="noreferrer"
               data-cursor="link"
-              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+              className="font-display inline-block text-xl text-bone transition-[color,transform] duration-300 hover:scale-110 hover:text-cue md:text-2xl"
             >
               Instagram
             </a>
@@ -51,7 +51,7 @@ export function Contact() {
               target="_blank"
               rel="noreferrer"
               data-cursor="link"
-              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+              className="font-display inline-block text-xl text-bone transition-[color,transform] duration-300 hover:scale-110 hover:text-cue md:text-2xl"
             >
               LinkedIn
             </a>
@@ -60,7 +60,7 @@ export function Contact() {
               target="_blank"
               rel="noreferrer"
               data-cursor="link"
-              className="font-display text-xl text-bone transition-colors hover:text-cue md:text-2xl"
+              className="font-display inline-block text-xl text-bone transition-[color,transform] duration-300 hover:scale-110 hover:text-cue md:text-2xl"
             >
               Behance
             </a>

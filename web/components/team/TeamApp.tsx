@@ -7,7 +7,7 @@ import { Toasts } from "@/components/Toasts";
 import { useToasts } from "@/hooks/useToasts";
 import { api } from "@/lib/api";
 import { staffAuth } from "@/lib/auth";
-import { API_URL } from "@/lib/config";
+import { getApiUrl } from "@/lib/config";
 import type { StaffJob } from "@/lib/types";
 
 type OrderChatMsg = { content: string; mine: boolean };
@@ -95,7 +95,7 @@ function TeamDashboard({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => {
     const conn = new HubConnectionBuilder()
-      .withUrl(`${API_URL}/notificationHub`)
+      .withUrl(`${getApiUrl()}/notificationHub`)
       .withAutomaticReconnect()
       .build();
 

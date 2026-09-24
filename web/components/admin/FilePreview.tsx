@@ -31,9 +31,9 @@ export function FilePreview({
   const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
 
   return (
-    <div className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-black">
+    <div className="mt-2 overflow-hidden rounded-xl border border-line bg-void">
       <div
-        className="flex items-center justify-center overflow-hidden bg-black"
+        className="flex items-center justify-center overflow-hidden bg-void"
         style={{ aspectRatio: ratio, maxHeight: 320 }}
       >
         {isVideo ? (
@@ -66,15 +66,15 @@ export function FilePreview({
           />
         )}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 font-mono text-[11px] text-neutral-400">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 font-mono text-[11px] text-mist">
         <span>{info || "—"}</span>
         {showQualityBadge && isVideo && info ? (
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-              lowRes ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"
+            className={`rounded-full border border-line px-2 py-0.5 text-[10px] font-semibold ${
+              lowRes ? "text-mist" : "text-bone"
             }`}
           >
-            {lowRes ? "⚠ Aşağı rezolyusiya" : "✓ Keyfiyyət uyğundur"}
+            {lowRes ? "Aşağı rezolyusiya" : "Keyfiyyət uyğundur"}
           </span>
         ) : null}
       </div>

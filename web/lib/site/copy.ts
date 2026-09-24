@@ -13,3 +13,14 @@ export const SOCIALS = {
 } as const;
 
 export const INQUIRY_GENERAL = "General collaboration";
+
+export const DEFAULT_TOOLS: { id: string; name: string; logoUrl: string }[] = [
+  { id: "ae", name: "After Effects", logoUrl: "" },
+  { id: "c4d", name: "Cinema 4D", logoUrl: "" },
+  { id: "blender", name: "Blender", logoUrl: "" },
+  { id: "redshift", name: "Redshift", logoUrl: "" },
+  { id: "premiere", name: "Premiere", logoUrl: "" },
+  { id: "octane", name: "Octane", logoUrl: "" },
+  { id: "davinci", name: "DaVinci", logoUrl: "" },
+  { id: "figma", name: "Figma", logoUrl: "" },
+];

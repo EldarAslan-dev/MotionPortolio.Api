@@ -1,12 +1,11 @@
 "use client";
 
-import { Bulletin } from "@/components/site/Bulletin";
 import { ABOUT_BODY } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
 
 export function About() {
-  const { ready, aboutPhoto } = useStudio();
-  const body = ABOUT_BODY;
+  const { ready, aboutPhoto, profile } = useStudio();
+  const body = profile?.aboutBody?.trim() || ABOUT_BODY;
 
   return (
     <section id="about" className="relative scroll-mt-28 overflow-visible border-t border-line px-5 py-20 md:px-10 md:py-28">
@@ -28,8 +27,6 @@ export function About() {
             <div className="h-6 w-4/5 animate-pulse bg-bone/10" />
           </div>
         )}
-
-        <Bulletin />
       </div>
     </section>
   );

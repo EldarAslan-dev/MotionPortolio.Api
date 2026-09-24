@@ -15,17 +15,14 @@ export function Clients() {
         </p>
         <div className="mt-10 overflow-visible">
           <div className="client-grid">
-            {logos.map((logo) => {
-              const src = logo.logoUrl || "";
-              return (
-                <div key={logo.id} className={`client-mark${src ? "" : " client-mark-empty"}`}>
-                  {src ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={mediaUrl(src)} alt="" />
-                  ) : null}
+            {logos
+              .filter((logo) => logo.logoUrl)
+              .map((logo) => (
+                <div key={logo.id} className="client-mark">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mediaUrl(logo.logoUrl)} alt="" />
                 </div>
-              );
-            })}
+              ))}
           </div>
         </div>
       </div>

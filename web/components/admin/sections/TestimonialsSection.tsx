@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminCard, adminBtnGhost, adminBtnQuiet } from "@/components/admin/ui";
 import { api } from "@/lib/api";
 import type { Testimonial } from "@/lib/types";
 
@@ -19,7 +20,7 @@ export function TestimonialsSection({
       { clientName: t.clientName, company: t.company, comment: t.comment, rating: t.rating },
       token,
     );
-    if (res.ok) onToast("🌟 Rəy uğurla vitrinə paylaşıldı!");
+    if (res.ok) onToast("Rəy vitrinə paylaşıldı.");
   }
 
   async function remove(id: number) {
@@ -29,41 +30,25 @@ export function TestimonialsSection({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 sm:p-5">
-      <h2 className="mb-4 text-lg font-bold text-white">💬 Müştəri Rəyləri İdarəsi</h2>
-
+    <AdminCard title="Rəylər" hint="Müştəri rəylərini vitrinə çıxar və ya sil.">
       {testimonials.length === 0 ? (
-        <p className="py-6 text-center text-sm text-neutral-500">Hələ gələn rəy yoxdur.</p>
+        <p className="py-8 text-center text-sm text-mist">Hələ gələn rəy yoxdur.</p>
       ) : (
         <>
-          {/* Mobile / tablet: stacked cards */}
           <div className="flex flex-col gap-3 md:hidden">
             {testimonials.map((t) => (
-              <div
-                key={t.id}
-                className="rounded-xl border border-white/10 bg-neutral-950 p-3.5 text-white"
-              >
+              <div key={t.id} className="rounded-2xl border border-line bg-void p-4">
                 <div className="mb-1 flex items-center justify-between gap-2">
-                  <span className="font-semibold">{t.clientName}</span>
-                  <span className="shrink-0 text-sm">⭐ {t.rating}</span>
+                  <span className="font-semibold text-bone">{t.clientName}</span>
+                  <span className="shrink-0 text-xs text-mist">{t.rating} / 5</span>
                 </div>
-                {t.company ? (
-                  <div className="mb-1.5 text-xs text-neutral-400">{t.company}</div>
-                ) : null}
-                <p className="mb-3 text-sm text-neutral-300">{t.comment}</p>
+                {t.company ? <div className="mb-1.5 text-xs text-mist">{t.company}</div> : null}
+                <p className="mb-3 text-sm leading-relaxed text-mist">{t.comment}</p>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => publish(t)}
-                    className="flex-1 rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-black"
-                  >
-                    Vitrinə Paylaş
+                  <button type="button" onClick={() => publish(t)} className={`${adminBtnGhost} flex-1`}>
+                    Vitrinə paylaş
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(t.id)}
-                    className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white"
-                  >
+                  <button type="button" onClick={() => remove(t.id)} className={adminBtnQuiet}>
                     Sil
                   </button>
                 </div>
@@ -71,43 +56,33 @@ export function TestimonialsSection({
             ))}
           </div>
 
-          {/* Desktop: table */}
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-neutral-500">
-                  <th className="border-b border-white/10 px-3 py-2">Müştəri</th>
-                  <th className="border-b border-white/10 px-3 py-2">Şirkət</th>
-                  <th className="border-b border-white/10 px-3 py-2">Ulduz</th>
-                  <th className="border-b border-white/10 px-3 py-2">Rəy</th>
-                  <th className="border-b border-white/10 px-3 py-2">Vitrinə Paylaş</th>
-                  <th className="border-b border-white/10 px-3 py-2">Sil</th>
+                <tr className="text-left text-[11px] uppercase tracking-[0.16em] text-mist">
+                  <th className="border-b border-line px-3 py-2">Müştəri</th>
+                  <th className="border-b border-line px-3 py-2">Şirkət</th>
+                  <th className="border-b border-line px-3 py-2">Ulduz</th>
+                  <th className="border-b border-line px-3 py-2">Rəy</th>
+                  <th className="border-b border-line px-3 py-2">Əməliyyat</th>
                 </tr>
               </thead>
               <tbody>
                 {testimonials.map((t) => (
-                  <tr key={t.id} className="border-b border-white/5 text-white">
+                  <tr key={t.id} className="border-b border-line text-bone">
                     <td className="px-3 py-3 font-semibold">{t.clientName}</td>
-                    <td className="px-3 py-3 text-neutral-400">{t.company || "-"}</td>
-                    <td className="px-3 py-3">⭐ {t.rating}</td>
-                    <td className="max-w-xs px-3 py-3 text-neutral-300">{t.comment}</td>
+                    <td className="px-3 py-3 text-mist">{t.company || "—"}</td>
+                    <td className="px-3 py-3 text-mist">{t.rating} / 5</td>
+                    <td className="max-w-xs px-3 py-3 text-mist">{t.comment}</td>
                     <td className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => publish(t)}
-                        className="rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-black"
-                      >
-                        Paylaş
-                      </button>
-                    </td>
-                    <td className="px-3 py-3">
-                      <button
-                        type="button"
-                        onClick={() => remove(t.id)}
-                        className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white"
-                      >
-                        Sil
-                      </button>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => publish(t)} className={adminBtnGhost}>
+                          Paylaş
+                        </button>
+                        <button type="button" onClick={() => remove(t.id)} className={adminBtnQuiet}>
+                          Sil
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -116,6 +91,6 @@ export function TestimonialsSection({
           </div>
         </>
       )}
-    </div>
+    </AdminCard>
   );
 }

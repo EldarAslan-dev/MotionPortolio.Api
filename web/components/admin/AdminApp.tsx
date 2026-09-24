@@ -4,7 +4,9 @@ import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AdminChatDock, AdminChatTrigger, type DmClient } from "@/components/admin/AdminChatDock";
 import { FilePreview } from "@/components/admin/FilePreview";
+import { AdminFilePick, adminBtn, adminBtnGhost, adminFieldClass } from "@/components/admin/ui";
 import { AdminLogin } from "@/components/admin/AdminLogin";
+import { AboutSection } from "@/components/admin/sections/AboutSection";
 import { AnnouncementSection } from "@/components/admin/sections/AnnouncementSection";
 import { InquiriesSection } from "@/components/admin/sections/InquiriesSection";
 import { NotesSection } from "@/components/admin/sections/NotesSection";
@@ -18,33 +20,56 @@ import { Toasts } from "@/components/Toasts";
 import { playNotificationSound, useToasts } from "@/hooks/useToasts";
 import { api } from "@/lib/api";
 import { adminAuth } from "@/lib/auth";
-import { API_URL, mediaUrl } from "@/lib/config";
+import { getApiUrl, mediaUrl, normalizeProject } from "@/lib/config";
 import type { ClientLogo, Inquiry, Project, StaffUser, StudioProfile, Testimonial } from "@/lib/types";
 
-const SECTIONS = [
-  { id: "inquiries", label: "📥 Müraciətlər" },
-  { id: "upload", label: "🎬 Animasiya Paylaş" },
-  { id: "portfolio", label: "📦 Portfel İdarəsi" },
-  { id: "testimonials", label: "💬 Gələn Rəylər" },
-  { id: "announcement", label: "📢 Vitrin & Hero video" },
-  { id: "siteImages", label: "🖼️ Sayt şəkilləri" },
-  { id: "notes", label: "📝 Qeydlər" },
-  { id: "password", label: "🔒 Şifrə Dəyiş" },
-  { id: "team", label: "👥 Komanda" },
+const NAV = [
+  { id: "inquiries", label: "Müraciətlər", group: "İş axını" },
+  { id: "testimonials", label: "Rəylər", group: "İş axını" },
+  { id: "site", label: "Sayt məzmunu", group: "Sayt" },
+  { id: "work", label: "Portfel", group: "Sayt" },
+  { id: "studio", label: "Parametrlər", group: "Studiya" },
 ] as const;
 
-type SectionId = (typeof SECTIONS)[number]["id"];
+type SectionId = (typeof NAV)[number]["id"];
 
 export function AdminApp() {
   const [authed, setAuthed] = useState(false);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    setAuthed(!!adminAuth.getToken());
-    setChecked(true);
+    const token = adminAuth.getToken();
+    if (!token) {
+      setAuthed(false);
+      setChecked(true);
+      return;
+    }
+    api
+      .me(token)
+      .then(() => setAuthed(true))
+      .catch(() => {
+        adminAuth.clear();
+        setAuthed(false);
+      })
+      .finally(() => setChecked(true));
   }, []);
 
-  if (!checked) return null;
+  useEffect(() => {
+    const onLost = () => {
+      adminAuth.clear();
+      setAuthed(false);
+    };
+    window.addEventListener("admin-auth-lost", onLost);
+    return () => window.removeEventListener("admin-auth-lost", onLost);
+  }, []);
+
+  if (!checked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-void text-sm text-mist">
+        Yüklənir…
+      </div>
+    );
+  }
   if (!authed) return <AdminLogin onSuccess={() => setAuthed(true)} />;
   return <AdminDashboard onLogout={() => setAuthed(false)} />;
 }
@@ -81,9 +106,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const p = await api.profile();
     setProfile({
       ...p,
-      heroVideoUrl: p.heroVideoUrl || "",
-      aboutPhotoUrl: p.aboutPhotoUrl || "",
-      heroGalleryJson: p.heroGalleryJson || "[]",
+      heroVideoUrl: p.heroVideoUrl || (p as { HeroVideoUrl?: string }).HeroVideoUrl || "",
+      aboutPhotoUrl: p.aboutPhotoUrl || (p as { AboutPhotoUrl?: string }).AboutPhotoUrl || "",
+      aboutTeaser: p.aboutTeaser || (p as { AboutTeaser?: string }).AboutTeaser || "",
+      aboutBody: p.aboutBody || (p as { AboutBody?: string }).AboutBody || "",
+      toolsJson: p.toolsJson || (p as { ToolsJson?: string }).ToolsJson || "[]",
+      heroGalleryJson: p.heroGalleryJson || (p as { HeroGalleryJson?: string }).HeroGalleryJson || "[]",
     });
     try {
       setNotes(JSON.parse(p.notesJson || "[]"));
@@ -95,10 +123,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const loadProjects = useCallback(async () => {
     const list = await api.projects();
     setProjects(
-      list.map((p) => ({
-        ...p,
-        cardImageUrl: p.cardImageUrl || (p as { CardImageUrl?: string }).CardImageUrl || "",
-      })),
+      list.map((p) => normalizeProject(p)),
     );
   }, []);
 
@@ -193,7 +218,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   useEffect(() => {
     const conn = new HubConnectionBuilder()
-      .withUrl(`${API_URL}/notificationHub`)
+      .withUrl(`${getApiUrl()}/notificationHub`)
       .withAutomaticReconnect()
       .build();
 
@@ -327,11 +352,32 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       notesJson: JSON.stringify(notes),
       heroVideoUrl: patch.heroVideoUrl !== undefined ? patch.heroVideoUrl : profile.heroVideoUrl || "",
       aboutPhotoUrl: patch.aboutPhotoUrl !== undefined ? patch.aboutPhotoUrl : profile.aboutPhotoUrl || "",
+      aboutTeaser: patch.aboutTeaser !== undefined ? patch.aboutTeaser : profile.aboutTeaser || "",
+      aboutBody: patch.aboutBody !== undefined ? patch.aboutBody : profile.aboutBody || "",
+      toolsJson: patch.toolsJson !== undefined ? patch.toolsJson : profile.toolsJson || "[]",
       heroGalleryJson:
         patch.heroGalleryJson !== undefined ? patch.heroGalleryJson : profile.heroGalleryJson || "[]",
     };
-    setProfile(updated);
-    await api.updateProfile(updated, token);
+    const res = await api.updateProfile(updated, token);
+    if (!res.ok) {
+      toast("Yadda saxlamaq olmadı.");
+      return;
+    }
+    try {
+      const p = await api.profile();
+      setProfile({
+        ...p,
+        heroVideoUrl: p.heroVideoUrl || updated.heroVideoUrl || "",
+        aboutPhotoUrl: p.aboutPhotoUrl || updated.aboutPhotoUrl || "",
+        aboutTeaser:
+          p.aboutTeaser || (p as { AboutTeaser?: string }).AboutTeaser || updated.aboutTeaser || "",
+        aboutBody: p.aboutBody || (p as { AboutBody?: string }).AboutBody || updated.aboutBody || "",
+        toolsJson: p.toolsJson || (p as { ToolsJson?: string }).ToolsJson || updated.toolsJson || "[]",
+        heroGalleryJson: p.heroGalleryJson || updated.heroGalleryJson || "[]",
+      });
+    } catch {
+      setProfile(updated);
+    }
   }
 
   useEffect(() => {
@@ -342,6 +388,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         notesJson: JSON.stringify(notes),
         heroVideoUrl: profile.heroVideoUrl || "",
         aboutPhotoUrl: profile.aboutPhotoUrl || "",
+        aboutTeaser: profile.aboutTeaser || "",
+        aboutBody: profile.aboutBody || "",
+        toolsJson: profile.toolsJson || "[]",
         heroGalleryJson: profile.heroGalleryJson || "[]",
       }, token)
       .catch(() => {});
@@ -395,7 +444,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       connRef.current?.invoke("UpdateStatus", orderNumber, "Tamamlandı").catch(() => {});
       loadInquiries();
     } else {
-      alert("Faylın göndərilməsində xəta baş verdi.");
+      toast("Faylın göndərilməsində xəta baş verdi.");
     }
   }
 
@@ -447,7 +496,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       mediaType: storyFile.type.startsWith("video") ? "video" : "image",
     }, token);
     if (res.ok) {
-      toast("✨ Story uğurla paylaşıldı!");
+      toast("Story paylaşıldı.");
       setStoryModalOpen(false);
       setStoryFile(null);
     }
@@ -471,65 +520,64 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     : [];
 
   if (!profile) {
-    return <div className="min-h-screen bg-neutral-950" />;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-void text-sm text-mist">
+        Yüklənir…
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-4 pb-24 text-white">
+    <div className="admin-app p-4 pb-28 text-bone sm:p-6">
       <Toasts toasts={toasts} />
       <div className="mx-auto max-w-6xl">
-        <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 to-fuchsia-950 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <header className="mb-6 flex flex-col gap-5 rounded-2xl border border-line bg-surface/80 px-5 py-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-4">
-            <div
-              className="relative h-16 w-16 shrink-0 cursor-pointer"
+            <button
+              type="button"
+              className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-line"
               onClick={() => setStoryModalOpen(true)}
               title="Story paylaş"
             >
               {profile.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={mediaUrl(profile.avatarUrl)}
-                  alt=""
-                  className="h-full w-full rounded-full border-2 border-fuchsia-400 object-cover"
-                />
+                <img src={mediaUrl(profile.avatarUrl)} alt="" className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-fuchsia-500/30 text-xl">
-                  🎬
-                </div>
+                <span className="flex h-full w-full items-center justify-center bg-void text-xs uppercase tracking-wider text-mist">
+                  BM
+                </span>
               )}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditAvatarOpen(true);
-                }}
-                className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-fuchsia-500 text-[10px]"
-              >
-                🖼️
-              </button>
-            </div>
-            <div>
-              <span className="mono font-mono text-[11px] uppercase text-neutral-400">
-                Admin Panel
-              </span>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold">{profile.designerName}</h1>
-                <button type="button" onClick={() => setEditProfileOpen(true)} title="Redaktə et">
-                  ✏️
+            </button>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-mist">Studiya paneli</p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                <h1 className="truncate font-display text-xl font-semibold tracking-[-0.03em] text-bone">
+                  {profile.designerName}
+                </h1>
+                <button
+                  type="button"
+                  onClick={() => setEditProfileOpen(true)}
+                  className="text-xs text-mist underline-offset-4 hover:text-bone hover:underline"
+                >
+                  Profil
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditAvatarOpen(true)}
+                  className="text-xs text-mist underline-offset-4 hover:text-bone hover:underline"
+                >
+                  Şəkil
                 </button>
               </div>
-              <p className="bg-gradient-to-r from-indigo-400 to-fuchsia-400 bg-clip-text text-sm font-semibold text-transparent">
-                {profile.bio}
-              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setClientsModalOpen(true)}
-              className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-black"
+              className="rounded-xl border border-line px-3.5 py-2 text-xs font-semibold text-bone"
             >
-              👥 Müştərilər
+              Müştərilər
             </button>
             <button
               type="button"
@@ -537,32 +585,53 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 adminAuth.clear();
                 onLogout();
               }}
-              className="rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white"
+              className="rounded-xl bg-bone px-3.5 py-2 text-xs font-semibold text-void"
             >
               Çıxış
             </button>
           </div>
-        </div>
+        </header>
 
-        <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
-          <nav className="flex gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 p-2 lg:sticky lg:top-4 lg:h-fit lg:flex-col lg:overflow-visible">
-            {SECTIONS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => setSection(s.id)}
-                className={`whitespace-nowrap rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
-                  section === s.id
-                    ? "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white"
-                    : "text-neutral-400 hover:bg-white/5 hover:text-white"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+        <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
+          <nav className="flex gap-1.5 overflow-x-auto rounded-2xl border border-line bg-surface p-2 lg:sticky lg:top-5 lg:h-fit lg:flex-col lg:overflow-visible">
+            {NAV.map((s, i) => {
+              const prev = NAV[i - 1];
+              const showGroup = s.group !== prev?.group;
+              const newCount =
+                s.id === "inquiries" ? inquiries.filter((item) => item.status === "Yeni").length : 0;
+              return (
+                <div key={s.id} className={showGroup ? "lg:mt-3 lg:first:mt-0" : ""}>
+                  {showGroup ? (
+                    <p className="mb-1 hidden px-2 pt-1 text-[10px] uppercase tracking-[0.2em] text-mist lg:block">
+                      {s.group}
+                    </p>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => setSection(s.id)}
+                    className={`flex w-full items-center justify-between whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                      section === s.id
+                        ? "bg-bone font-semibold text-void"
+                        : "text-mist hover:bg-bone/5 hover:text-bone"
+                    }`}
+                  >
+                    {s.label}
+                    {newCount > 0 ? (
+                      <span
+                        className={`ml-2 min-w-5 rounded-full px-1.5 text-center text-[10px] font-semibold ${
+                          section === s.id ? "bg-void/15 text-void" : "bg-bone/10 text-bone"
+                        }`}
+                      >
+                        {newCount}
+                      </span>
+                    ) : null}
+                  </button>
+                </div>
+              );
+            })}
           </nav>
 
-          <div>
+          <div className="min-w-0 space-y-5">
             {section === "inquiries" ? (
               <InquiriesSection
                 inquiries={inquiries}
@@ -575,17 +644,6 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 onDelete={onDeleteInquiry}
               />
             ) : null}
-            {section === "upload" ? (
-              <UploadSection token={token} onUploaded={loadProjects} onToast={toast} />
-            ) : null}
-            {section === "portfolio" ? (
-              <PortfolioSection
-                projects={projects}
-                token={token}
-                onChanged={loadProjects}
-                onToast={toast}
-              />
-            ) : null}
             {section === "testimonials" ? (
               <TestimonialsSection
                 testimonials={testimonials}
@@ -594,28 +652,47 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 onToast={toast}
               />
             ) : null}
-            {section === "announcement" ? (
-              <AnnouncementSection profile={profile} onSave={saveProfile} />
+            {section === "site" ? (
+              <>
+                <AnnouncementSection profile={profile} onSave={saveProfile} onToast={toast} />
+                <AboutSection
+                  profile={profile}
+                  token={token}
+                  onSave={saveProfile}
+                  onToast={toast}
+                />
+                <SiteImagesSection
+                  profile={profile}
+                  logos={clientLogos}
+                  token={token}
+                  onSaveProfile={saveProfile}
+                  onLogosChanged={loadClientLogos}
+                  onToast={toast}
+                />
+              </>
             ) : null}
-            {section === "siteImages" ? (
-              <SiteImagesSection
-                profile={profile}
-                logos={clientLogos}
-                token={token}
-                onSaveProfile={saveProfile}
-                onLogosChanged={loadClientLogos}
-                onToast={toast}
-              />
+            {section === "work" ? (
+              <>
+                <UploadSection token={token} onUploaded={loadProjects} onToast={toast} />
+                <PortfolioSection
+                  projects={projects}
+                  token={token}
+                  onChanged={loadProjects}
+                  onToast={toast}
+                />
+              </>
             ) : null}
-            {section === "notes" ? <NotesSection notes={notes} onChange={setNotes} /> : null}
-            {section === "password" ? <PasswordSection token={token} /> : null}
-            {section === "team" ? (
-              <TeamSection
-                staffList={staffList}
-                token={token}
-                onChanged={loadStaffList}
-                onToast={toast}
-              />
+            {section === "studio" ? (
+              <>
+                <NotesSection notes={notes} onChange={setNotes} />
+                <TeamSection
+                  staffList={staffList}
+                  token={token}
+                  onChanged={loadStaffList}
+                  onToast={toast}
+                />
+                <PasswordSection token={token} onToast={toast} />
+              </>
             ) : null}
           </div>
         </div>
@@ -641,39 +718,43 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
       {clientsModalOpen ? (
         <div
-          className="fixed inset-0 z-[170] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[170] flex items-center justify-center bg-void/80 p-4"
           onClick={(e) => e.target === e.currentTarget && setClientsModalOpen(false)}
         >
-          <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 p-4 sm:p-6">
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-line bg-surface p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-indigo-300">👥 Qeydiyyatlı Müştərilər</h2>
-              <button type="button" onClick={() => setClientsModalOpen(false)} className="text-2xl">
+              <h2 className="font-display text-lg font-semibold text-bone">Müştərilər</h2>
+              <button
+                type="button"
+                onClick={() => setClientsModalOpen(false)}
+                className="text-2xl leading-none text-mist hover:text-bone"
+              >
                 ×
               </button>
             </div>
             <div className="max-h-[65vh] overflow-x-auto overflow-y-auto">
               <table className="w-full min-w-[520px] border-collapse text-sm">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase text-neutral-500">
-                    <th className="border-b border-white/10 px-2 py-2">Müştəri ID</th>
-                    <th className="border-b border-white/10 px-2 py-2">Ad</th>
-                    <th className="border-b border-white/10 px-2 py-2">Email</th>
-                    <th className="border-b border-white/10 px-2 py-2">Tarixçə</th>
+                  <tr className="text-left text-[11px] uppercase tracking-[0.16em] text-mist">
+                    <th className="border-b border-line px-2 py-2">Müştəri ID</th>
+                    <th className="border-b border-line px-2 py-2">Ad</th>
+                    <th className="border-b border-line px-2 py-2">Email</th>
+                    <th className="border-b border-line px-2 py-2">Tarixçə</th>
                   </tr>
                 </thead>
                 <tbody>
                   {uniqueClients.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-6 text-center text-neutral-500">
+                      <td colSpan={4} className="py-8 text-center text-mist">
                         Qeydiyyatlı müştəri tapılmadı.
                       </td>
                     </tr>
                   ) : (
                     uniqueClients.map((c) => (
-                      <tr key={c.clientId} className="border-b border-white/5 text-white">
-                        <td className="px-2 py-2 font-semibold text-emerald-400">{c.clientId}</td>
+                      <tr key={c.clientId} className="border-b border-line text-bone">
+                        <td className="px-2 py-2 font-mono text-sm font-semibold">{c.clientId}</td>
                         <td className="px-2 py-2">{c.clientName}</td>
-                        <td className="px-2 py-2 text-neutral-400">{c.clientEmail}</td>
+                        <td className="px-2 py-2 text-mist">{c.clientEmail}</td>
                         <td className="px-2 py-2">
                           <button
                             type="button"
@@ -681,7 +762,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                               setHistoryClient({ id: c.clientId, name: c.clientName });
                               setClientsModalOpen(false);
                             }}
-                            className="rounded-md bg-white/10 px-2 py-1 text-xs"
+                            className={adminBtnGhost}
                           >
                             Tarixçəyə bax
                           </button>
@@ -698,41 +779,41 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
       {historyClient ? (
         <div
-          className="fixed inset-0 z-[170] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[170] flex items-center justify-center bg-void/80 p-4"
           onClick={(e) => e.target === e.currentTarget && setHistoryClient(null)}
         >
-          <div className="max-h-[80vh] w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-bold text-emerald-400">
-                📦 {historyClient.name} ({historyClient.id}) — Tarixçə
+          <div className="max-h-[80vh] w-full max-w-lg overflow-hidden rounded-2xl border border-line bg-surface p-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="font-display text-base font-semibold text-bone">
+                {historyClient.name} — tarixçə
               </h2>
-              <button type="button" onClick={() => setHistoryClient(null)} className="text-2xl">
+              <button
+                type="button"
+                onClick={() => setHistoryClient(null)}
+                className="text-2xl leading-none text-mist hover:text-bone"
+              >
                 ×
               </button>
             </div>
             <div className="max-h-[60vh] space-y-3 overflow-y-auto">
               {historyInquiries.length === 0 ? (
-                <p className="text-center text-sm text-neutral-500">
-                  Bu müştərinin hələ heç bir sifarişi yoxdur.
-                </p>
+                <p className="text-center text-sm text-mist">Bu müştərinin hələ heç bir sifarişi yoxdur.</p>
               ) : (
                 historyInquiries.map((i) => (
-                  <div key={i.id} className="rounded-xl border border-white/10 bg-neutral-950 p-3">
+                  <div key={i.id} className="rounded-xl border border-line bg-void p-3">
                     <div className="mb-1.5 flex justify-between">
-                      <strong className="text-emerald-400">{i.orderNumber}</strong>
-                      <span className="rounded bg-indigo-500/20 px-2 py-0.5 text-xs text-indigo-300">
+                      <strong className="font-mono text-sm text-bone">{i.orderNumber}</strong>
+                      <span className="rounded-full border border-line px-2 py-0.5 text-xs text-mist">
                         {i.status}
                       </span>
                     </div>
-                    <p className="text-sm">
-                      <strong>Stil:</strong> {i.selectedProjectTitle || "Ümumi"}
+                    <p className="text-sm text-bone">
+                      <span className="text-mist">Stil:</span> {i.selectedProjectTitle || "Ümumi"}
                     </p>
-                    <p className="text-sm">
-                      <strong>Büdcə:</strong> {i.budget}
+                    <p className="text-sm text-bone">
+                      <span className="text-mist">Büdcə:</span> {i.budget}
                     </p>
-                    <p className="text-sm text-neutral-400">
-                      <strong>Mesaj:</strong> {i.message}
-                    </p>
+                    <p className="text-sm text-mist">{i.message}</p>
                   </div>
                 ))
               )}
@@ -743,37 +824,34 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
       {editProfileOpen ? (
         <div
-          className="fixed inset-0 z-[170] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[170] flex items-center justify-center bg-void/80 p-4"
           onClick={(e) => e.target === e.currentTarget && setEditProfileOpen(false)}
         >
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6">
-            <h2 className="mb-4 text-lg font-bold">✏️ Profil Məlumatları</h2>
+          <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6">
+            <h2 className="mb-4 font-display text-lg font-semibold text-bone">Profil</h2>
             <form onSubmit={onSaveProfileInfo} className="space-y-3">
               <input
                 name="name"
                 defaultValue={profile.designerName}
                 required
-                placeholder="Ad və Soyad"
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                placeholder="Ad və soyad"
+                className={adminFieldClass}
               />
               <input
                 name="bio"
                 defaultValue={profile.bio}
                 required
-                placeholder="Peşə / Təsvir"
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                placeholder="Peşə / təsvir"
+                className={adminFieldClass}
               />
               <input
                 name="instagram"
                 defaultValue={profile.instagramUrl}
-                placeholder="Instagram Linki"
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                placeholder="Instagram linki"
+                className={adminFieldClass}
               />
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white"
-              >
-                Yadda Saxla
+              <button type="submit" className={`${adminBtn} w-full`}>
+                Yadda saxla
               </button>
             </form>
           </div>
@@ -782,24 +860,21 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
       {editAvatarOpen ? (
         <div
-          className="fixed inset-0 z-[170] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[170] flex items-center justify-center bg-void/80 p-4"
           onClick={(e) => e.target === e.currentTarget && setEditAvatarOpen(false)}
         >
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6">
-            <h2 className="mb-4 text-lg font-bold">🖼️ Profil Şəklini Yenilə</h2>
+          <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6">
+            <h2 className="mb-4 font-display text-lg font-semibold text-bone">Profil şəkli</h2>
             <form onSubmit={onSaveAvatar} className="space-y-3">
-              <input
-                type="file"
+              <AdminFilePick
+                id="admin-avatar"
+                label="Şəkil seç"
                 accept="image/*"
-                required
-                onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                className="w-full text-sm text-neutral-300"
+                filename={avatarFile?.name}
+                onChange={(files) => setAvatarFile(files[0] || null)}
               />
               <FilePreview file={avatarFile} square />
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white"
-              >
+              <button type="submit" className={`${adminBtn} w-full`}>
                 Yüklə
               </button>
             </form>
@@ -809,30 +884,27 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
       {storyModalOpen ? (
         <div
-          className="fixed inset-0 z-[170] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[170] flex items-center justify-center bg-void/80 p-4"
           onClick={(e) => e.target === e.currentTarget && setStoryModalOpen(false)}
         >
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6">
-            <h3 className="mb-4 text-lg font-bold text-pink-400">📸 Story Paylaş</h3>
+          <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6">
+            <h3 className="mb-4 font-display text-lg font-semibold text-bone">Story paylaş</h3>
             <form onSubmit={onPublishStory} className="space-y-3">
               <input
                 name="title"
                 required
-                placeholder="Məs: 🎉 Yeni layihə!"
-                className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
+                placeholder="Məs: Yeni layihə"
+                className={adminFieldClass}
               />
-              <input
-                type="file"
+              <AdminFilePick
+                id="admin-story"
+                label="Fayl seç"
                 accept="image/*,video/*"
-                required
-                onChange={(e) => setStoryFile(e.target.files?.[0] || null)}
-                className="w-full text-sm text-neutral-300"
+                filename={storyFile?.name}
+                onChange={(files) => setStoryFile(files[0] || null)}
               />
               <FilePreview file={storyFile} />
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-pink-500 py-2.5 text-sm font-semibold text-white"
-              >
+              <button type="submit" className={`${adminBtn} w-full`}>
                 Paylaş
               </button>
             </form>

@@ -212,6 +212,54 @@ public class ProjectsController : ControllerBase
             return StatusCode(500, new { message = "Şərh əlavə edilərkən xəta baş verdi.", error = ex.Message });
         }
     }
+
+    [HttpPut("{id}/likes")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> SetLikes(int id, [FromBody] ProjectLikesDto dto)
+    {
+        if (dto == null || dto.LikesCount < 0)
+        {
+            return BadRequest(new { message = "Bəyənmə sayı 0-dan kiçik ola bilməz." });
+        }
+
+        try
+        {
+            var project = await _context.Projects.FindAsync(id);
+            if (project == null) return NotFound(new { message = "Layihə tapılmadı." });
+
+            project.LikesCount = dto.LikesCount;
+            await _context.SaveChangesAsync();
+            return Ok(new { likesCount = project.LikesCount });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Xəta baş verdi.", error = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id}/comments/{commentId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteComment(int id, int commentId)
+    {
+        try
+        {
+            var comment = await _context.ProjectComments.FirstOrDefaultAsync(c => c.Id == commentId && c.ProjectId == id);
+            if (comment == null) return NotFound(new { message = "Şərh tapılmadı." });
+
+            _context.ProjectComments.Remove(comment);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Şərh silindi." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Şərh silinərkən xəta baş verdi.", error = ex.Message });
+        }
+    }
+}
+
+public class ProjectLikesDto
+{
+    public int LikesCount { get; set; }
 }
 
 public class ProjectCommentDto

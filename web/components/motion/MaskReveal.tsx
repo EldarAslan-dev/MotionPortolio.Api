@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { createElement, useEffect, useRef } from "react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 type Tag = "div" | "span" | "h1" | "h2" | "h3" | "p";
@@ -35,7 +35,6 @@ export function MaskReveal({
   const wrapRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLSpanElement>(null);
   const reduced = useReducedMotion();
-  const Tag = as as React.ElementType;
 
   // A stable object reference so that if this component re-renders for an
   // unrelated reason (e.g. a parent subscribed to fast-changing context),
@@ -95,12 +94,12 @@ export function MaskReveal({
     };
   }, [trigger, delay, duration, reduced]);
 
-  return (
-    <Tag ref={wrapRef} className={`reveal-line ${className}`}>
-      <span ref={innerRef} className={innerClassName} style={initialStyle}>
-        {children}
-      </span>
-    </Tag>
+  return createElement(
+    as,
+    { ref: wrapRef, className: `reveal-line ${className}` },
+    <span ref={innerRef} className={innerClassName} style={initialStyle}>
+      {children}
+    </span>,
   );
 }
 

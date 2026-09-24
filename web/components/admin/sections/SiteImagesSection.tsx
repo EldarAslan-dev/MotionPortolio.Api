@@ -1,9 +1,20 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { AdminCard, AdminFilePick, adminBtn, adminBtnQuiet, adminFieldClass } from "@/components/admin/ui";
 import { api } from "@/lib/api";
-import { mediaUrl, parseHeroGallery } from "@/lib/config";
+import { blobToPosterFile, capturePosterFromFile } from "@/lib/capturePoster";
+import { isVideoMedia, mediaUrl, parseHeroGallery } from "@/lib/config";
 import type { ClientLogo, StudioProfile } from "@/lib/types";
+
+const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/avif,.png,.jpg,.jpeg,.webp,.gif,.avif";
+const MEDIA_ACCEPT = `${IMAGE_ACCEPT},video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm`;
+
+function mediaTypeOf(file: File): "image" | "video" {
+  if (file.type.startsWith("video/")) return "video";
+  if (/\.(mp4|mov|webm)$/i.test(file.name)) return "video";
+  return "image";
+}
 
 export function SiteImagesSection({
   profile,
@@ -20,43 +31,60 @@ export function SiteImagesSection({
   onLogosChanged: () => void;
   onToast: (msg: string) => void;
 }) {
-  const [aboutFile, setAboutFile] = useState<File | null>(null);
-  const [aboutUploading, setAboutUploading] = useState(false);
+  const [heroFiles, setHeroFiles] = useState<File[]>([]);
   const [heroUploading, setHeroUploading] = useState(false);
   const [logoUploadingId, setLogoUploadingId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [addingLogo, setAddingLogo] = useState(false);
   const heroItems = parseHeroGallery(profile.heroGalleryJson);
 
-  async function onUploadAbout(e: FormEvent) {
-    e.preventDefault();
-    if (!aboutFile) return;
-    setAboutUploading(true);
-    try {
-      const res = await api.upload(aboutFile);
-      if (!res.ok) return;
-      const data = await res.json();
-      await onSaveProfile({ aboutPhotoUrl: data.url });
-      setAboutFile(null);
-      onToast("About Photo yeniləndi!");
-    } finally {
-      setAboutUploading(false);
+  async function uploadImage(file: File): Promise<string | null> {
+    const res = await api.upload(file, token);
+    if (!res.ok) {
+      let msg = "Fayl yüklənmədi. Çıxış edib yenidən daxil olun.";
+      try {
+        const data = await res.json();
+        if (data?.message) msg = String(data.message);
+      } catch {
+        /* ignore */
+      }
+      onToast(msg);
+      return null;
     }
+    const data = await res.json();
+    return data?.url || null;
   }
 
-  async function onAddHeroImage(files: FileList | null) {
-    if (!files || files.length === 0) return;
+  async function onAddHeroImage(e: FormEvent) {
+    e.preventDefault();
+    if (heroFiles.length === 0) return;
     setHeroUploading(true);
     try {
       const next = [...heroItems];
-      for (const file of Array.from(files)) {
-        const res = await api.upload(file);
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.url) next.push({ url: data.url, type: "image" });
+      let added = 0;
+      for (const file of heroFiles) {
+        const url = await uploadImage(file);
+        if (url) {
+          const item: { url: string; type: "image" | "video"; posterUrl?: string } = {
+            url,
+            type: mediaTypeOf(file),
+          };
+          if (item.type === "video") {
+            const poster = await capturePosterFromFile(file);
+            if (poster) {
+              const posterUrl = await uploadImage(blobToPosterFile(poster));
+              if (posterUrl) item.posterUrl = posterUrl;
+            }
+          }
+          next.push(item);
+          added += 1;
         }
       }
+      if (added === 0) return;
       await onSaveProfile({ heroGalleryJson: JSON.stringify(next) });
-      onToast("Hero gallery image əlavə olundu!");
+      setHeroFiles([]);
+      onToast(added === 1 ? "Hero gallery-yə media əlavə olundu!" : `${added} media əlavə olundu!`);
     } finally {
       setHeroUploading(false);
     }
@@ -71,19 +99,33 @@ export function SiteImagesSection({
     if (!file) return;
     setLogoUploadingId(logo.id);
     try {
-      const res = await api.upload(file);
-      if (!res.ok) return;
-      const data = await res.json();
-      await api.updateClientLogo(
+      const url = await uploadImage(file);
+      if (!url) return;
+      const res = await api.updateClientLogo(
         logo.id,
-        { name: logo.name, logoUrl: data.url, sortOrder: logo.sortOrder },
+        { name: logo.name, logoUrl: url, sortOrder: logo.sortOrder },
         token,
       );
+      if (!res.ok) {
+        onToast("Logo yadda saxlanılmadı.");
+        return;
+      }
       onLogosChanged();
       onToast(`Client Logo — ${logo.name} yeniləndi!`);
     } finally {
       setLogoUploadingId(null);
     }
+  }
+
+  async function onRenameLogo(logo: ClientLogo, name: string) {
+    const next = name.trim();
+    if (!next || next === logo.name) return;
+    const res = await api.updateClientLogo(
+      logo.id,
+      { name: next, logoUrl: logo.logoUrl, sortOrder: logo.sortOrder },
+      token,
+    );
+    if (res.ok) onLogosChanged();
   }
 
   async function onClearLogo(id: number, name: string, sortOrder: number) {
@@ -93,122 +135,168 @@ export function SiteImagesSection({
 
   async function onAddCompany(e: FormEvent) {
     e.preventDefault();
-    const name = newName.trim();
-    if (!name) return;
-    const res = await api.createClientLogo({ name, logoUrl: "", sortOrder: logos.length }, token);
-    if (res.ok) {
+    const name = newName.trim() || (newFile ? newFile.name.replace(/\.[^.]+$/, "") : "");
+    if (!name && !newFile) return;
+    setAddingLogo(true);
+    try {
+      let logoUrl = "";
+      if (newFile) {
+        const url = await uploadImage(newFile);
+        if (!url) return;
+        logoUrl = url;
+      }
+      const res = await api.createClientLogo(
+        { name: name || "Logo", logoUrl, sortOrder: logos.length },
+        token,
+      );
+      if (!res.ok) {
+        onToast("Logo əlavə olunmadı.");
+        return;
+      }
       setNewName("");
+      setNewFile(null);
       onLogosChanged();
+      onToast("Client logo paylaşıldı!");
+    } finally {
+      setAddingLogo(false);
     }
   }
 
   async function onDeleteCompany(id: number) {
     if (!confirm("Bu loqonu silmək istəyirsiniz?")) return;
     const res = await api.deleteClientLogo(id, token);
-    if (res.ok) onLogosChanged();
+    if (!res.ok) {
+      onToast("Silinmədi. Yenidən daxil olub yoxlayın.");
+      return;
+    }
+    onLogosChanged();
+    onToast("Logo silindi.");
   }
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-white/10 bg-neutral-900 p-5">
-        <h2 className="mb-1 text-lg font-bold text-white">About Photo</h2>
-        <p className="mb-4 font-mono text-xs text-neutral-400">
-          Full About section photo only. Nav avatar is a separate field.
-        </p>
-        {profile.aboutPhotoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={mediaUrl(profile.aboutPhotoUrl)}
-            alt=""
-            className="mb-3 h-28 w-28 rounded-full object-cover ring-1 ring-white/10"
-          />
-        ) : (
-          <p className="mb-3 text-sm text-neutral-500">No About Photo uploaded.</p>
-        )}
-        <form onSubmit={onUploadAbout} className="space-y-3">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setAboutFile(e.target.files?.[0] || null)}
-            className="w-full text-sm text-neutral-300"
+      <AdminCard title="Hero qalereya" hint="Silindrdə fırlanan şəkil və video. Portfeldən gəlmir.">
+        <div className="mb-4 flex flex-wrap gap-3">
+          {heroItems.length === 0 ? (
+            <p className="text-sm text-mist">Hələ media yoxdur.</p>
+          ) : (
+            heroItems.map((item, i) => (
+              <div
+                key={`${item.url}-${i}`}
+                className="relative h-24 w-24 overflow-hidden rounded-xl border border-line bg-void"
+              >
+                {isVideoMedia(item) ? (
+                  item.posterUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={mediaUrl(item.posterUrl)} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <video
+                      src={mediaUrl(item.url)}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="h-full w-full object-cover"
+                    />
+                  )
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={mediaUrl(item.url)} alt="" className="h-full w-full object-cover" />
+                )}
+                <span className="absolute left-1 top-1 rounded bg-void/80 px-1.5 py-0.5 font-mono text-[9px] uppercase text-bone">
+                  {isVideoMedia(item) ? "Video" : i + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemoveHeroImage(item.url)}
+                  className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center bg-bone text-xs text-void"
+                >
+                  ×
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+        <form onSubmit={onAddHeroImage} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <AdminFilePick
+            id="hero-gallery"
+            label={
+              heroFiles.length === 0
+                ? "Şəkil / video seç"
+                : heroFiles.length === 1
+                  ? "Dəyiş"
+                  : `${heroFiles.length} fayl`
+            }
+            accept={MEDIA_ACCEPT}
+            multiple
+            filename={
+              heroFiles.length === 1
+                ? heroFiles[0].name
+                : heroFiles.length > 1
+                  ? `${heroFiles.length} fayl`
+                  : undefined
+            }
+            onChange={setHeroFiles}
           />
           <button
             type="submit"
-            disabled={!aboutFile || aboutUploading}
-            className="rounded-lg bg-indigo-500 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            disabled={heroFiles.length === 0 || heroUploading}
+            className={adminBtn}
           >
-            {aboutUploading ? "Yüklənir…" : "Upload About Photo"}
+            {heroUploading ? "Yüklənir…" : "Qalereyaya əlavə et"}
           </button>
         </form>
-      </div>
+      </AdminCard>
 
-      <div className="rounded-2xl border border-white/10 bg-neutral-900 p-5">
-        <h2 className="mb-1 text-lg font-bold text-white">Hero Gallery Images</h2>
-        <p className="mb-4 font-mono text-xs text-neutral-400">
-          Each image is its own slot for the rotating hero gallery. Not taken from Work.
-        </p>
-        <div className="mb-3 flex flex-wrap gap-3">
-          {heroItems.map((item, i) => (
-            <div key={`${item.url}-${i}`} className="relative h-24 w-24 overflow-hidden rounded-lg border border-white/10 bg-black">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={mediaUrl(item.url)} alt="" className="h-full w-full object-cover" />
-              <span className="absolute left-1 top-1 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[9px] uppercase text-white">
-                Hero Gallery Image {i + 1}
-              </span>
-              <button
-                type="button"
-                onClick={() => onRemoveHeroImage(item.url)}
-                className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center bg-red-600 text-xs text-white"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          disabled={heroUploading}
-          onChange={(e) => {
-            onAddHeroImage(e.target.files);
-            e.currentTarget.value = "";
-          }}
-          className="w-full text-sm text-neutral-300"
-        />
-        {heroUploading ? <p className="mt-1 font-mono text-[11px] text-neutral-500">Yüklənir…</p> : null}
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-neutral-900 p-5">
-        <h2 className="mb-1 text-lg font-bold text-white">Client Logos</h2>
-        <p className="mb-4 font-mono text-xs text-neutral-400">
-          One independent logo file per company. Empty slots show as placeholders on the site.
-        </p>
+      <AdminCard title="Müştəri loqoları" hint="Şirkət adı və loqo. Birlikdə paylaş.">
+        <form onSubmit={onAddCompany} className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Şirkət adı"
+            className={adminFieldClass}
+          />
+          <AdminFilePick
+            id="new-logo"
+            label="Logo seç"
+            accept={IMAGE_ACCEPT}
+            filename={newFile?.name}
+            onChange={(files) => setNewFile(files[0] || null)}
+          />
+          <button
+            type="submit"
+            disabled={addingLogo || (!newName.trim() && !newFile)}
+            className={`${adminBtn} shrink-0`}
+          >
+            {addingLogo ? "Yüklənir…" : "Paylaş"}
+          </button>
+        </form>
         <div className="space-y-3">
           {logos.map((logo) => (
             <div
               key={logo.id}
-              className="flex flex-col gap-3 rounded-xl border border-white/10 bg-neutral-950 p-3 sm:flex-row sm:items-center"
+              className="flex flex-col gap-3 rounded-xl border border-line bg-void p-3 sm:flex-row sm:items-center"
             >
-              <div className="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-neutral-900">
+              <div className="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface">
                 {logo.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={mediaUrl(logo.logoUrl)} alt="" className="max-h-10 max-w-[96px] object-contain" />
                 ) : (
-                  <span className="text-[10px] text-neutral-600">empty</span>
+                  <span className="text-[10px] uppercase tracking-wider text-mist">boş</span>
                 )}
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white">Client Logo — {logo.name}</p>
+              <div className="min-w-0 flex-1 space-y-2">
                 <input
-                  type="file"
-                  accept="image/*"
+                  defaultValue={logo.name}
+                  key={`${logo.id}-${logo.name}`}
+                  onBlur={(e) => onRenameLogo(logo, e.target.value)}
+                  className="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm font-semibold text-bone outline-none"
+                />
+                <AdminFilePick
+                  id={`logo-${logo.id}`}
+                  label={logoUploadingId === logo.id ? "Yüklənir…" : "Logo dəyiş"}
+                  accept={IMAGE_ACCEPT}
                   disabled={logoUploadingId === logo.id}
-                    onChange={(e) => {
-                    onUploadLogo(logo, e.target.files?.[0]);
-                    e.currentTarget.value = "";
-                  }}
-                  className="mt-2 w-full text-xs text-neutral-300"
+                  onChange={(files) => onUploadLogo(logo, files[0])}
                 />
               </div>
               <div className="flex gap-2">
@@ -216,15 +304,15 @@ export function SiteImagesSection({
                   <button
                     type="button"
                     onClick={() => onClearLogo(logo.id, logo.name, logo.sortOrder)}
-                    className="rounded-md bg-neutral-800 px-3 py-1.5 text-xs text-white"
+                    className={adminBtnQuiet}
                   >
-                    Clear
+                    Təmizlə
                   </button>
                 ) : null}
                 <button
                   type="button"
                   onClick={() => onDeleteCompany(logo.id)}
-                  className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white"
+                  className={adminBtnQuiet}
                 >
                   Sil
                 </button>
@@ -232,18 +320,7 @@ export function SiteImagesSection({
             </div>
           ))}
         </div>
-        <form onSubmit={onAddCompany} className="mt-4 flex gap-2">
-          <input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="New company name"
-            className="flex-1 rounded-lg border border-white/10 bg-neutral-950 px-3 py-2 text-sm text-white"
-          />
-          <button type="submit" className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white">
-            Add
-          </button>
-        </form>
-      </div>
+      </AdminCard>
     </div>
   );
 }

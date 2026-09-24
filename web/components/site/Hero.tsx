@@ -1,35 +1,38 @@
 "use client";
 
-import { CylinderGallery } from "@/components/site/CylinderGallery";
+import { AboutTeaser } from "@/components/site/AboutTeaser";
 import { STUDIO_NAME } from "@/lib/site/copy";
 import { useStudio } from "@/lib/site/StudioContext";
 
 export function Hero() {
-  const { ready, name, projects } = useStudio();
-  const items = projects.flatMap((p) =>
-    p.cardImageUrl ? [{ url: p.cardImageUrl, type: "image" as const }] : [],
-  );
-  const display = (ready ? name.trim() || STUDIO_NAME : STUDIO_NAME).toUpperCase();
+  const { ready, name, profile } = useStudio();
+  const display = (ready ? name.trim() || STUDIO_NAME : STUDIO_NAME)
+    .toUpperCase()
+    .replaceAll("İ", "I");
+  const nameParts = display.split(/\s+/).filter(Boolean);
+  const firstName = nameParts[0] || display;
+  const lastName = nameParts.slice(1).join(" ");
+  const hasTicker = Boolean(profile?.showAnnouncement && profile.announcementText?.trim());
 
   return (
     <section
       id="top"
-      className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-visible px-5 pb-16 pt-28 md:px-10"
+      className={`relative flex flex-col overflow-visible px-3 pb-16 md:min-h-[100svh] md:px-4 md:pb-10 ${
+        hasTicker ? "pt-32 md:pt-28" : "pt-24 md:pt-20"
+      }`}
     >
       <div className="grain" />
-      <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-col items-center text-center">
-        <p className="mb-5 font-mono-tech text-[10px] uppercase tracking-[0.28em] text-mist md:text-[11px]">
-          Motion studio
-        </p>
-        <h1 className="font-display max-w-[16ch] text-[clamp(2.6rem,10vw,7.2rem)] uppercase leading-[0.92] text-bone">
-          {display}
+      <div className="relative z-10 mx-auto flex w-full flex-1 flex-col items-center text-center">
+        <h1 className="font-display w-full text-center text-[clamp(3.25rem,15.6vw,4.85rem)] uppercase leading-[0.88] text-bone md:whitespace-nowrap md:text-[clamp(4.1rem,9vw,12rem)] md:leading-[0.8]">
+          <span className="block md:inline">{firstName}</span>
+          {lastName ? (
+            <>
+              <span className="hidden md:inline"> </span>
+              <span className="block md:inline">{lastName}</span>
+            </>
+          ) : null}
         </h1>
-        <div className="mt-12 w-full md:mt-16">
-          <CylinderGallery items={items} />
-        </div>
-        <p className="mt-12 font-mono-tech text-[10px] uppercase tracking-[0.22em] text-mist">
-          Baku, Azerbaijan
-        </p>
+        <AboutTeaser />
       </div>
     </section>
   );

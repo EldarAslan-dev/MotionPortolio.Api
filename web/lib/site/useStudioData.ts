@@ -2,15 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
-import { mediaUrl } from "@/lib/config";
+import { mediaUrl, normalizeProject } from "@/lib/config";
 import type { ClientLogo, Project, Story, StudioProfile, Testimonial } from "@/lib/types";
-
-function normalizeProject(p: Project & { CardImageUrl?: string }): Project {
-  return {
-    ...p,
-    cardImageUrl: p.cardImageUrl || p.CardImageUrl || "",
-  };
-}
 
 function normalizeLogo(
   l: ClientLogo & { Id?: number; Name?: string; LogoUrl?: string; SortOrder?: number },
@@ -43,45 +36,66 @@ export function useStudioData() {
   const [storyProgress, setStoryProgress] = useState(0);
 
   useEffect(() => {
-    Promise.allSettled([
-      api.profile(),
-      api.projects(),
-      api.stories(),
-      api.testimonials(),
-      api.clientLogos(),
-    ]).then((results) => {
-      if (results[0].status === "fulfilled") {
-        const p = results[0].value as StudioProfile & {
-          HeroVideoUrl?: string;
-          AboutPhotoUrl?: string;
-          HeroGalleryJson?: string;
-        };
-        setProfile({
-          ...p,
-          heroVideoUrl: p.heroVideoUrl || p.HeroVideoUrl || "",
-          aboutPhotoUrl: p.aboutPhotoUrl || p.AboutPhotoUrl || "",
-          heroGalleryJson: p.heroGalleryJson || p.HeroGalleryJson || "[]",
-        });
-      }
-      if (results[1].status === "fulfilled") {
-        setProjects(results[1].value.map((p) => normalizeProject(p)));
-      }
-      if (results[2].status === "fulfilled") {
-        const now = Date.now();
-        setStories(
-          results[2].value.filter(
-            (s) =>
-              !s.createdAt ||
-              now - new Date(s.createdAt).getTime() <= 24 * 60 * 60 * 1000,
-          ),
-        );
-      }
-      if (results[3].status === "fulfilled") setTestimonials(results[3].value);
-      if (results[4].status === "fulfilled") {
-        setClientLogos(results[4].value.map((l) => normalizeLogo(l)));
-      }
-      setReady(true);
-    });
+    let cancelled = false;
+    const load = () => {
+      Promise.allSettled([
+        api.profile(),
+        api.projects(),
+        api.stories(),
+        api.testimonials(),
+        api.clientLogos(),
+      ]).then((results) => {
+        if (cancelled) return;
+        if (results[0].status === "fulfilled") {
+          const p = results[0].value as StudioProfile & {
+            HeroVideoUrl?: string;
+            AboutPhotoUrl?: string;
+            AboutTeaser?: string;
+            AboutBody?: string;
+            ToolsJson?: string;
+            HeroGalleryJson?: string;
+          };
+          setProfile({
+            ...p,
+            heroVideoUrl: p.heroVideoUrl || p.HeroVideoUrl || "",
+            aboutPhotoUrl: p.aboutPhotoUrl || p.AboutPhotoUrl || "",
+            aboutTeaser: p.aboutTeaser || p.AboutTeaser || "",
+            aboutBody: p.aboutBody || p.AboutBody || "",
+            toolsJson: p.toolsJson || p.ToolsJson || "[]",
+            heroGalleryJson: p.heroGalleryJson || p.HeroGalleryJson || "[]",
+          });
+        }
+        if (results[1].status === "fulfilled") {
+          setProjects(results[1].value.map((p) => normalizeProject(p)));
+        }
+        if (results[2].status === "fulfilled") {
+          const now = Date.now();
+          setStories(
+            results[2].value.filter(
+              (s) =>
+                !s.createdAt ||
+                now - new Date(s.createdAt).getTime() <= 24 * 60 * 60 * 1000,
+            ),
+          );
+        }
+        if (results[3].status === "fulfilled") setTestimonials(results[3].value);
+        if (results[4].status === "fulfilled") {
+          setClientLogos(results[4].value.map((l) => normalizeLogo(l)));
+        }
+        setReady(true);
+      });
+    };
+    load();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", load);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", load);
+    };
   }, []);
 
   const name = profile?.designerName?.trim() || "Motion Studio";

@@ -55,6 +55,21 @@ public class ProfileController : ControllerBase
                 profile.AboutPhotoUrl = updated.AboutPhotoUrl;
             }
 
+            if (updated.AboutTeaser != null)
+            {
+                profile.AboutTeaser = updated.AboutTeaser;
+            }
+
+            if (updated.AboutBody != null)
+            {
+                profile.AboutBody = updated.AboutBody;
+            }
+
+            if (updated.ToolsJson != null)
+            {
+                profile.ToolsJson = updated.ToolsJson;
+            }
+
             if (updated.HeroGalleryJson != null)
             {
                 profile.HeroGalleryJson = updated.HeroGalleryJson;

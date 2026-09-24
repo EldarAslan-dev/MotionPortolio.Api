@@ -14,41 +14,48 @@ public class UploadController : ControllerBase
         _environment = environment;
     }
 
-   [HttpPost]
-[Authorize(Roles = "Admin")]
-[RequestSizeLimit(500_000_000)] // məs. 500 MB
-public async Task<IActionResult> UploadVideo(IFormFile file)
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [RequestSizeLimit(500_000_000)]
+    public async Task<IActionResult> Upload([FromForm] IFormFile? file)
     {
+        file ??= Request.Form.Files.GetFile("file") ?? Request.Form.Files.FirstOrDefault();
         if (file == null || file.Length == 0)
-            return BadRequest("Fayl seçilməyib.");
+            return BadRequest(new { message = "Fayl seçilməyib." });
 
-        // Yalnız video və media formatlarına icazə veririk
-        var allowedExtensions = new[] { ".mp4", ".mov", ".webm", ".png", ".jpg", ".jpeg" };
+        var allowed = new[] { ".mp4", ".mov", ".webm", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif" };
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-
-        if (!allowedExtensions.Contains(extension))
-            return BadRequest("Yalnız video və şəkil faylları yüklənə bilər.");
-
-        // wwwroot/uploads qovluğunu yaradırıq
-        var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-        if (!Directory.Exists(uploadsFolder))
+        if (string.IsNullOrEmpty(extension))
         {
-            Directory.CreateDirectory(uploadsFolder);
+            extension = file.ContentType switch
+            {
+                "image/png" => ".png",
+                "image/jpeg" => ".jpg",
+                "image/webp" => ".webp",
+                "image/gif" => ".gif",
+                "image/avif" => ".avif",
+                "video/mp4" => ".mp4",
+                "video/webm" => ".webm",
+                "video/quicktime" => ".mov",
+                _ => ""
+            };
         }
 
-        // Təkrarlanmayan unikal fayl adı yaradırıq
+        if (!allowed.Contains(extension))
+            return BadRequest(new { message = "Yalnız video və şəkil faylları yüklənə bilər." });
+
+        var webRoot = _environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
+        var uploadsFolder = Path.Combine(webRoot, "uploads");
+        Directory.CreateDirectory(uploadsFolder);
+
         var uniqueFileName = $"{Guid.NewGuid()}{extension}";
         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        await using (var stream = new FileStream(filePath, FileMode.Create))
         {
             await file.CopyToAsync(stream);
         }
 
-        // Brauzerin birbaşa oxuya biləcəyi URL qaytarırıq
-        var fileUrl = $"/uploads/{uniqueFileName}";
-        return Ok(new { url = fileUrl });
-        
+        return Ok(new { url = $"/uploads/{uniqueFileName}" });
     }
-    
 }

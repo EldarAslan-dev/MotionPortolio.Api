@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminCard, adminBtn, adminFieldClass } from "@/components/admin/ui";
 
 export function NotesSection({
   notes,
@@ -23,19 +24,18 @@ export function NotesSection({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-5">
-      <h2 className="mb-4 text-lg font-bold text-white">📝 Dizaynerin Şəxsi Qeydləri</h2>
+    <AdminCard title="Qeydlər" hint="Yalnız sən görürsən — vitrində görünmür.">
       <div className="space-y-2">
         {notes.map((n, i) => (
           <div
             key={i}
-            className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white"
+            className="flex items-center justify-between gap-3 rounded-xl border border-line bg-void px-3 py-2.5 text-sm text-bone"
           >
             <span>{n}</span>
             <button
               type="button"
               onClick={() => remove(i)}
-              className="px-1 text-lg text-red-400"
+              className="px-1 text-lg leading-none text-mist hover:text-bone"
             >
               ×
             </button>
@@ -48,16 +48,12 @@ export function NotesSection({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
           placeholder="Yeni ideya, müştəri qeydi..."
-          className="flex-1 rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none"
+          className={adminFieldClass}
         />
-        <button
-          type="button"
-          onClick={add}
-          className="rounded-lg bg-indigo-500 px-4 text-sm font-semibold text-white"
-        >
+        <button type="button" onClick={add} className={`${adminBtn} shrink-0`}>
           Əlavə et
         </button>
       </div>
-    </div>
+    </AdminCard>
   );
 }

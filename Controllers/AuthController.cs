@@ -65,7 +65,9 @@ public class AuthController : ControllerBase
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("role", user.Role),
+                new Claim("name", user.Username)
             }),
             Expires = DateTime.UtcNow.AddDays(7),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -75,6 +77,14 @@ public class AuthController : ControllerBase
         var tokenString = tokenHandler.WriteToken(token);
 
         return Ok(new { token = tokenString, message = "Uğurla daxil olundu!" });
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public IActionResult Me()
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value ?? "";
+        return Ok(new { username = User.Identity?.Name, role });
     }
 
     // Admin Şifrəsinin Dəyişdirilməsi Endpoint-i

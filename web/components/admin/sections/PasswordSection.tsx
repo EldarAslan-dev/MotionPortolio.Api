@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { AdminCard, AdminField, adminBtn, adminFieldClass } from "@/components/admin/ui";
 import { api } from "@/lib/api";
 
-export function PasswordSection({ token }: { token: string }) {
+export function PasswordSection({ token, onToast }: { token: string; onToast: (msg: string) => void }) {
   const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -17,10 +18,10 @@ export function PasswordSection({ token }: { token: string }) {
         token,
       );
       if (res.ok) {
-        alert("Şifrəniz uğurla dəyişdirildi!");
+        onToast("Şifrə yeniləndi.");
         (e.target as HTMLFormElement).reset();
       } else {
-        alert("Köhnə şifrəni düzgün daxil edin.");
+        onToast("Köhnə şifrəni düzgün daxil edin.");
       }
     } finally {
       setSubmitting(false);
@@ -28,35 +29,18 @@ export function PasswordSection({ token }: { token: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-5">
-      <h2 className="mb-4 text-lg font-bold text-white">🔒 Admin Şifrəsini Dəyiş</h2>
+    <AdminCard title="Şifrə" hint="Admin hesabının giriş şifrəsi.">
       <form onSubmit={onSubmit} className="max-w-sm space-y-3">
-        <div>
-          <label className="mb-1 block font-mono text-xs text-neutral-400">Köhnə Şifrə:</label>
-          <input
-            name="old"
-            type="password"
-            required
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block font-mono text-xs text-neutral-400">Yeni Şifrə:</label>
-          <input
-            name="new"
-            type="password"
-            required
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-red-500 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
-        >
-          Şifrəni Yenilə
+        <AdminField label="Köhnə şifrə">
+          <input name="old" type="password" required className={adminFieldClass} />
+        </AdminField>
+        <AdminField label="Yeni şifrə">
+          <input name="new" type="password" required className={adminFieldClass} />
+        </AdminField>
+        <button type="submit" disabled={submitting} className={`${adminBtn} w-full`}>
+          Şifrəni yenilə
         </button>
       </form>
-    </div>
+    </AdminCard>
   );
 }

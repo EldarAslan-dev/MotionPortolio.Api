@@ -1,4 +1,5 @@
 using System.Text;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,7 +22,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateAudience = false,
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name
         };
     });
 builder.Services.AddAuthorization();
@@ -198,6 +201,15 @@ using (var scope = app.Services.CreateScope())
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AboutPhotoUrl' AND Object_ID = Object_ID(N'StudioProfiles'))
             ALTER TABLE StudioProfiles ADD AboutPhotoUrl NVARCHAR(MAX) NOT NULL DEFAULT '';
 
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AboutTeaser' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD AboutTeaser NVARCHAR(MAX) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AboutBody' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD AboutBody NVARCHAR(MAX) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'ToolsJson' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD ToolsJson NVARCHAR(MAX) NOT NULL DEFAULT '[]';
+
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'HeroGalleryJson' AND Object_ID = Object_ID(N'StudioProfiles'))
             ALTER TABLE StudioProfiles ADD HeroGalleryJson NVARCHAR(MAX) NOT NULL DEFAULT '[]';
 
@@ -233,7 +245,19 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("frontend");
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var origin = ctx.Context.Request.Headers.Origin.ToString();
+        if (string.IsNullOrEmpty(origin) || !frontendOrigins.Contains(origin)) return;
+        ctx.Context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+        ctx.Context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+        ctx.Context.Response.Headers["Access-Control-Allow-Headers"] = "Range";
+        ctx.Context.Response.Headers["Access-Control-Expose-Headers"] =
+            "Accept-Ranges, Content-Encoding, Content-Length, Content-Range";
+    }
+});
 
 // Sıralama vacibdir: Authentication əvvəl, sonra Authorization
 app.UseAuthentication();
