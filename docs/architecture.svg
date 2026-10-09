@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 340" width="1000" height="340" role="img" aria-label="Architecture: browser, Nginx, Next.js, ASP.NET Core API, SQL Server and RabbitMQ">
+<title>Architecture: browser, Nginx, Next.js, ASP.NET Core API, SQL Server and RabbitMQ</title>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8B7BFF"/></marker><filter id="gl" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<style>text{font-family:'Segoe UI','SF Pro Display',-apple-system,'Helvetica Neue',Arial,sans-serif}.m{font-family:'Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace}</style>
+<rect x=".5" y=".5" width="999" height="339" rx="20" fill="#12151F" stroke="#262B3D"/>
+<rect x="385" y="22" width="510" height="296" rx="18" fill="#FFFFFF" fill-opacity=".02" stroke="#3A4062" stroke-dasharray="5 6"/>
+<text x="878" y="46" text-anchor="end" font-size="13.5" fill="#8E94AD">Docker Compose</text>
+<path d="M150 170 L205 170" fill="none" stroke="#4A5178" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#ar)"><animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.4s" repeatCount="indefinite"/></path>
+<circle r="4" fill="#C4B5FD"><animateMotion dur="2.4s" begin="-0s" repeatCount="indefinite" path="M150 170 L205 170"/></circle>
+<path d="M335 170 C375 170 365 78 420 78" fill="none" stroke="#4A5178" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#ar)"><animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.4s" repeatCount="indefinite"/></path>
+<circle r="4" fill="#C4B5FD"><animateMotion dur="2.4s" begin="-0.5s" repeatCount="indefinite" path="M335 170 C375 170 365 78 420 78"/></circle>
+<path d="M335 170 C375 170 360 262 405 262" fill="none" stroke="#4A5178" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#ar)"><animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.4s" repeatCount="indefinite"/></path>
+<circle r="4" fill="#C4B5FD"><animateMotion dur="2.4s" begin="-1.0s" repeatCount="indefinite" path="M335 170 C375 170 360 262 405 262"/></circle>
+<path d="M595 262 C650 262 655 110 730 110" fill="none" stroke="#4A5178" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#ar)"><animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.4s" repeatCount="indefinite"/></path>
+<circle r="4" fill="#C4B5FD"><animateMotion dur="2.4s" begin="-1.5s" repeatCount="indefinite" path="M595 262 C650 262 655 110 730 110"/></circle>
+<path d="M595 262 L730 262" fill="none" stroke="#4A5178" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#ar)"><animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.4s" repeatCount="indefinite"/></path>
+<circle r="4" fill="#C4B5FD"><animateMotion dur="2.4s" begin="-2.0s" repeatCount="indefinite" path="M595 262 L730 262"/></circle>
+<rect x="20.0" y="138" width="130" height="64" rx="16" fill="#151928" stroke="#8E94AD" stroke-opacity="0.7" stroke-width="1.5"/>
+<text x="85" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#EEF0F7">Browser</text>
+<text x="85" y="187" text-anchor="middle" font-size="13" fill="#8E94AD">Web client</text>
+<rect x="205.0" y="138" width="130" height="64" rx="16" fill="#151928" stroke="#22B45E" stroke-opacity="0.7" stroke-width="1.5"/>
+<text x="270" y="167" text-anchor="middle" font-size="17" font-weight="700" fill="#EEF0F7">Nginx</text>
+<text x="270" y="187" text-anchor="middle" font-size="13" fill="#8E94AD">Reverse proxy</text>
+<rect x="420.0" y="46" width="160" height="64" rx="16" fill="#151928" stroke="#E5E7EB" stroke-opacity="0.7" stroke-width="1.5"/>
+<text x="500" y="75" text-anchor="middle" font-size="17" font-weight="700" fill="#EEF0F7">Next.js</text>
+<text x="500" y="95" text-anchor="middle" font-size="13" fill="#8E94AD">motion_web</text>
+<rect x="405.0" y="230" width="190" height="64" rx="16" fill="#7A5AF0" fill-opacity=".55" filter="url(#gl)"/>
+<rect x="405.0" y="230" width="190" height="64" rx="16" fill="#151928" stroke="#7A5AF0" stroke-opacity="1" stroke-width="2"/>
+<text x="500" y="259" text-anchor="middle" font-size="17" font-weight="700" fill="#EEF0F7">ASP.NET Core API</text>
+<text x="500" y="279" text-anchor="middle" font-size="13" fill="#8E94AD">motion_api</text>
+<rect x="730.0" y="78" width="140" height="64" rx="16" fill="#151928" stroke="#E05561" stroke-opacity="0.7" stroke-width="1.5"/>
+<text x="800" y="107" text-anchor="middle" font-size="17" font-weight="700" fill="#EEF0F7">SQL Server</text>
+<text x="800" y="127" text-anchor="middle" font-size="13" fill="#8E94AD">motion_sqlserver</text>
+<rect x="730.0" y="230" width="140" height="64" rx="16" fill="#151928" stroke="#FF6600" stroke-opacity="0.7" stroke-width="1.5"/>
+<text x="800" y="259" text-anchor="middle" font-size="17" font-weight="700" fill="#EEF0F7">RabbitMQ</text>
+<text x="800" y="279" text-anchor="middle" font-size="13" fill="#8E94AD">motion_rabbitmq</text>
+</svg>
