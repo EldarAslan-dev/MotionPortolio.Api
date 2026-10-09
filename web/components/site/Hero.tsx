@@ -1,78 +1,128 @@
 "use client";
 
-import { CylinderGallery } from "@/components/site/CylinderGallery";
-import { AboutTeaser } from "@/components/site/AboutTeaser";
-import { isVideoMedia, parseGallery, parseHeroGallery } from "@/lib/config";
-import { STUDIO_NAME } from "@/lib/site/copy";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { isVideoMedia, mediaUrl, parseHeroGallery } from "@/lib/config";
+import { parseDesign } from "@/lib/site/design";
 import { useStudio } from "@/lib/site/StudioContext";
-import type { GalleryItem, Project } from "@/lib/types";
-
-function uniqueBandItems(profile: { heroGalleryJson?: string } | null, projects: Project[]): GalleryItem[] {
-  const seen = new Set<string>();
-  const items: GalleryItem[] = [];
-  const add = (item: GalleryItem | undefined) => {
-    if (!item?.url || seen.has(item.url)) return;
-    seen.add(item.url);
-    const poster = item.posterUrl;
-    items.push(
-      poster
-        ? { url: poster, type: "image" }
-        : { url: item.url, type: isVideoMedia(item) ? "video" : "image" },
-    );
-  };
-  for (const item of parseHeroGallery(profile?.heroGalleryJson)) add(item);
-  for (const project of projects) {
-    if (items.length >= 7) break;
-    add({ url: project.cardImageUrl || project.thumbnailUrl || "", type: "image" });
-    if (items.length >= 7) break;
-    const gallery = parseGallery(project.galleryJson);
-    add(gallery.find((entry) => entry.type === "image"));
-    if (items.length >= 7) break;
-    const posted = gallery.find((entry) => entry.posterUrl);
-    if (posted?.posterUrl) add({ url: posted.posterUrl, type: "image" });
-  }
-  return items.slice(0, 7);
-}
 
 export function Hero() {
-  const { ready, name, profile, projects } = useStudio();
-  const items = uniqueBandItems(profile, projects);
-  const display = (ready ? name.trim() || STUDIO_NAME : STUDIO_NAME)
-    .toUpperCase()
-    .replaceAll("İ", "I");
-  const nameParts = display.split(/\s+/).filter(Boolean);
-  const firstName = nameParts[0] || display;
-  const lastName = nameParts.slice(1).join(" ");
-  const hasTicker = Boolean(profile?.showAnnouncement && profile.announcementText?.trim());
+  const { profile } = useStudio();
+  const design = parseDesign(profile?.siteDesignJson);
+  const headline = design.headline;
+  const deckRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [fit, setFit] = useState(0.36);
+  const cards = useMemo(() => parseHeroGallery(profile?.heroGalleryJson), [profile?.heroGalleryJson]);
+  const mid = (Math.max(cards.length, 1) - 1) / 2;
+  const maxW = Math.max(250, ...cards.map((item) => item.width || 250));
+  const maxH = Math.max(350, ...cards.map((item) => item.height || 350));
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setOpen(true), 500);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    const apply = () => {
+      const vw = window.innerWidth;
+      if (vw > 700) {
+        setFit(1);
+        return;
+      }
+      const room = Math.max(200, vw - 32) / 2;
+      const spread = Math.round(maxW * 0.53);
+      const edge = maxW / 2 + spread * 0.96;
+      setFit(Math.min(0.5, Math.max(0.24, room / edge)));
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, [maxW]);
+
+  useEffect(() => {
+    const deck = deckRef.current;
+    if (!deck || !window.matchMedia("(pointer:fine)").matches) return;
+    const onMove = (e: MouseEvent) => {
+      const r = deck.getBoundingClientRect();
+      const ry = -((e.clientY - r.top) / r.height - 0.5) * 9;
+      const rx = ((e.clientX - r.left) / r.width - 0.5) * 9;
+      deck.style.transform = `rotateX(${ry}deg) rotateY(${rx}deg)`;
+    };
+    const onLeave = () => {
+      deck.style.transform = "";
+    };
+    deck.addEventListener("mousemove", onMove);
+    deck.addEventListener("mouseleave", onLeave);
+    return () => {
+      deck.removeEventListener("mousemove", onMove);
+      deck.removeEventListener("mouseleave", onLeave);
+    };
+  }, [cards.length]);
 
   return (
-    <section
-      id="top"
-      className={`relative flex flex-col overflow-visible px-3 pb-16 md:min-h-[100svh] md:px-4 md:pb-10 ${
-        hasTicker ? "pt-32 md:pt-28" : "pt-24 md:pt-20"
-      }`}
-    >
-      <div className="grain" />
-      <div className="relative z-10 mx-auto flex w-full flex-1 flex-col items-center text-center">
-        <p className="mb-5 hidden font-mono-tech text-[10px] uppercase tracking-[0.28em] text-mist">
-          Motion studio
-        </p>
-        <div className="relative w-full">
-          <h1 className="font-display relative z-0 w-full text-center text-[clamp(3.25rem,15.6vw,4.85rem)] uppercase leading-[0.88] text-bone md:whitespace-nowrap md:text-[clamp(4.1rem,9vw,12rem)] md:leading-[0.8]">
-            <span className="block md:inline">{firstName}</span>
-            {lastName ? (
-              <>
-                <span className="hidden md:inline"> </span>
-                <span className="block md:inline">{lastName}</span>
-              </>
-            ) : null}
-          </h1>
-          <div className="mt-4 flex w-full justify-center md:absolute md:inset-x-0 md:top-[14%] md:z-10 md:mt-0">
-            <CylinderGallery items={items} />
-          </div>
-        </div>
-        <div className="pointer-events-none hidden md:block md:h-[min(22vw,280px)]" aria-hidden />
-        <AboutTeaser />
+    <section id="hero" className="pub-wrap relative z-[1] pb-10 pt-12 text-center">
+      <span id="top" className="sr-only" />
+      <h1
+        className="mx-auto mb-5 max-w-[960px] font-extrabold leading-[1.02] tracking-[-0.045em]"
+        style={{ fontSize: `clamp(32px, 7.6vw, ${design.headlineSize}px)` }}
+        aria-label={headline}
+      >
+        {headline.split(" ").map((word, i) => (
+          <span key={`${word}-${i}`}>
+            {i > 0 ? " " : null}
+            <span className="wd" aria-hidden="true">
+              <span className="gt" style={{ ["--d" as string]: `${150 + i * 90}ms` }}>
+                {word}
+              </span>
+            </span>
+          </span>
+        ))}
+      </h1>
+      <p className="mx-auto max-w-[520px] text-[rgb(var(--mist))]" style={{ fontSize: `clamp(15px, 4.2vw, ${design.sublineSize}px)` }}>
+        {design.subline}
+      </p>
+      <div
+        ref={deckRef}
+        className={`deck ${open ? "in" : ""}`}
+        style={{
+          ["--mid" as string]: mid,
+          ["--deck-h" as string]: maxH + 100,
+          ["--spread" as string]: Math.round(maxW * 0.53),
+          ["--fit" as string]: fit,
+        }}
+      >
+        {cards.map((item, i) => {
+          const video = isVideoMedia(item);
+          const image = mediaUrl(video ? item.posterUrl || "" : item.url);
+          return (
+            <div
+              key={`${item.url}-${i}`}
+              className="deck-card"
+              style={{
+                ["--i" as string]: i,
+                ["--card-w" as string]: item.width || 250,
+                ["--card-h" as string]: item.height || 350,
+                ["--card-r" as string]: item.radius ?? 24,
+                ["--card-fit" as string]: item.fit === "contain" ? "contain" : "cover",
+              }}
+            >
+              {image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={image} alt="" />
+              ) : video ? (
+                <video src={mediaUrl(item.url)} muted playsInline autoPlay loop />
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
+        <a href="#work" className="gold-btn">
+          {design.exploreLabel}
+        </a>
+        <a href="#contact" className="ghost-btn">
+          {design.touchLabel}
+        </a>
       </div>
     </section>
   );

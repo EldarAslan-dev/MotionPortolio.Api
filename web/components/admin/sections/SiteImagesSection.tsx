@@ -1,43 +1,50 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { AdminCard, AdminFilePick, adminBtn, adminBtnQuiet, adminFieldClass } from "@/components/admin/ui";
+import { FormEvent, useEffect, useState } from "react";
+import { AdminCard, AdminFilePick, adminBtn, adminBtnQuiet, adminFieldClass, reorderList } from "@/components/admin/ui";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
-import { blobToPosterFile, capturePosterFromFile } from "@/lib/capturePoster";
-import { isVideoMedia, mediaUrl, parseHeroGallery } from "@/lib/config";
+import { mediaUrl } from "@/lib/config";
 import type { ClientLogo, StudioProfile } from "@/lib/types";
 
 const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/avif,.png,.jpg,.jpeg,.webp,.gif,.avif";
-const MEDIA_ACCEPT = `${IMAGE_ACCEPT},video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm`;
-
-function mediaTypeOf(file: File): "image" | "video" {
-  if (file.type.startsWith("video/")) return "video";
-  if (/\.(mp4|mov|webm)$/i.test(file.name)) return "video";
-  return "image";
-}
 
 export function SiteImagesSection({
-  profile,
   logos,
   token,
-  onSaveProfile,
   onLogosChanged,
   onToast,
 }: {
-  profile: StudioProfile;
+  profile?: StudioProfile;
   logos: ClientLogo[];
   token: string;
-  onSaveProfile: (patch: Partial<StudioProfile>) => Promise<void>;
+  onSaveProfile?: (patch: Partial<StudioProfile>) => Promise<void>;
   onLogosChanged: () => void;
   onToast: (msg: string) => void;
 }) {
-  const [heroFiles, setHeroFiles] = useState<File[]>([]);
-  const [heroUploading, setHeroUploading] = useState(false);
+  const { t } = useI18n();
   const [logoUploadingId, setLogoUploadingId] = useState<number | null>(null);
   const [newName, setNewName] = useState("");
   const [newFile, setNewFile] = useState<File | null>(null);
   const [addingLogo, setAddingLogo] = useState(false);
-  const heroItems = parseHeroGallery(profile.heroGalleryJson);
+  const [rows, setRows] = useState(logos);
+  const [dragId, setDragId] = useState<number | null>(null);
+
+  useEffect(() => {
+    setRows(logos);
+  }, [logos]);
+
+  function dropOn(targetId: number) {
+    if (dragId == null) return;
+    const next = reorderList(rows, dragId, targetId, (logo) => logo.id);
+    setDragId(null);
+    if (!next) return;
+    setRows(next);
+    void api.reorderLogos(next.map((logo) => logo.id), token).then((res) => {
+      if (!res.ok) onToast("Could not save the order.");
+      else onLogosChanged();
+    });
+  }
 
   async function uploadImage(file: File): Promise<string | null> {
     const res = await api.upload(file, token);
@@ -54,45 +61,6 @@ export function SiteImagesSection({
     }
     const data = await res.json();
     return data?.url || null;
-  }
-
-  async function onAddHeroImage(e: FormEvent) {
-    e.preventDefault();
-    if (heroFiles.length === 0) return;
-    setHeroUploading(true);
-    try {
-      const next = [...heroItems];
-      let added = 0;
-      for (const file of heroFiles) {
-        const url = await uploadImage(file);
-        if (url) {
-          const item: { url: string; type: "image" | "video"; posterUrl?: string } = {
-            url,
-            type: mediaTypeOf(file),
-          };
-          if (item.type === "video") {
-            const poster = await capturePosterFromFile(file);
-            if (poster) {
-              const posterUrl = await uploadImage(blobToPosterFile(poster));
-              if (posterUrl) item.posterUrl = posterUrl;
-            }
-          }
-          next.push(item);
-          added += 1;
-        }
-      }
-      if (added === 0) return;
-      await onSaveProfile({ heroGalleryJson: JSON.stringify(next) });
-      setHeroFiles([]);
-      onToast(added === 1 ? "Hero gallery-yə media əlavə olundu!" : `${added} media əlavə olundu!`);
-    } finally {
-      setHeroUploading(false);
-    }
-  }
-
-  async function onRemoveHeroImage(url: string) {
-    const next = heroItems.filter((item) => item.url !== url);
-    await onSaveProfile({ heroGalleryJson: JSON.stringify(next) });
   }
 
   async function onUploadLogo(logo: ClientLogo, file: File | undefined) {
@@ -175,79 +143,7 @@ export function SiteImagesSection({
 
   return (
     <div className="space-y-5">
-      <AdminCard title="Hero qalereya" hint="Silindrdə fırlanan şəkil və video. Portfeldən gəlmir.">
-        <div className="mb-4 flex flex-wrap gap-3">
-          {heroItems.length === 0 ? (
-            <p className="text-sm text-mist">Hələ media yoxdur.</p>
-          ) : (
-            heroItems.map((item, i) => (
-              <div
-                key={`${item.url}-${i}`}
-                className="relative h-24 w-24 overflow-hidden rounded-xl border border-line bg-void"
-              >
-                {isVideoMedia(item) ? (
-                  item.posterUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={mediaUrl(item.posterUrl)} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <video
-                      src={mediaUrl(item.url)}
-                      muted
-                      playsInline
-                      preload="metadata"
-                      className="h-full w-full object-cover"
-                    />
-                  )
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mediaUrl(item.url)} alt="" className="h-full w-full object-cover" />
-                )}
-                <span className="absolute left-1 top-1 rounded bg-void/80 px-1.5 py-0.5 font-mono text-[9px] uppercase text-bone">
-                  {isVideoMedia(item) ? "Video" : i + 1}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onRemoveHeroImage(item.url)}
-                  className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center bg-bone text-xs text-void"
-                >
-                  ×
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-        <form onSubmit={onAddHeroImage} className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <AdminFilePick
-            id="hero-gallery"
-            label={
-              heroFiles.length === 0
-                ? "Şəkil / video seç"
-                : heroFiles.length === 1
-                  ? "Dəyiş"
-                  : `${heroFiles.length} fayl`
-            }
-            accept={MEDIA_ACCEPT}
-            multiple
-            filename={
-              heroFiles.length === 1
-                ? heroFiles[0].name
-                : heroFiles.length > 1
-                  ? `${heroFiles.length} fayl`
-                  : undefined
-            }
-            onChange={setHeroFiles}
-          />
-          <button
-            type="submit"
-            disabled={heroFiles.length === 0 || heroUploading}
-            className={adminBtn}
-          >
-            {heroUploading ? "Yüklənir…" : "Qalereyaya əlavə et"}
-          </button>
-        </form>
-      </AdminCard>
-
-      <AdminCard title="Müştəri loqoları" hint="Şirkət adı və loqo. Birlikdə paylaş.">
+      <AdminCard title={t("sec.logos")} hint={t("sec.logosHint")}>
         <form onSubmit={onAddCompany} className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
           <input
             value={newName}
@@ -267,21 +163,33 @@ export function SiteImagesSection({
             disabled={addingLogo || (!newName.trim() && !newFile)}
             className={`${adminBtn} shrink-0`}
           >
-            {addingLogo ? "Yüklənir…" : "Paylaş"}
+            {addingLogo ? "Uploading…" : "Add"}
           </button>
         </form>
         <div className="space-y-3">
-          {logos.map((logo) => (
+          {rows.map((logo) => (
             <div
               key={logo.id}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => dropOn(logo.id)}
               className="flex flex-col gap-3 rounded-xl border border-line bg-void p-3 sm:flex-row sm:items-center"
             >
+              <button
+                type="button"
+                draggable
+                aria-label="Drag to reorder"
+                onDragStart={() => setDragId(logo.id)}
+                onDragEnd={() => setDragId(null)}
+                className="cursor-grab px-1 text-lg leading-none text-mist"
+              >
+                ⋮⋮
+              </button>
               <div className="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface">
                 {logo.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={mediaUrl(logo.logoUrl)} alt="" className="max-h-10 max-w-[96px] object-contain" />
                 ) : (
-                  <span className="text-[10px] uppercase tracking-wider text-mist">boş</span>
+                  <span className="text-[10px] uppercase tracking-wider text-mist">empty</span>
                 )}
               </div>
               <div className="min-w-0 flex-1 space-y-2">
@@ -293,7 +201,7 @@ export function SiteImagesSection({
                 />
                 <AdminFilePick
                   id={`logo-${logo.id}`}
-                  label={logoUploadingId === logo.id ? "Yüklənir…" : "Logo dəyiş"}
+                  label={logoUploadingId === logo.id ? "Uploading…" : "Replace logo"}
                   accept={IMAGE_ACCEPT}
                   disabled={logoUploadingId === logo.id}
                   onChange={(files) => onUploadLogo(logo, files[0])}
@@ -306,15 +214,11 @@ export function SiteImagesSection({
                     onClick={() => onClearLogo(logo.id, logo.name, logo.sortOrder)}
                     className={adminBtnQuiet}
                   >
-                    Təmizlə
+                    Clear
                   </button>
                 ) : null}
-                <button
-                  type="button"
-                  onClick={() => onDeleteCompany(logo.id)}
-                  className={adminBtnQuiet}
-                >
-                  Sil
+                <button type="button" onClick={() => onDeleteCompany(logo.id)} className={adminBtnQuiet}>
+                  Delete
                 </button>
               </div>
             </div>

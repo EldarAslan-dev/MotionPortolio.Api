@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { AdminCard, AdminFilePick, adminBtn, adminBtnQuiet, adminFieldClass } from "@/components/admin/ui";
+import { AdminCard, AdminFilePick, OrderButtons, adminBtn, adminBtnQuiet, adminFieldClass } from "@/components/admin/ui";
 import { api } from "@/lib/api";
 import { mediaUrl, resolveTools } from "@/lib/config";
+import { useI18n } from "@/lib/i18n";
 import { ABOUT_BODY, ABOUT_TEASER } from "@/lib/site/copy";
 import type { StudioProfile, ToolItem } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export function AboutSection({
   onSave: (patch: Partial<StudioProfile>) => Promise<void>;
   onToast: (msg: string) => void;
 }) {
+  const { t } = useI18n();
   const [teaser, setTeaser] = useState(profile.aboutTeaser?.trim() || ABOUT_TEASER);
   const [body, setBody] = useState(profile.aboutBody?.trim() || ABOUT_BODY);
   const [saving, setSaving] = useState(false);
@@ -96,7 +98,7 @@ export function AboutSection({
 
   return (
     <div className="space-y-5">
-      <AdminCard title="Haqqında mətnləri" hint="Yuxarı qısa teaser və aşağı uzun mətn.">
+      <AdminCard title={t("sec.about")} hint={t("sec.aboutHint")}>
         <form onSubmit={onSaveCopy} className="space-y-5">
           <div>
             <p className="mb-2 text-[11px] uppercase tracking-[0.18em] text-mist">Yuxarı — silindrin altı</p>
@@ -124,7 +126,7 @@ export function AboutSection({
         </form>
       </AdminCard>
 
-      <AdminCard title="Proqramlar" hint="Haqqında bölməsinin altındakı hərəkət edən sətir. Ad, loqo, və ya hər ikisi.">
+      <AdminCard title={t("sec.tools")} hint={t("sec.toolsHint")}>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -170,7 +172,7 @@ export function AboutSection({
           </button>
         </form>
         <div className="space-y-3">
-          {tools.map((tool) => (
+          {tools.map((tool, index) => (
             <div
               key={tool.id}
               className="flex flex-col gap-3 rounded-xl border border-line bg-void p-3 sm:flex-row sm:items-center"
@@ -195,6 +197,18 @@ export function AboutSection({
                 className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold text-bone outline-none"
               />
               <div className="flex flex-wrap gap-2">
+                <OrderButtons
+                  index={index}
+                  total={tools.length}
+                  onMove={(dir) => {
+                    const nextIndex = index + dir;
+                    if (nextIndex < 0 || nextIndex >= tools.length) return;
+                    const next = [...tools];
+                    const [moved] = next.splice(index, 1);
+                    next.splice(nextIndex, 0, moved);
+                    void persistTools(next);
+                  }}
+                />
                 <AdminFilePick
                   id={`tool-logo-${tool.id}`}
                   label={logoBusyId === tool.id ? "Yüklənir…" : tool.logoUrl ? "Loqo dəyiş" : "Loqo qoy"}
@@ -242,7 +256,7 @@ export function AboutSection({
         </div>
       </AdminCard>
 
-      <AdminCard title="Haqqında şəkli" hint="Aşağı About bölməsindəki şəkil. Nav avatar ayrıca dəyişilir.">
+      <AdminCard title={t("sec.photo")} hint={t("sec.photoHint")}>
         {profile.aboutPhotoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

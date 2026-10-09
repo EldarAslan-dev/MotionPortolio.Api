@@ -25,7 +25,8 @@ public class ProjectsController : ControllerBase
         {
             return await _context.Projects
                 .Include(p => p.Comments)
-                .OrderByDescending(p => p.CreatedAt)
+                .OrderBy(p => p.SortOrder)
+                .ThenByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
         catch (Exception)
@@ -71,6 +72,9 @@ public class ProjectsController : ControllerBase
         try
         {
             project.CreatedAt = DateTime.UtcNow;
+            project.SortOrder = 0;
+            var existing = await _context.Projects.ToListAsync();
+            foreach (var item in existing) item.SortOrder += 1;
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
 
@@ -104,6 +108,27 @@ public class ProjectsController : ControllerBase
         {
             return StatusCode(500, new { message = "Silinmə zamanı xəta baş verdi.", error = ex.Message });
         }
+    }
+
+    public class OrderBody
+    {
+        public List<int> Ids { get; set; } = new();
+    }
+
+    [HttpPut("order")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Reorder([FromBody] OrderBody body)
+    {
+        if (body?.Ids == null || body.Ids.Count == 0)
+            return BadRequest(new { message = "Sıra boşdur." });
+        var projects = await _context.Projects.ToListAsync();
+        for (var i = 0; i < body.Ids.Count; i++)
+        {
+            var project = projects.FirstOrDefault(p => p.Id == body.Ids[i]);
+            if (project != null) project.SortOrder = i;
+        }
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Sıra yeniləndi." });
     }
 
     // PUT: api/projects/5 (Yalnız Admin)

@@ -148,7 +148,7 @@ async function makeAtlas(items: GalleryItem[]): Promise<Atlas | null> {
   canvas.height = cellH;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
-  ctx.fillStyle = "#d4cfc4";
+  ctx.fillStyle = "#f5f4f0";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   slices.forEach((slice, index) => paintSlice(ctx, slice, index, cellW, cellH));
 
@@ -223,7 +223,7 @@ function RingMaterial({
   return (
     <meshStandardMaterial
       map={texture ?? undefined}
-      color={texture ? "#ffffff" : "#c9c4b8"}
+      color={texture ? "#ffffff" : "#f0eee9"}
       side={side}
       roughness={0.9}
       metalness={0}
@@ -388,7 +388,7 @@ function CylinderBand({
   return (
     <>
       <CameraRig radius={radius} mobile={mobile} />
-      <hemisphereLight args={["#f7f4ee", "#c8c2b6", 0.92]} />
+      <hemisphereLight args={["#ffffff", "#dcd9d2", 0.92]} />
       <ambientLight intensity={0.48} />
       <directionalLight position={[2.1, 2.8, 2.6]} intensity={0.62} color="#fffaf3" />
       <directionalLight position={[-1.8, 1.1, 1.4]} intensity={0.28} color="#f2eee6" />

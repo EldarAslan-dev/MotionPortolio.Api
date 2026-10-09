@@ -1,13 +1,18 @@
 "use client";
 
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AdminChatDock, AdminChatTrigger, type DmClient } from "@/components/admin/AdminChatDock";
+import { ClientFace } from "@/components/ClientFace";
 import { FilePreview } from "@/components/admin/FilePreview";
-import { AdminFilePick, adminBtn, adminBtnGhost, adminFieldClass } from "@/components/admin/ui";
+import { AdminFilePick, adminBtn, adminBtnGhost, adminBtnQuiet, adminFieldClass } from "@/components/admin/ui";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import { AboutSection } from "@/components/admin/sections/AboutSection";
+import { AppearanceSection } from "@/components/admin/sections/AppearanceSection";
+import { OffersSection } from "@/components/admin/sections/OffersSection";
 import { AnnouncementSection } from "@/components/admin/sections/AnnouncementSection";
+import { HeroGallerySection } from "@/components/admin/sections/HeroGallerySection";
 import { InquiriesSection } from "@/components/admin/sections/InquiriesSection";
 import { NotesSection } from "@/components/admin/sections/NotesSection";
 import { PasswordSection } from "@/components/admin/sections/PasswordSection";
@@ -18,22 +23,31 @@ import { TestimonialsSection } from "@/components/admin/sections/TestimonialsSec
 import { UploadSection } from "@/components/admin/sections/UploadSection";
 import { Toasts } from "@/components/Toasts";
 import { playNotificationSound, useToasts } from "@/hooks/useToasts";
+import { AccountsSection } from "@/components/admin/sections/AccountsSection";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { adminAuth } from "@/lib/auth";
 import { getApiUrl, mediaUrl, normalizeProject } from "@/lib/config";
 import type { ClientLogo, Inquiry, Project, StaffUser, StudioProfile, Testimonial } from "@/lib/types";
 
 const NAV = [
-  { id: "inquiries", label: "Müraciətlər", group: "İş axını" },
-  { id: "testimonials", label: "Rəylər", group: "İş axını" },
-  { id: "site", label: "Sayt məzmunu", group: "Sayt" },
-  { id: "work", label: "Portfel", group: "Sayt" },
-  { id: "studio", label: "Parametrlər", group: "Studiya" },
+  { id: "inquiries", key: "nav.inquiries", group: "group.workflow" },
+  { id: "accounts", key: "nav.accounts", group: "group.workflow" },
+  { id: "testimonials", key: "nav.testimonials", group: "group.workflow" },
+  { id: "appearance", key: "nav.appearance", group: "group.site" },
+  { id: "brief", key: "nav.brief", group: "group.site" },
+  { id: "announce", key: "nav.announce", group: "group.site" },
+  { id: "about", key: "nav.about", group: "group.site" },
+  { id: "logos", key: "nav.logos", group: "group.site" },
+  { id: "hero", key: "nav.hero", group: "group.site" },
+  { id: "work", key: "nav.workAdmin", group: "group.site" },
+  { id: "studio", key: "nav.studio", group: "group.studio" },
 ] as const;
 
 type SectionId = (typeof NAV)[number]["id"];
 
 export function AdminApp() {
+  const { t } = useI18n();
   const [authed, setAuthed] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -65,8 +79,8 @@ export function AdminApp() {
 
   if (!checked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-void text-sm text-mist">
-        Yüklənir…
+      <div className="admin-app flex min-h-screen items-center justify-center text-sm text-mist">
+        {t("admin.loading")}
       </div>
     );
   }
@@ -75,10 +89,13 @@ export function AdminApp() {
 }
 
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
+  const { t } = useI18n();
   const token = adminAuth.getToken() || "";
   const { toasts, push: toast } = useToasts();
 
   const [section, setSection] = useState<SectionId>("inquiries");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [adminTheme, setAdminTheme] = useState<"dark" | "light">("dark");
   const [profile, setProfile] = useState<StudioProfile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -101,6 +118,21 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [storyFile, setStoryFile] = useState<File | null>(null);
 
   const connRef = useRef<HubConnection | null>(null);
+
+  useEffect(() => {
+    setAdminTheme(document.documentElement.getAttribute("data-theme") === "admin-light" ? "light" : "dark");
+  }, []);
+
+  function toggleAdminTheme() {
+    const next = adminTheme === "dark" ? "light" : "dark";
+    setAdminTheme(next);
+    document.documentElement.setAttribute("data-theme", next === "light" ? "admin-light" : "obsidian");
+    try {
+      localStorage.setItem("adm-theme", next);
+    } catch {
+      /* ignore */
+    }
+  }
 
   const loadProfile = useCallback(async () => {
     const p = await api.profile();
@@ -175,6 +207,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         conversations.forEach((c) => {
           next[c.clientId] = {
             name: c.clientName || c.clientId,
+            avatarUrl: c.avatarUrl,
             messages: next[c.clientId]?.messages || [],
             lastMessage: c.lastMessage,
             lastSender: c.lastSender,
@@ -230,7 +263,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       if (cId) {
         setChatStore((prev) => ({
           ...prev,
-          [cId]: prev[cId] || { name: inquiry.clientName || cId, messages: [] },
+          [cId]: prev[cId] || {
+            name: inquiry.clientName || cId,
+            avatarUrl: inquiry.clientAvatarUrl,
+            messages: [],
+          },
         }));
       }
     });
@@ -238,6 +275,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     conn.on("ReceiveStaffFileReady", (data: { orderNumber: string }) => {
       playNotificationSound();
       toast(`📦 Komanda faylı hazırdır: ${data.orderNumber}`);
+      loadInquiries();
+    });
+
+    conn.on("ReceiveReceiptUploaded", (data: { orderNumber: string }) => {
+      playNotificationSound();
+      toast(`Çek yükləndi: ${data.orderNumber}`);
       loadInquiries();
     });
 
@@ -286,27 +329,35 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function selectDmClient(clientId: string) {
+  async function selectDmClient(clientId: string, profile?: { name?: string; avatarUrl?: string | null }) {
     setActiveDmClient(clientId);
+    setChatOpen(true);
+    let messages: { sender: string; content: string }[] = [];
     try {
-      const messages = await api.adminClientMessages(clientId, token);
-      setChatStore((prev) => {
-        const existing = prev[clientId] || { name: clientId, messages: [] };
-        return {
-          ...prev,
-          [clientId]: {
-            ...existing,
-            messages: messages.map((m) => ({
-              sender: m.sender,
-              content: m.content,
-              label: m.sender === "Admin" ? "Siz" : existing.name,
-            })),
-          },
-        };
-      });
+      messages = await api.adminClientMessages(clientId, token);
     } catch {
-      /* ignore */
+      messages = [];
     }
+    setChatStore((prev) => {
+      const existing = prev[clientId] || {
+        name: profile?.name || clientId,
+        avatarUrl: profile?.avatarUrl,
+        messages: [],
+      };
+      return {
+        ...prev,
+        [clientId]: {
+          ...existing,
+          name: existing.name && existing.name !== clientId ? existing.name : profile?.name || existing.name,
+          avatarUrl: existing.avatarUrl || profile?.avatarUrl,
+          messages: messages.map((m) => ({
+            sender: m.sender,
+            content: m.content,
+            label: m.sender === "Admin" ? "Siz" : existing.name,
+          })),
+        },
+      };
+    });
   }
 
   function sendDm(clientId: string, text: string) {
@@ -415,11 +466,12 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }
 
   async function onApproveStaffFile(id: number) {
-    if (!confirm("Komanda üzvünün göndərdiyi fayl müştəriyə təhvil veriləcək. Davam edilsin?"))
+    if (!confirm("Komanda faylı hazır sayılacaq və müştəriyə ödəniş bildirişi gedəcək. Fayl hələ göndərilməyəcək."))
       return;
     const res = await api.approveStaffFile(id, token);
     if (res.ok) {
-      toast("Fayl müştəriyə göndərildi!");
+      const data = await res.json().catch(() => null);
+      toast(data?.message || "Ödəniş bildirişi göndərildi.");
       loadInquiries();
     }
   }
@@ -437,14 +489,29 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     loadInquiries();
   }
 
-  async function onDeliverFile(id: number, file: File, orderNumber: string) {
-    const res = await api.deliverFile(id, file, token);
+  async function onPrepareDelivery(inquiry: Inquiry, file: File | null, link: string) {
+    if (!confirm(`Ödəniş bildirişi ${inquiry.clientEmail} ünvanına göndərilsin?`)) return;
+    const res = await api.prepareDelivery(inquiry.id, file, link, token);
+    const data = await res.json().catch(() => null);
     if (res.ok) {
-      toast("🎉 Fayl müştəriyə uğurla təhvil verildi!");
-      connRef.current?.invoke("UpdateStatus", orderNumber, "Tamamlandı").catch(() => {});
+      toast(data?.message || "Ödəniş bildirişi göndərildi.");
+      connRef.current?.invoke("UpdateStatus", inquiry.orderNumber, "Ödəniş gözlənilir").catch(() => {});
       loadInquiries();
     } else {
-      toast("Faylın göndərilməsində xəta baş verdi.");
+      toast(data?.message || "Təhvil hazırlanmadı.");
+    }
+  }
+
+  async function onConfirmPayment(inquiry: Inquiry) {
+    if (!confirm("Ödəniş təsdiqlənsin və fayl müştəriyə göndərilsin?")) return;
+    const res = await api.confirmPayment(inquiry.id, token);
+    const data = await res.json().catch(() => null);
+    if (res.ok) {
+      toast(data?.message || "Fayllar göndərildi.");
+      connRef.current?.invoke("UpdateStatus", inquiry.orderNumber, "Tamamlandı").catch(() => {});
+      loadInquiries();
+    } else {
+      toast(data?.message || "Ödəniş təsdiqlənmədi.");
     }
   }
 
@@ -508,76 +575,91 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         .filter((i) => i.clientId || i.clientEmail)
         .map((i) => [
           i.clientId || i.clientEmail,
-          { clientId: i.clientId || "—", clientName: i.clientName || "Naməlum", clientEmail: i.clientEmail || "—" },
+          {
+            clientId: i.clientId || "—",
+            clientName: i.clientName || "Naməlum",
+            clientEmail: i.clientEmail || "—",
+            avatarUrl: i.clientAvatarUrl || "",
+          },
         ]),
     ).values(),
   );
 
   const historyInquiries = historyClient
-    ? inquiries.filter(
-        (i) => i.clientId === historyClient.id || i.clientName === historyClient.name,
-      )
+    ? inquiries.filter((i) => {
+        const email = uniqueClients.find((c) => c.clientId === historyClient.id)?.clientEmail;
+        return (
+          i.clientId === historyClient.id ||
+          i.clientName === historyClient.name ||
+          (!!email && email !== "—" && i.clientEmail === email)
+        );
+      })
     : [];
 
   if (!profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-void text-sm text-mist">
-        Yüklənir…
+      <div className="admin-app flex min-h-screen items-center justify-center text-sm text-mist">
+        {t("admin.loading")}
       </div>
     );
   }
 
+  const title = t(NAV.find((item) => item.id === section)?.key ?? "");
+  let navGroup = "";
+
   return (
-    <div className="admin-app p-4 pb-28 text-bone sm:p-6">
+    <div className="admin-app text-bone">
       <Toasts toasts={toasts} />
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-6 flex flex-col gap-5 rounded-2xl border border-line bg-surface/80 px-5 py-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-line"
-              onClick={() => setStoryModalOpen(true)}
-              title="Story paylaş"
-            >
-              {profile.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={mediaUrl(profile.avatarUrl)} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center bg-void text-xs uppercase tracking-wider text-mist">
-                  BM
-                </span>
-              )}
-            </button>
+      <div className="admin-shell">
+        <aside className={`admin-side ${menuOpen ? "is-open" : ""}`}>
+          <div className="flex items-center gap-3 px-5 pb-3.5 pt-5">
+            <span className="admin-mark">BM</span>
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-mist">Studiya paneli</p>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                <h1 className="truncate font-display text-xl font-semibold tracking-[-0.03em] text-bone">
-                  {profile.designerName}
-                </h1>
-                <button
-                  type="button"
-                  onClick={() => setEditProfileOpen(true)}
-                  className="text-xs text-mist underline-offset-4 hover:text-bone hover:underline"
-                >
-                  Profil
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditAvatarOpen(true)}
-                  className="text-xs text-mist underline-offset-4 hover:text-bone hover:underline"
-                >
-                  Şəkil
-                </button>
+              <div className="truncate text-base font-bold tracking-[-0.01em]">
+                {profile.designerName || "Bilgeyis Mirzazada"}
               </div>
+              <small className="block text-xs font-normal text-[#8f8672]">{t("admin.studio")}</small>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setClientsModalOpen(true)}
-              className="rounded-xl border border-line px-3.5 py-2 text-xs font-semibold text-bone"
-            >
-              Müştərilər
+          <nav className="flex-1 px-2.5 pb-4">
+            {NAV.map((s) => {
+              const newCount =
+                s.id === "inquiries" ? inquiries.filter((item) => item.status === "Yeni").length : 0;
+              const heading = s.group !== navGroup ? ((navGroup = s.group), t(s.group)) : "";
+              return (
+                <div key={s.id}>
+                  {heading ? (
+                    <h6 className="px-2.5 pb-1.5 pt-3.5 text-xs font-semibold text-[#8f8672]">{heading}</h6>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSection(s.id);
+                      setMenuOpen(false);
+                    }}
+                    className={`admin-nav-link ${section === s.id ? "is-on" : ""}`}
+                    aria-current={section === s.id ? "page" : undefined}
+                  >
+                    {t(s.key)}
+                    {newCount > 0 ? <span className="admin-count">{newCount}</span> : null}
+                  </button>
+                </div>
+              );
+            })}
+          </nav>
+          <div className="flex flex-col gap-2 border-t border-[#2a241b] px-4 py-3">
+            <button type="button" onClick={() => { setClientsModalOpen(true); setMenuOpen(false); }} className={adminBtnQuiet}>
+              {t("admin.clients")}
+            </button>
+            <button type="button" onClick={() => { setEditProfileOpen(true); setMenuOpen(false); }} className={adminBtnQuiet}>
+              {t("admin.profile")}
+            </button>
+            <button type="button" onClick={() => { setStoryModalOpen(true); setMenuOpen(false); }} className={adminBtnQuiet}>
+              Story
+            </button>
+            <div className="flex gap-2">
+            <button type="button" onClick={toggleAdminTheme} className={`${adminBtnQuiet} grow flex-1`}>
+              {adminTheme === "dark" ? t("admin.light") : t("admin.dark")}
             </button>
             <button
               type="button"
@@ -585,53 +667,41 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 adminAuth.clear();
                 onLogout();
               }}
-              className="rounded-xl bg-bone px-3.5 py-2 text-xs font-semibold text-void"
+              className={adminBtnQuiet}
             >
-              Çıxış
+              {t("admin.logout")}
             </button>
+            </div>
           </div>
-        </header>
-
-        <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
-          <nav className="flex gap-1.5 overflow-x-auto rounded-2xl border border-line bg-surface p-2 lg:sticky lg:top-5 lg:h-fit lg:flex-col lg:overflow-visible">
-            {NAV.map((s, i) => {
-              const prev = NAV[i - 1];
-              const showGroup = s.group !== prev?.group;
-              const newCount =
-                s.id === "inquiries" ? inquiries.filter((item) => item.status === "Yeni").length : 0;
-              return (
-                <div key={s.id} className={showGroup ? "lg:mt-3 lg:first:mt-0" : ""}>
-                  {showGroup ? (
-                    <p className="mb-1 hidden px-2 pt-1 text-[10px] uppercase tracking-[0.2em] text-mist lg:block">
-                      {s.group}
-                    </p>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => setSection(s.id)}
-                    className={`flex w-full items-center justify-between whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                      section === s.id
-                        ? "bg-bone font-semibold text-void"
-                        : "text-mist hover:bg-bone/5 hover:text-bone"
-                    }`}
-                  >
-                    {s.label}
-                    {newCount > 0 ? (
-                      <span
-                        className={`ml-2 min-w-5 rounded-full px-1.5 text-center text-[10px] font-semibold ${
-                          section === s.id ? "bg-void/15 text-void" : "bg-bone/10 text-bone"
-                        }`}
-                      >
-                        {newCount}
-                      </span>
-                    ) : null}
-                  </button>
-                </div>
-              );
-            })}
-          </nav>
-
-          <div className="min-w-0 space-y-5">
+        </aside>
+        <main className="flex min-w-0 flex-col overflow-hidden">
+          <header className="admin-top">
+            <button type="button" className={`${adminBtnQuiet} admin-menu-btn`} onClick={() => setMenuOpen((v) => !v)}>
+              {t("admin.menu")}
+            </button>
+            <h2 className="admin-title">{title}</h2>
+            <Link href="/" target="_blank" rel="noopener" className={adminBtnQuiet}>
+              {t("admin.openSite")}
+            </Link>
+            <button
+              type="button"
+              className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-[#f5d98f] to-[#b07a1c] p-px"
+              onClick={() => setEditAvatarOpen(true)}
+              title={t("admin.photo")}
+            >
+              {profile.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={mediaUrl(profile.avatarUrl)} alt="" className="h-full w-full rounded-full object-cover" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center rounded-full bg-[#14120f] text-[10px] text-[#f5d98f]">
+                  BM
+                </span>
+              )}
+            </button>
+          </header>
+          <div className="admin-view">
+            <div className="mx-auto w-full max-w-[1180px] space-y-4">
+            {section === "accounts" ? <AccountsSection token={token} /> : null}
             {section === "inquiries" ? (
               <InquiriesSection
                 inquiries={inquiries}
@@ -640,8 +710,17 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 onAssign={onAssign}
                 onApproveStaffFile={onApproveStaffFile}
                 onToggleClientChat={onToggleClientChat}
-                onDeliverFile={onDeliverFile}
+                token={token}
+                onPrepareDelivery={onPrepareDelivery}
+                onConfirmPayment={onConfirmPayment}
                 onDelete={onDeleteInquiry}
+                onMessage={(inquiry) => {
+                  if (!inquiry.clientId) return;
+                  void selectDmClient(inquiry.clientId, {
+                    name: inquiry.clientName,
+                    avatarUrl: inquiry.clientAvatarUrl,
+                  });
+                }}
               />
             ) : null}
             {section === "testimonials" ? (
@@ -652,24 +731,33 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 onToast={toast}
               />
             ) : null}
-            {section === "site" ? (
-              <>
-                <AnnouncementSection profile={profile} onSave={saveProfile} onToast={toast} />
-                <AboutSection
-                  profile={profile}
-                  token={token}
-                  onSave={saveProfile}
-                  onToast={toast}
-                />
-                <SiteImagesSection
-                  profile={profile}
-                  logos={clientLogos}
-                  token={token}
-                  onSaveProfile={saveProfile}
-                  onLogosChanged={loadClientLogos}
-                  onToast={toast}
-                />
-              </>
+            {section === "hero" ? (
+              <HeroGallerySection
+                profile={profile}
+                token={token}
+                onSaveProfile={saveProfile}
+                onToast={toast}
+              />
+            ) : null}
+            {section === "appearance" ? (
+              <AppearanceSection profile={profile} onSave={saveProfile} onToast={toast} />
+            ) : null}
+            {section === "brief" ? (
+              <OffersSection profile={profile} onSave={saveProfile} onToast={toast} />
+            ) : null}
+            {section === "announce" ? (
+              <AnnouncementSection profile={profile} onSave={saveProfile} onToast={toast} />
+            ) : null}
+            {section === "about" ? (
+              <AboutSection profile={profile} token={token} onSave={saveProfile} onToast={toast} />
+            ) : null}
+            {section === "logos" ? (
+              <SiteImagesSection
+                logos={clientLogos}
+                token={token}
+                onLogosChanged={loadClientLogos}
+                onToast={toast}
+              />
             ) : null}
             {section === "work" ? (
               <>
@@ -696,6 +784,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             ) : null}
           </div>
         </div>
+        </main>
       </div>
 
       <AdminChatTrigger
@@ -723,7 +812,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         >
           <div className="max-h-[85vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-line bg-surface p-4 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold text-bone">Müştərilər</h2>
+              <h2 className="font-hero text-lg font-semibold text-bone">{t("admin.clients")}</h2>
               <button
                 type="button"
                 onClick={() => setClientsModalOpen(false)}
@@ -736,24 +825,29 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               <table className="w-full min-w-[520px] border-collapse text-sm">
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-[0.16em] text-mist">
-                    <th className="border-b border-line px-2 py-2">Müştəri ID</th>
-                    <th className="border-b border-line px-2 py-2">Ad</th>
-                    <th className="border-b border-line px-2 py-2">Email</th>
-                    <th className="border-b border-line px-2 py-2">Tarixçə</th>
+                    <th className="border-b border-line px-2 py-2">{t("admin.id")}</th>
+                    <th className="border-b border-line px-2 py-2">{t("admin.name")}</th>
+                    <th className="border-b border-line px-2 py-2">{t("admin.email")}</th>
+                    <th className="border-b border-line px-2 py-2">{t("admin.history")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {uniqueClients.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="py-8 text-center text-mist">
-                        Qeydiyyatlı müştəri tapılmadı.
+                        {t("admin.noClients")}
                       </td>
                     </tr>
                   ) : (
                     uniqueClients.map((c) => (
                       <tr key={c.clientId} className="border-b border-line text-bone">
                         <td className="px-2 py-2 font-mono text-sm font-semibold">{c.clientId}</td>
-                        <td className="px-2 py-2">{c.clientName}</td>
+                        <td className="px-2 py-2">
+                          <span className="inline-flex items-center gap-2">
+                            <ClientFace name={c.clientName} src={c.avatarUrl} size={28} />
+                            {c.clientName}
+                          </span>
+                        </td>
                         <td className="px-2 py-2 text-mist">{c.clientEmail}</td>
                         <td className="px-2 py-2">
                           <button
@@ -764,7 +858,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                             }}
                             className={adminBtnGhost}
                           >
-                            Tarixçəyə bax
+                            {t("admin.viewHistory")}
                           </button>
                         </td>
                       </tr>
@@ -784,8 +878,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         >
           <div className="max-h-[80vh] w-full max-w-lg overflow-hidden rounded-2xl border border-line bg-surface p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="font-display text-base font-semibold text-bone">
-                {historyClient.name} — tarixçə
+              <h2 className="font-hero text-base font-semibold text-bone">
+                {historyClient.name} — {historyClient.id}
               </h2>
               <button
                 type="button"
@@ -828,7 +922,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           onClick={(e) => e.target === e.currentTarget && setEditProfileOpen(false)}
         >
           <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6">
-            <h2 className="mb-4 font-display text-lg font-semibold text-bone">Profil</h2>
+            <h2 className="mb-4 font-hero text-lg font-semibold text-bone">Profil</h2>
             <form onSubmit={onSaveProfileInfo} className="space-y-3">
               <input
                 name="name"
@@ -864,7 +958,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           onClick={(e) => e.target === e.currentTarget && setEditAvatarOpen(false)}
         >
           <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6">
-            <h2 className="mb-4 font-display text-lg font-semibold text-bone">Profil şəkli</h2>
+            <h2 className="mb-4 font-hero text-lg font-semibold text-bone">Profil şəkli</h2>
             <form onSubmit={onSaveAvatar} className="space-y-3">
               <AdminFilePick
                 id="admin-avatar"
@@ -888,7 +982,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           onClick={(e) => e.target === e.currentTarget && setStoryModalOpen(false)}
         >
           <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6">
-            <h3 className="mb-4 font-display text-lg font-semibold text-bone">Story paylaş</h3>
+            <h3 className="mb-4 font-hero text-lg font-semibold text-bone">Story paylaş</h3>
             <form onSubmit={onPublishStory} className="space-y-3">
               <input
                 name="title"

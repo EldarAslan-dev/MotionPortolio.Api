@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AdminCard, adminBtn, adminFieldClass } from "@/components/admin/ui";
+import { useI18n } from "@/lib/i18n";
 
 export function NotesSection({
   notes,
@@ -10,6 +11,7 @@ export function NotesSection({
   notes: string[];
   onChange: (notes: string[]) => void;
 }) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
 
   function add() {
@@ -24,7 +26,7 @@ export function NotesSection({
   }
 
   return (
-    <AdminCard title="Qeydlər" hint="Yalnız sən görürsən — vitrində görünmür.">
+    <AdminCard title={t("sec.notes")} hint={t("sec.notesHint")}>
       <div className="space-y-2">
         {notes.map((n, i) => (
           <div

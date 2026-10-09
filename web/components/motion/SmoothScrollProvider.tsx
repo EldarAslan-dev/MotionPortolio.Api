@@ -33,6 +33,7 @@ export function SmoothScrollProvider() {
         duration: 1.1,
         easing: (t: number) => 1 - Math.pow(1 - t, 3),
         smoothWheel: true,
+        prevent: (node: HTMLElement) => Boolean(node.closest("[data-lenis-prevent]")),
       });
 
       lenis.on("scroll", ScrollTrigger.update);

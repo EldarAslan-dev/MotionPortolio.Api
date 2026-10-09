@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
     public DbSet<ProjectComment> ProjectComments { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<ChatClient> ChatClients { get; set; }
+    public DbSet<ClientProjectLike> ClientProjectLikes { get; set; }
+    public DbSet<ClientGift> ClientGifts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

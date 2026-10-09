@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace MotionPortfolio.Api.Models;
 
@@ -16,6 +18,10 @@ public class Inquiry
     [EmailAddress(ErrorMessage = "Düzgün email formatı daxil edin.")]
     public string ClientEmail { get; set; } = string.Empty;
 
+    // ChatClient-dən gəlir, bazada ayrıca sütun deyil.
+    [NotMapped]
+    public string? ClientAvatarUrl { get; set; }
+
     [Required(ErrorMessage = "Büdcə mütləqdir.")]
     public string Budget { get; set; } = string.Empty;
 
@@ -24,10 +30,28 @@ public class Inquiry
 
     public string? SelectedProjectTitle { get; set; } = "Ümumi Əməkdaşlıq";
     
-    public string Status { get; set; } = "Yeni"; // Yeni, İcrada, Tamamlandı
+    public string Status { get; set; } = "Yeni"; // Yeni, İcrada, Ödəniş gözlənilir, Tamamlandı, Ləğv edildi
     
     public string OrderNumber { get; set; } = string.Empty;
     public string? DeliveredFileUrl { get; set; }
+
+    public string TrackToken { get; set; } = string.Empty;
+    public string? DownloadToken { get; set; }
+    public DateTime? DownloadExpires { get; set; }
+
+    [JsonIgnore]
+    public string? DeliverablePath { get; set; }
+    public string? DeliverableLink { get; set; }
+
+    [JsonIgnore]
+    public string? ReceiptPath { get; set; }
+    public DateTime? ReceiptAt { get; set; }
+
+    [NotMapped]
+    public bool HasReceipt => !string.IsNullOrEmpty(ReceiptPath);
+
+    [NotMapped]
+    public bool HasDeliverable => !string.IsNullOrEmpty(DeliverablePath) || !string.IsNullOrEmpty(DeliverableLink);
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

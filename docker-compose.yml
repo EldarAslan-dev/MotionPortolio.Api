@@ -54,6 +54,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - Cors__Origins__0=https://www.bilgeyismirzazada.com
       - Cors__Origins__1=https://bilgeyismirzazada.com
+      - Gmail__Address=bilgeyismirzazada@gmail.com
+      - Gmail__AppPassword=${GMAIL_APP_PASSWORD}
     ports:
       - "127.0.0.1:5118:8080"
     depends_on:
@@ -63,6 +65,7 @@ services:
         condition: service_started
     volumes:
       - uploads_data:/app/wwwroot/uploads
+      - private_data:/app/private
 
   # 4. Next.js Frontend (public sayt + /admin + /team) — Nginx "/" üçün buraya proxy edir
   web:
@@ -84,6 +87,7 @@ services:
 volumes:
   sql_data:
   uploads_data:
+  private_data:
   rabbitmq_data:
 
 # Production SQL/Rabbit already run on this network from /root/MotionPortfolio.

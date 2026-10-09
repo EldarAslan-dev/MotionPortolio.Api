@@ -2,6 +2,7 @@
 
 import { FormEvent } from "react";
 import { AdminCard, adminBtn, adminBtnQuiet, adminFieldClass } from "@/components/admin/ui";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import type { StaffUser } from "@/lib/types";
 
@@ -16,6 +17,7 @@ export function TeamSection({
   onChanged: () => void;
   onToast: (msg: string) => void;
 }) {
+  const { t } = useI18n();
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -43,7 +45,7 @@ export function TeamSection({
 
   return (
     <AdminCard
-      title="Komanda"
+      title={t("sec.team")}
       hint="Üzvlər yalnız /team panelindən öz işlərini görür. Müştəri adı və email onlara göstərilmir."
     >
       <form onSubmit={onSubmit} className="mb-5 flex flex-wrap gap-2">

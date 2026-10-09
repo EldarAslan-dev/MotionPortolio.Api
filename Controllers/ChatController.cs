@@ -69,6 +69,8 @@ public class MessagesController : ControllerBase
             {
                 clientId = c.ClientId,
                 clientName = c.ClientName,
+                clientEmail = c.ClientEmail,
+                avatarUrl = c.AvatarUrl,
                 lastMessage = lastMessage?.Content,
                 lastSender = lastMessage?.Sender,
                 lastAt = lastMessage?.SentAt,
@@ -121,16 +123,9 @@ public class MessagesController : ControllerBase
         {
             var messages = _context.Messages.Where(m => m.ClientId == clientId);
             _context.Messages.RemoveRange(messages);
-
-            var chatClient = await _context.ChatClients.FindAsync(clientId);
-            if (chatClient != null)
-            {
-                _context.ChatClients.Remove(chatClient);
-            }
-
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Söhbət tamamilə silindi." });
+            return Ok(new { message = "Söhbət silindi. Müştəri hesabı saxlanıldı." });
         }
         catch (Exception ex)
         {

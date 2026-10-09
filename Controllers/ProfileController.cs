@@ -82,6 +82,16 @@ public class ProfileController : ControllerBase
                 profile.HeroVideoUrl = updated.HeroVideoUrl;
             }
 
+            if (updated.SiteDesignJson != null)
+            {
+                profile.SiteDesignJson = updated.SiteDesignJson;
+            }
+
+            if (updated.OffersJson != null)
+            {
+                profile.OffersJson = updated.OffersJson;
+            }
+
             profile.InstagramUrl = updated.InstagramUrl;
             profile.AnnouncementText = updated.AnnouncementText;
             profile.ShowAnnouncement = updated.ShowAnnouncement;

@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { PostStats } from "@/components/site/PostStats";
 import { mediaUrl, projectPoster } from "@/lib/config";
+import { parseDesign } from "@/lib/site/design";
 import { useStudio } from "@/lib/site/StudioContext";
 import type { Project } from "@/lib/types";
 
@@ -18,103 +20,152 @@ function goToWork(router: ReturnType<typeof useRouter>, id: number, e: React.Mou
   }
 }
 
-function WorkPreview({ project, eager }: { project: Project; eager: boolean }) {
+function WorkCard({ project }: { project: Project }) {
+  const router = useRouter();
   const poster = mediaUrl(projectPoster(project));
   const video = mediaUrl(project.videoUrl);
-  if (poster) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={poster}
-        alt=""
-        loading={eager ? "eager" : "lazy"}
-        decoding="async"
-        className="h-full w-full object-cover"
-      />
-    );
-  }
-  if (video) {
-    return (
-      <video
-        src={`${video}#t=0.15`}
-        muted
-        playsInline
-        preload="metadata"
-        className="h-full w-full object-cover"
-      />
-    );
-  }
-  return <div className="h-full w-full bg-void" />;
-}
+  const frameRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [active, setActive] = useState(false);
 
-function WorkCard({ project, index, total }: { project: Project; index: number; total: number }) {
-  const router = useRouter();
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame || !video) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setActive(entry.isIntersecting),
+      { rootMargin: "120px", threshold: 0.2 },
+    );
+    io.observe(frame);
+    return () => io.disconnect();
+  }, [video]);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || !active) return;
+    vid.play().catch(() => {});
+  }, [active]);
 
   return (
-    <article className="work-card">
-      <a
-        href={`/work/${project.id}`}
-        onClick={(e) => goToWork(router, project.id, e)}
-        data-cursor="view"
-        data-cursor-label="VIEW"
-        className="block"
-      >
-        <div className="work-card-frame">
-          <div className="work-card-media">
-            <WorkPreview project={project} eager={index < 2} />
-          </div>
+    <a
+      href={`/work/${project.id}`}
+      onClick={(e) => goToWork(router, project.id, e)}
+      className="wc"
+    >
+      <div className="th" ref={frameRef}>
+        {video && active ? (
+          <video
+            ref={videoRef}
+            src={video}
+            poster={poster || undefined}
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="none"
+          />
+        ) : poster ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={poster} alt="" loading="lazy" decoding="async" />
+        ) : null}
+        <div className="wc-bar">
+          <b>{project.title}</b>
+          <span>{project.category || "Motion"}</span>
           <PostStats likes={project.likesCount || 0} comments={project.comments?.length || 0} />
-          <div className="work-card-meta flex items-baseline justify-between gap-4">
-            <div className="min-w-0">
-              <h3 className="font-display truncate text-2xl uppercase text-bone md:text-3xl">{project.title}</h3>
-              {project.category ? (
-                <p className="mt-1 font-mono-tech text-[11px] uppercase tracking-[0.16em] text-mist">
-                  {project.category}
-                </p>
-              ) : null}
-            </div>
-            <span className="shrink-0 font-mono-tech text-[11px] tracking-[0.16em] text-mist">
-              {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-            </span>
-          </div>
         </div>
-      </a>
-    </article>
+      </div>
+    </a>
   );
 }
 
 export function Work() {
-  const { ready, projects } = useStudio();
+  const { ready, projects, profile } = useStudio();
+  const design = parseDesign(profile?.siteDesignJson);
+  const router = useRouter();
+  const [mode, setMode] = useState<"g" | "l">("g");
+  const groups = design.groups.filter((group) => group.title.trim());
+  const blocks = (() => {
+    if (!groups.length) return [{ title: "", items: projects }];
+    const matched = new Set<number>();
+    const named = groups
+      .filter((group) => group.category.trim())
+      .map((group) => {
+        const items = projects.filter(
+          (project) => (project.category || "").toLowerCase() === group.category.trim().toLowerCase(),
+        );
+        items.forEach((project) => matched.add(project.id));
+        return { title: group.title, items };
+      })
+      .filter((block) => block.items.length > 0);
+    const rest = projects.filter((project) => !matched.has(project.id));
+    const open = groups.find((group) => !group.category.trim());
+    if (rest.length) named.push({ title: open?.title || "", items: rest });
+    return named.length ? named : [{ title: "", items: projects }];
+  })();
 
   return (
-    <section id="work" className="scroll-mt-28 overflow-visible border-t border-line py-28 md:py-36">
-      <div className="mx-auto max-w-[1600px] overflow-visible px-5 md:px-10">
-        <div className="flex items-end justify-between gap-6">
-          <p className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">03 — Work</p>
-          <p className="hidden max-w-xs text-right text-sm text-mist md:block">
-            Each piece in its own frame. Full ratio. Nothing cropped.
-          </p>
+    <section id="work" className="pub-sec relative z-[1]">
+      <div className="pub-wrap">
+        <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+          <span className="pub-lab" style={{ fontSize: `clamp(22px, 6vw, ${design.worksSize}px)` }}>
+            {design.worksLabel}
+          </span>
+          <div className="seg">
+            <button type="button" className={mode === "g" ? "on" : ""} onClick={() => setMode("g")}>
+              Grid
+            </button>
+            <button type="button" className={mode === "l" ? "on" : ""} onClick={() => setMode("l")}>
+              List
+            </button>
+          </div>
         </div>
-
-        <div className="mt-16 overflow-visible">
-          {!ready ? (
-            <div className="work-list">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="work-card-frame">
-                  <div className="work-card-media animate-pulse bg-void" />
+        {!ready ? (
+          <div className="work-grid">
+            {[0, 1].map((i) => (
+              <div key={i} className="wc">
+                <div className="th animate-pulse bg-[var(--s2)]" />
+              </div>
+            ))}
+          </div>
+        ) : projects.length === 0 ? (
+          <p className="text-[rgb(var(--mist))]">No work published yet.</p>
+        ) : (
+          blocks.map((block, index) => (
+            <div key={`${block.title}-${index}`} className="mb-12">
+              {block.title ? (
+                <h3 className="mb-5 font-semibold" style={{ fontSize: Math.max(16, design.worksSize - 4) }}>
+                  {block.title}
+                </h3>
+              ) : null}
+              {mode === "g" ? (
+                <div className="work-grid">
+                  {block.items.map((p) => (
+                    <WorkCard key={p.id} project={p} />
+                  ))}
                 </div>
-              ))}
+              ) : (
+                <div className="border-t border-[var(--bd)]">
+                  {block.items.map((p) => (
+                    <a
+                      key={p.id}
+                      href={`/work/${p.id}`}
+                      onClick={(e) => goToWork(router, p.id, e)}
+                      className="work-row"
+                    >
+                      <div>
+                        <h3>{p.title}</h3>
+                        <small className="text-[rgb(var(--mist))]">
+                          {p.category}
+                          {p.year ? ` · ${p.year}` : ""}
+                        </small>
+                      </div>
+                      <PostStats likes={p.likesCount || 0} comments={p.comments?.length || 0} />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : projects.length === 0 ? (
-            <p className="text-mist">No work published yet.</p>
-          ) : (
-            <div className="work-list mx-auto max-w-5xl lg:max-w-none">
-              {projects.map((p, i) => (
-                <WorkCard key={p.id} project={p} index={i} total={projects.length} />
-              ))}
-            </div>
-          )}
-        </div>
+          ))
+        )}
       </div>
     </section>
   );

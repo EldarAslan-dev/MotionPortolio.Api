@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { AdminCard, AdminField, adminFieldClass } from "@/components/admin/ui";
+import { useI18n } from "@/lib/i18n";
 import type { StudioProfile } from "@/lib/types";
 
 export function AnnouncementSection({
@@ -13,6 +14,7 @@ export function AnnouncementSection({
   onSave: (patch: Partial<StudioProfile>) => Promise<void>;
   onToast: (msg: string) => void;
 }) {
+  const { t } = useI18n();
   const [text, setText] = useState(profile.announcementText || "");
   const [show, setShow] = useState(profile.showAnnouncement);
   const [saving, setSaving] = useState(false);
@@ -30,7 +32,7 @@ export function AnnouncementSection({
 
   return (
     <AdminCard
-      title="Üst elan"
+      title={t("sec.announce")}
       hint="Saytın yuxarısında hərəkət edən sətir. Boş saxlasan və ya söndürsən, görünməz."
     >
       <form onSubmit={onSubmit} className="space-y-4">
@@ -55,7 +57,7 @@ export function AnnouncementSection({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-xl bg-bone px-5 py-2.5 text-sm font-semibold text-void disabled:opacity-50"
+          className="admin-gold-btn rounded-xl px-5 py-2.5 text-sm font-semibold disabled:opacity-50"
         >
           {saving ? "Saxlanılır…" : "Elanı yadda saxla"}
         </button>

@@ -86,6 +86,9 @@ export function useStudioData() {
       });
     };
     load();
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 4000);
     const onVisible = () => {
       if (document.visibilityState === "visible") load();
     };
@@ -95,6 +98,7 @@ export function useStudioData() {
       cancelled = true;
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", load);
+      window.clearInterval(timer);
     };
   }, []);
 

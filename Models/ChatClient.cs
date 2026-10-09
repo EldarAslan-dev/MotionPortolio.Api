@@ -7,6 +7,9 @@ public class ChatClient
 {
     public string ClientId { get; set; } = string.Empty; // Əsas açar (məs: CLI-20260819-1234)
     public string ClientName { get; set; } = string.Empty;
+    public string ClientEmail { get; set; } = string.Empty;
+    public string AvatarUrl { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime LastMessageAt { get; set; } = DateTime.UtcNow;
 

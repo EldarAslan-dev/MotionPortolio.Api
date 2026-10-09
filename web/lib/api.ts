@@ -4,6 +4,11 @@ import type {
   ChatMessage,
   Conversation,
   Inquiry,
+  TrackOrder,
+  MyOrder,
+  SiteAccount,
+  MemberAccount,
+  MemberGift,
   OrderMessage,
   Project,
   StaffJob,
@@ -117,6 +122,47 @@ export const api = {
 
   register: (clientName: string, clientEmail: string) =>
     json("/api/inquiries/register", "POST", { clientName, clientEmail }),
+  clientLogin: (clientEmail: string, password = "") =>
+    json("/api/inquiries/client-login", "POST", { clientEmail, password }),
+  members: (token: string) => getJson<MemberAccount[]>("/api/members", token),
+  deleteMember: (clientId: string, token: string) =>
+    del(`/api/members/${encodeURIComponent(clientId)}`, token),
+  setMemberPassword: (clientId: string, password: string, token: string) =>
+    json(`/api/members/${encodeURIComponent(clientId)}/password`, "PUT", { password }, token),
+  addMemberGift: (
+    clientId: string,
+    payload: { kind: string; title: string; detail: string },
+    token: string,
+  ) => json(`/api/members/${encodeURIComponent(clientId)}/gifts`, "POST", payload, token),
+  myGifts: (clientId: string) =>
+    getJson<MemberGift[]>(`/api/members/mine/${encodeURIComponent(clientId)}`),
+  reorderLogos: (ids: number[], token: string) =>
+    json("/api/clientlogos/order", "PUT", { ids }, token),
+  reorderProjects: (ids: number[], token: string) =>
+    json("/api/projects/order", "PUT", { ids }, token),
+  myOrders: (clientId: string) =>
+    getJson<MyOrder[]>(`/api/inquiries/mine/${encodeURIComponent(clientId)}`),
+  accounts: (token: string) => getJson<SiteAccount[]>("/api/inquiries/accounts", token),
+  broadcast: (subject: string, message: string, token: string) =>
+    json("/api/inquiries/broadcast", "POST", { subject, message }, token),
+  updateClientProfile: (clientId: string, clientName: string, clientEmail: string) =>
+    json("/api/inquiries/profile", "PUT", { clientId, clientName, clientEmail }),
+  uploadClientAvatar: (clientId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("clientId", clientId);
+    formData.append("file", file);
+    return request("/api/inquiries/avatar", { method: "POST", body: formData });
+  },
+  clientLikes: (clientId: string) =>
+    getJson<number[]>(`/api/inquiries/likes/${encodeURIComponent(clientId)}`),
+  saveLike: (clientId: string, projectId: number) =>
+    json("/api/inquiries/likes", "POST", { clientId, projectId }),
+
+  briefAttachment: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request("/api/inquiries/attachment", { method: "POST", body: formData });
+  },
 
   inquiry: (payload: {
     clientId: string;
@@ -143,12 +189,29 @@ export const api = {
       method: "POST",
       headers: { ...authHeader(token) },
     }),
-  deliverFile: (id: number, file: File, token: string) => {
+  prepareDelivery: (id: number, file: File | null, link: string, token: string) => {
     const formData = new FormData();
-    formData.append("file", file);
+    if (file) formData.append("file", file);
+    if (link) formData.append("link", link);
     return request(`/api/inquiries/${id}/deliver`, {
       method: "POST",
       headers: { ...authHeader(token) },
+      body: formData,
+    });
+  },
+  confirmPayment: (id: number, token: string) =>
+    request(`/api/inquiries/${id}/confirm`, {
+      method: "POST",
+      headers: { ...authHeader(token) },
+    }),
+  inquiryReceipt: (id: number, token: string) =>
+    request(`/api/inquiries/${id}/receipt`, { headers: { ...authHeader(token) } }),
+  trackOrder: (token: string) => getJson<TrackOrder>(`/api/inquiries/track/${encodeURIComponent(token)}`),
+  uploadReceipt: (token: string, file: File) => {
+    const formData = new FormData();
+    formData.append("receipt", file);
+    return request(`/api/inquiries/track/${encodeURIComponent(token)}/receipt`, {
+      method: "POST",
       body: formData,
     });
   },

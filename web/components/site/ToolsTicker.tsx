@@ -14,7 +14,7 @@ function ToolMark({ tool }: { tool: ToolItem }) {
       <img
         src={mediaUrl(tool.logoUrl)}
         alt={tool.name || ""}
-        className="h-5 w-auto max-w-[5.5rem] object-contain opacity-90 sm:h-6 sm:max-w-[6.5rem] md:h-7 md:max-w-[7.5rem]"
+        className="h-4 w-auto max-w-[4.2rem] object-contain opacity-90 sm:h-[18px] sm:max-w-[5rem]"
       />
     );
   }
@@ -31,12 +31,13 @@ function ToolRow({
   return (
     <div ref={measureRef} className="flex shrink-0 items-center">
       {tools.map((tool) => (
-        <span
-          key={tool.id}
-          className="flex items-center gap-4 px-4 sm:gap-6 sm:px-5 md:gap-8 md:px-6"
-        >
+        <span key={tool.id} className="flex items-center">
           <ToolMark tool={tool} />
-          <span className="h-1 w-1 shrink-0 rounded-full bg-mist" />
+          <span className="tool-even" aria-hidden>
+            <svg viewBox="0 0 12 12" width="0.42em" height="0.42em" aria-hidden>
+              <path fill="currentColor" d="M6 0.4 7.15 4.85 11.6 6 7.15 7.15 6 11.6 4.85 7.15 0.4 6 4.85 4.85Z" />
+            </svg>
+          </span>
         </span>
       ))}
     </div>
@@ -83,7 +84,7 @@ export function ToolsTicker() {
   return (
     <div
       ref={scrollerRef}
-      className="overflow-hidden border-y border-line py-3 sm:py-4 md:py-5"
+      className="pub-mq relative z-[1]"
     >
       <div
         className="marquee-run flex w-max items-center"

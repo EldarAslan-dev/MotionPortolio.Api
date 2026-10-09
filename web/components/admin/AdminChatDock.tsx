@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ClientFace } from "@/components/ClientFace";
+import { useI18n } from "@/lib/i18n";
 
 export type DmMessage = { sender: string; content: string; label?: string };
 export type DmClient = {
   name: string;
+  avatarUrl?: string | null;
   messages: DmMessage[];
   lastMessage?: string | null;
   lastSender?: string | null;
@@ -21,13 +24,6 @@ type Props = {
   onDeleteConversation: (clientId: string) => void;
   onClearMessages: (clientId: string) => void;
 };
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
 
 function timeAgo(dateStr?: string | null) {
   if (!dateStr) return "";
@@ -49,6 +45,7 @@ export function AdminChatDock({
   onDeleteConversation,
   onClearMessages,
 }: Props) {
+  const { t } = useI18n();
   const [text, setText] = useState("");
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const boxRef = useRef<HTMLDivElement>(null);
@@ -60,8 +57,7 @@ export function AdminChatDock({
 
   useEffect(() => {
     if (open) setMobileView(activeClientId ? "chat" : "list");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, activeClientId]);
 
   const sortedIds = Object.keys(store).sort((a, b) => {
     const ta = store[a].lastAt ? new Date(store[a].lastAt as string).getTime() : 0;
@@ -101,11 +97,10 @@ export function AdminChatDock({
               }`}
               onClick={() => selectClient(clientId)}
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bone text-[10px] font-bold text-void">
-                {initials(c.name)}
-              </div>
+              <ClientFace name={c.name} src={c.avatarUrl} size={32} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-xs font-semibold text-bone">{c.name}</div>
+                <div className="truncate font-mono text-[10px] text-mist">{clientId}</div>
                 <div className="truncate text-[11px] text-mist">{preview}</div>
               </div>
               <div className="shrink-0 text-[10px] text-mist">{timeAgo(c.lastAt)}</div>
@@ -139,15 +134,18 @@ export function AdminChatDock({
           >
             ‹
           </button>
-          <div className="truncate text-xs font-semibold text-bone">
-            {active ? (
-              <>
-                {active.name}{" "}
-                <span className="font-normal text-mist">({activeClientId})</span>
-              </>
-            ) : (
-              "Söhbət seçilməyib"
-            )}
+          <div className="flex min-w-0 items-center gap-2">
+            {active ? <ClientFace name={active.name} src={active.avatarUrl} size={28} /> : null}
+            <div className="truncate text-xs font-semibold text-bone">
+              {active ? (
+                <>
+                  {active.name}{" "}
+                  <span className="font-normal text-mist">({activeClientId})</span>
+                </>
+              ) : (
+                "Söhbət seçilməyib"
+              )}
+            </div>
           </div>
         </div>
         {active ? (
@@ -173,7 +171,7 @@ export function AdminChatDock({
               <div
                 key={i}
                 className={`max-w-[85%] rounded-xl px-2.5 py-1.5 text-xs sm:max-w-[80%] ${
-                  isAdmin ? "self-end bg-bone text-void" : "self-start border border-line bg-void text-bone"
+                  isAdmin ? "admin-gold-btn self-end" : "self-start border border-line bg-void text-bone"
                 }`}
               >
                 <strong>{isAdmin ? m.label || "Siz" : m.label || "Müştəri"}:</strong> {m.content}
@@ -193,7 +191,7 @@ export function AdminChatDock({
         <button
           type="button"
           onClick={send}
-          className="rounded-xl bg-bone px-3 text-xs font-semibold text-void"
+          className="admin-gold-btn rounded-xl px-3 text-xs font-semibold"
         >
           Göndər
         </button>
@@ -202,9 +200,9 @@ export function AdminChatDock({
   );
 
   return (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-surface p-3 sm:inset-auto sm:bottom-24 sm:left-auto sm:right-6 sm:mx-auto sm:h-auto sm:max-w-[560px] sm:rounded-2xl sm:border sm:border-line sm:p-4 sm:shadow-2xl">
+    <div className="admin-chat-panel flex h-full flex-col bg-surface p-3 sm:h-auto sm:rounded-2xl sm:border sm:border-line sm:p-4 sm:shadow-2xl">
       <div className="mb-3 flex shrink-0 items-center justify-between border-b border-line pb-2">
-        <h3 className="font-display text-sm font-semibold text-bone">Canlı dəstək</h3>
+        <h3 className="font-hero text-sm font-semibold text-bone">Canlı dəstək</h3>
         <button type="button" onClick={onClose} className="text-2xl leading-none text-mist hover:text-bone">
           ×
         </button>
@@ -236,16 +234,17 @@ export function AdminChatTrigger({
   onClick: () => void;
   hasBadge: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-[140] flex h-14 w-14 items-center justify-center rounded-full bg-bone text-[11px] font-semibold tracking-[0.14em] text-void shadow-xl"
-      title="Canlı dəstək"
+      className="admin-gold-btn admin-chat-fab flex h-14 w-14 items-center justify-center rounded-full text-[11px] font-semibold tracking-[0.14em]"
+      title={t("chat.live")}
     >
       DM
       {hasBadge ? (
-        <span className="absolute right-1 top-1 h-3 w-3 rounded-full border-2 border-surface bg-bone" />
+        <span className="absolute right-1 top-1 h-3 w-3 rounded-full border-2 border-[#08090c] bg-[#f3e5ab]" />
       ) : null}
     </button>
   );

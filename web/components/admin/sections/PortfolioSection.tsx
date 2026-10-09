@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   AdminCard,
   AdminField,
@@ -9,10 +10,12 @@ import {
   adminBtnGhost,
   adminBtnQuiet,
   adminFieldClass,
+  reorderList,
 } from "@/components/admin/ui";
 import { api } from "@/lib/api";
 import { blobToPosterFile, capturePosterFromFile } from "@/lib/capturePoster";
 import { mediaUrl, parseGallery, projectPoster } from "@/lib/config";
+import { VideoFramePicker } from "@/components/admin/VideoFramePicker";
 import type { GalleryItem, Project, ProjectComment } from "@/lib/types";
 
 const CATEGORIES = [
@@ -43,19 +46,42 @@ export function PortfolioSection({
   onChanged: () => void;
   onToast: (msg: string) => void;
 }) {
+  const { t } = useI18n();
+  const [rows, setRows] = useState(projects);
+  const [dragId, setDragId] = useState<number | null>(null);
   const [editing, setEditing] = useState<Project | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [cardImageUrl, setCardImageUrl] = useState("");
   const [cardUploading, setCardUploading] = useState(false);
+  const [frameVideo, setFrameVideo] = useState<string | null>(null);
+  const [frameTime, setFrameTime] = useState(0);
   const [social, setSocial] = useState<Project | null>(null);
   const [author, setAuthor] = useState("");
   const [commentText, setCommentText] = useState("");
   const [likesDraft, setLikesDraft] = useState("");
 
   useEffect(() => {
+    setRows(projects);
+  }, [projects]);
+
+  function dropOn(targetId: number) {
+    if (dragId == null) return;
+    const next = reorderList(rows, dragId, targetId, (project) => project.id);
+    setDragId(null);
+    if (!next) return;
+    setRows(next);
+    void api.reorderProjects(next.map((project) => project.id), token).then((res) => {
+      if (!res.ok) onToast("Could not save the order.");
+      else onChanged();
+    });
+  }
+
+  useEffect(() => {
     setGalleryItems(editing ? parseGallery(editing.galleryJson) : []);
     setCardImageUrl(editing?.cardImageUrl || "");
+    setFrameVideo(null);
+    setFrameTime(0);
   }, [editing]);
 
   useEffect(() => {
@@ -79,29 +105,36 @@ export function PortfolioSection({
     try {
       const uploaded: GalleryItem[] = [];
       for (const file of files) {
-        const res = await api.upload(file);
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.url) {
-            const item: GalleryItem = {
-              url: data.url,
-              type: file.type.startsWith("video") || /\.(mp4|mov|webm)$/i.test(file.name) ? "video" : "image",
-            };
-            if (item.type === "video") {
-              const poster = await capturePosterFromFile(file);
-              if (poster) {
-                const posterRes = await api.upload(blobToPosterFile(poster));
-                if (posterRes.ok) {
-                  const posterData = await posterRes.json();
-                  if (posterData?.url) item.posterUrl = posterData.url;
-                }
+        const res = await api.upload(file, token);
+        if (!res.ok) {
+          onToast("Fayl yüklənmədi. Yenidən daxil olub yoxlayın.");
+          continue;
+        }
+        const data = await res.json();
+        if (data?.url) {
+          const item: GalleryItem = {
+            url: data.url,
+            type: file.type.startsWith("video") || /\.(mp4|mov|webm)$/i.test(file.name) ? "video" : "image",
+          };
+          if (item.type === "video") {
+            const poster = await capturePosterFromFile(file);
+            if (poster) {
+              const posterRes = await api.upload(blobToPosterFile(poster), token);
+              if (posterRes.ok) {
+                const posterData = await posterRes.json();
+                if (posterData?.url) item.posterUrl = posterData.url;
               }
             }
-            uploaded.push(item);
           }
+          uploaded.push(item);
         }
       }
-      setGalleryItems((prev) => [...prev, ...uploaded]);
+      if (uploaded.length > 0) {
+        setGalleryItems((prev) => [...prev, ...uploaded]);
+        onToast(uploaded.length === 1 ? "Media əlavə olundu." : `${uploaded.length} media əlavə olundu.`);
+      }
+    } catch (err) {
+      onToast(err instanceof Error ? err.message : "Yükləmə xətası.");
     } finally {
       setGalleryUploading(false);
     }
@@ -120,6 +153,7 @@ export function PortfolioSection({
       galleryItems.find((item) => item.type === "image")?.url ||
       galleryItems.find((item) => item.posterUrl)?.posterUrl ||
       "";
+    const firstVideo = galleryItems.find((item) => item.type === "video");
     const res = await api.updateProject(
       editing.id,
       {
@@ -131,6 +165,7 @@ export function PortfolioSection({
         galleryJson: JSON.stringify(galleryItems),
         cardImageUrl: still,
         thumbnailUrl: still || editing.thumbnailUrl,
+        videoUrl: firstVideo?.url || editing.videoUrl || "",
       },
       token,
     );
@@ -138,6 +173,8 @@ export function PortfolioSection({
       onToast("Layihə yeniləndi.");
       setEditing(null);
       onChanged();
+    } else {
+      onToast("Layihə yenilənmədi.");
     }
   }
 
@@ -185,14 +222,20 @@ export function PortfolioSection({
   }
 
   return (
-    <AdminCard title="Portfel" hint="Mövcud işləri redaktə et və ya sil.">
+    <AdminCard title={t("sec.portfolio")} hint={t("sec.portfolioHint")}>
       {projects.length === 0 ? (
-        <p className="py-8 text-center text-sm text-mist">Hələ iş yoxdur.</p>
+        <p className="py-8 text-center text-sm text-mist">No work yet.</p>
       ) : (
         <>
           <div className="flex flex-col gap-3 md:hidden">
-            {projects.map((p) => (
-              <div key={p.id} className="flex gap-3 rounded-2xl border border-line bg-void p-3">
+            {rows.map((p) => (
+              <div
+                key={p.id}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => dropOn(p.id)}
+                className="flex gap-3 rounded-2xl border border-line bg-void p-3"
+              >
+                <button type="button" draggable aria-label="Drag to reorder" onDragStart={() => setDragId(p.id)} onDragEnd={() => setDragId(null)} className="cursor-grab self-center px-1 text-lg leading-none text-mist">⋮⋮</button>
                 <div className="flex h-[64px] w-[92px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface">
                   <CoverThumb project={p} />
                 </div>
@@ -201,13 +244,13 @@ export function PortfolioSection({
                   <div className="text-xs text-mist">{p.category}</div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button type="button" onClick={() => setEditing(p)} className={adminBtnGhost}>
-                      Redaktə
+                      Edit
                     </button>
                     <button type="button" onClick={() => openSocial(p)} className={adminBtnGhost}>
-                      Bəyənmə / şərh
+                      Likes / comments
                     </button>
                     <button type="button" onClick={() => onDelete(p.id)} className={adminBtnQuiet}>
-                      Sil
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -219,16 +262,20 @@ export function PortfolioSection({
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="text-left text-[11px] uppercase tracking-[0.16em] text-mist">
-                  <th className="border-b border-line px-3 py-2">Önizləmə</th>
-                  <th className="border-b border-line px-3 py-2">Başlıq</th>
-                  <th className="border-b border-line px-3 py-2">Kateqoriya</th>
-                  <th className="border-b border-line px-3 py-2">Bəyənmə</th>
-                  <th className="border-b border-line px-3 py-2">Əməliyyat</th>
+                  <th className="border-b border-line px-3 py-2" />
+                  <th className="border-b border-line px-3 py-2">Preview</th>
+                  <th className="border-b border-line px-3 py-2">Title</th>
+                  <th className="border-b border-line px-3 py-2">Category</th>
+                  <th className="border-b border-line px-3 py-2">Likes</th>
+                  <th className="border-b border-line px-3 py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {projects.map((p) => (
-                  <tr key={p.id} className="border-b border-line text-bone">
+                {rows.map((p) => (
+                  <tr key={p.id} onDragOver={(e) => e.preventDefault()} onDrop={() => dropOn(p.id)} className="border-b border-line text-bone">
+                    <td className="px-3 py-3">
+                      <button type="button" draggable aria-label="Drag to reorder" onDragStart={() => setDragId(p.id)} onDragEnd={() => setDragId(null)} className="cursor-grab px-1 text-lg leading-none text-mist">⋮⋮</button>
+                    </td>
                     <td className="px-3 py-3">
                       <div className="flex h-[70px] w-[110px] items-center justify-center overflow-hidden rounded-xl border border-line bg-void">
                         <CoverThumb project={p} />
@@ -240,13 +287,13 @@ export function PortfolioSection({
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-2">
                         <button type="button" onClick={() => setEditing(p)} className={adminBtnGhost}>
-                          Redaktə
+                          Edit
                         </button>
                         <button type="button" onClick={() => openSocial(p)} className={adminBtnGhost}>
-                          Bəyənmə / şərh
+                          Likes / comments
                         </button>
                         <button type="button" onClick={() => onDelete(p.id)} className={adminBtnQuiet}>
-                          Sil
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -264,7 +311,7 @@ export function PortfolioSection({
           onClick={(e) => e.target === e.currentTarget && setEditing(null)}
         >
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-surface p-6">
-            <h3 className="mb-4 font-display text-lg font-semibold text-bone">Layihəni redaktə et</h3>
+            <h3 className="mb-4 font-hero text-lg font-semibold text-bone">Layihəni redaktə et</h3>
             <form onSubmit={onSaveEdit} className="space-y-3">
               <input name="title" defaultValue={editing.title} required className={adminFieldClass} />
               <select
@@ -320,10 +367,12 @@ export function PortfolioSection({
                     if (!file) return;
                     setCardUploading(true);
                     try {
-                      const res = await api.upload(file);
+                      const res = await api.upload(file, token);
                       if (res.ok) {
                         const data = await res.json();
                         setCardImageUrl(data.url || "");
+                      } else {
+                        onToast("Kapak şəkli yüklənmədi.");
                       }
                     } finally {
                       setCardUploading(false);
@@ -331,6 +380,52 @@ export function PortfolioSection({
                   }}
                 />
               </AdminField>
+
+              {galleryItems.some((item) => item.type === "video") ? (
+                <AdminField label="Videodan kapak">
+                  <div className="flex flex-wrap gap-2">
+                    {galleryItems
+                      .filter((item) => item.type === "video")
+                      .map((item) => (
+                        <button
+                          key={item.url}
+                          type="button"
+                          onClick={() => {
+                            setFrameVideo(item.url);
+                            setFrameTime(0);
+                          }}
+                          className={`rounded-lg border px-3 py-1.5 text-xs ${
+                            frameVideo === item.url ? "border-bone text-bone" : "border-line text-mist"
+                          }`}
+                        >
+                          {frameVideo === item.url ? "Seçildi" : "Bu videodan seç"}
+                        </button>
+                      ))}
+                  </div>
+                  {frameVideo ? (
+                    <VideoFramePicker
+                      src={mediaUrl(frameVideo)}
+                      time={frameTime}
+                      onFrame={async (time, blob) => {
+                        setFrameTime(time);
+                        setCardUploading(true);
+                        try {
+                          const res = await api.upload(blobToPosterFile(blob, "cover.jpg"), token);
+                          if (res.ok) {
+                            const data = await res.json();
+                            if (data?.url) {
+                              setCardImageUrl(data.url);
+                              onToast("Kapak kadrı təsdiqləndi.");
+                            }
+                          }
+                        } finally {
+                          setCardUploading(false);
+                        }
+                      }}
+                    />
+                  ) : null}
+                </AdminField>
+              ) : null}
 
               <AdminField label="Qalereya">
                 {galleryItems.length > 0 ? (
@@ -402,7 +497,7 @@ export function PortfolioSection({
           onClick={(e) => e.target === e.currentTarget && setSocial(null)}
         >
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-line bg-surface p-6">
-            <h3 className="mb-1 font-display text-lg font-semibold text-bone">{social.title}</h3>
+            <h3 className="mb-1 font-hero text-lg font-semibold text-bone">{social.title}</h3>
             <p className="mb-5 text-sm text-mist">Bəyənmə sayını dəyiş və istədiyin adla şərh yaz.</p>
 
             <AdminField label="Bəyənmə">

@@ -2,31 +2,29 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ClientFace } from "@/components/ClientFace";
 import { AnnouncementTicker } from "@/components/site/AnnouncementTicker";
-import { INQUIRY_GENERAL } from "@/lib/site/copy";
+import { useI18n } from "@/lib/i18n";
+import { parseDesign } from "@/lib/site/design";
 import { useStudio } from "@/lib/site/StudioContext";
 import { useTheme } from "@/lib/site/ThemeProvider";
 
-const LINKS = [
-  { href: "/#about", label: "About" },
-  { href: "/#work", label: "Work" },
-  { href: "/#contact", label: "Contact" },
-];
-
 export function Nav() {
-  const { ready, name, avatar, liveStories, openInquiry } = useStudio();
+  const { t } = useI18n();
+  const { ready, name, avatar, liveStories, setStoryIndex, clientId, clientName, clientAvatar, openAuth, profile } = useStudio();
+  const design = parseDesign(profile?.siteDesignJson);
+  const links = [
+    { href: "/#hero", label: t("nav.showcase") },
+    { href: "/#work", label: t("nav.work") },
+    { href: "/#clients", label: t("nav.clients") },
+    { href: "/#about", label: t("nav.about") },
+    { href: "/#contact", label: t("nav.contact") },
+    ...design.pages
+      .filter((page) => page.slug && page.title)
+      .map((page) => ({ href: `/p/${page.slug}`, label: page.title })),
+  ];
   const { theme, toggle } = useTheme();
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 40);
-    }
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -48,107 +46,77 @@ export function Nav() {
 
   return (
     <>
-      <header
-        className={`fixed top-0 z-50 w-full transition-all duration-500 ${
-          scrolled ? "border-b border-line bg-void/75 backdrop-blur-xl" : "border-b border-transparent bg-transparent"
-        }`}
-      >
+      <header className="pub-hd">
         <AnnouncementTicker />
-        <div
-          className={`mx-auto flex max-w-[1600px] items-center justify-between px-5 transition-[padding] duration-500 md:px-10 ${
-            scrolled ? "py-3" : "py-6"
-          }`}
-        >
-          <Link
-            href="/#top"
-            data-cursor="link"
-            className="flex min-w-0 max-w-[58vw] items-center gap-2.5 md:max-w-none"
-          >
+        <div className="pub-wrap flex items-center justify-between gap-3">
+          <Link href="/#hero" data-cursor="link" className="pub-logo">
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={avatar}
                 alt=""
-                className={`h-8 w-8 shrink-0 rounded-full object-cover md:h-9 md:w-9 ${
-                  liveStories.length > 0 ? "ring-1 ring-cue ring-offset-2 ring-offset-void" : "border border-line"
-                }`}
+                onClick={(e) => {
+                  if (liveStories.length === 0) return;
+                  e.preventDefault();
+                  setStoryIndex(0);
+                }}
               />
             ) : (
-              <span className="h-8 w-8 shrink-0 rounded-full border border-line bg-surface md:h-9 md:w-9" />
+              <span className="pub-logo-fallback" />
             )}
-            <span className="truncate font-mono-tech text-[11px] uppercase tracking-[0.2em] text-bone">
-              {ready ? name : <span className="inline-block h-3 w-28 animate-pulse bg-bone/10" />}
-            </span>
+            <div className="min-w-0 text-left">
+              <b className="truncate">{ready ? name : "Bilgeyis Mirzazada"}</b>
+              <small>{design.logoRole}</small>
+            </div>
           </Link>
 
-          <nav className="hidden items-center gap-8 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-mist md:flex">
-            {LINKS.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                data-cursor="link"
-                className="group relative py-1 transition hover:text-bone"
-              >
+          <nav className="pub-nav">
+            {links.map((l) => (
+              <Link key={l.href} href={l.href} data-cursor="link">
                 {l.label}
-                <span className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-cue transition-all duration-300 ease-out group-hover:w-full" />
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               type="button"
-              data-cursor="link"
+              className="pub-ib"
               onClick={toggle}
-              className="theme-toggle"
-              aria-label={theme === "day" ? "Switch to night mode" : "Switch to day mode"}
+              aria-label={theme === "day" ? t("nav.night") : t("nav.day")}
             >
-              <span className="theme-toggle-knob" />
+              ◐
             </button>
-
+            {clientId ? (
+              <Link href="/account" className="ghost-btn pub-chip">
+                <ClientFace name={clientName} src={clientAvatar} size={22} />
+                <span className="pub-who">{clientName || t("admin.profile")}</span>
+              </Link>
+            ) : (
+              <button type="button" className="ghost-btn pub-chip" onClick={() => openAuth("login")}>
+                {t("nav.signIn")}
+              </button>
+            )}
             <button
               type="button"
-              data-cursor="link"
-              onClick={() => openInquiry(INQUIRY_GENERAL)}
-              className="btn-glow hidden rounded-full border border-bone/30 px-5 py-2 font-mono-tech text-[11px] uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue sm:inline-block"
-            >
-              Start a project
-            </button>
-
-            <button
-              type="button"
-              aria-label="Menu"
+              aria-label={t("nav.menu")}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((v) => !v)}
-              className="relative z-10 flex h-9 w-9 flex-col items-center justify-center gap-1.5 md:hidden"
+              className="pub-ib min-[861px]:hidden"
             >
-              <span
-                className={`h-0.5 w-5 bg-bone transition-all duration-300 ${
-                  menuOpen ? "translate-y-2 rotate-45" : ""
-                }`}
-              />
-              <span
-                className={`h-0.5 w-5 bg-bone transition-all duration-300 ${
-                  menuOpen ? "opacity-0" : "opacity-100"
-                }`}
-              />
-              <span
-                className={`h-0.5 w-5 bg-bone transition-all duration-300 ${
-                  menuOpen ? "-translate-y-2 -rotate-45" : ""
-                }`}
-              />
+              {menuOpen ? "✕" : "☰"}
             </button>
           </div>
         </div>
       </header>
 
       <div
-        className={`fixed inset-0 z-40 flex flex-col justify-center overflow-y-auto bg-void px-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(6rem,env(safe-area-inset-top))] transition-opacity duration-500 md:hidden ${
+        className={`fixed inset-0 z-40 flex flex-col justify-center overflow-y-auto bg-void px-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(6rem,env(safe-area-inset-top))] transition-opacity duration-500 min-[861px]:hidden ${
           menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
         <nav className="flex flex-col gap-1">
-          {LINKS.map((l, i) => (
+          {links.map((l, i) => (
             <Link
               key={l.href}
               href={l.href}
@@ -162,16 +130,19 @@ export function Nav() {
             </Link>
           ))}
         </nav>
-        <button
-          type="button"
-          onClick={() => {
+        <Link
+          href={clientId ? "/account" : "#"}
+          onClick={(e) => {
             setMenuOpen(false);
-            openInquiry(INQUIRY_GENERAL);
+            if (!clientId) {
+              e.preventDefault();
+              openAuth("login");
+            }
           }}
-          className="btn-glow mt-10 self-start rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
+          className="btn-glow mt-8 self-start rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
         >
-          Start a project
-        </button>
+          {clientId ? t("admin.profile") : t("nav.signIn")}
+        </Link>
       </div>
     </>
   );

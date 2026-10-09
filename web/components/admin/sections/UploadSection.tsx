@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import {
   AdminCard,
   AdminField,
@@ -10,7 +11,8 @@ import {
   adminFieldClass,
 } from "@/components/admin/ui";
 import { api } from "@/lib/api";
-import { capturePosterFromFile, snapshotVideo, blobToPosterFile } from "@/lib/capturePoster";
+import { capturePosterFromFile, blobToPosterFile } from "@/lib/capturePoster";
+import { VideoFramePicker } from "@/components/admin/VideoFramePicker";
 import type { GalleryItem, Project } from "@/lib/types";
 
 type MediaItem = {
@@ -24,70 +26,13 @@ type MediaItem = {
 
 type Cover =
   | { mode: "media"; id: string }
-  | { mode: "frame"; id: string; time: number; blob: Blob }
+  | { mode: "frame"; id: string; time: number; blob: Blob; preview: string }
   | { mode: "file"; file: File; url: string };
 
 const MEDIA_ACCEPT = "image/*,video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm";
 
 function isVideoFile(file: File) {
   return file.type.startsWith("video") || /\.(mp4|mov|webm)$/i.test(file.name);
-}
-
-function VideoFramePicker({
-  src,
-  time,
-  onFrame,
-}: {
-  src: string;
-  time: number;
-  onFrame: (time: number, blob: Blob) => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [duration, setDuration] = useState(0);
-
-  return (
-    <div className="mt-3 space-y-2">
-      <video
-        ref={videoRef}
-        src={src}
-        muted
-        playsInline
-        preload="auto"
-        className="w-full rounded-xl border border-line bg-void"
-        onLoadedMetadata={(e) => {
-          const v = e.currentTarget;
-          setDuration(v.duration || 0);
-          const start = time > 0 ? time : Math.min(0.2, (v.duration || 1) * 0.05);
-          try {
-            v.currentTime = start;
-          } catch {
-            /* ignore */
-          }
-        }}
-        onSeeked={async (e) => {
-          const blob = await snapshotVideo(e.currentTarget);
-          if (blob) onFrame(e.currentTarget.currentTime, blob);
-        }}
-      />
-      <input
-        type="range"
-        min={0}
-        max={duration || 0}
-        step={0.05}
-        value={Math.min(time, duration || 0)}
-        onChange={(e) => {
-          const v = videoRef.current;
-          const next = Number(e.target.value);
-          if (v) v.currentTime = next;
-        }}
-        className="w-full accent-bone"
-      />
-      <p className="text-xs text-mist">
-        Videonu sürüşdürüb istədiyin kadrı kapak et.
-        {duration > 0 ? ` ${time.toFixed(1)}s / ${duration.toFixed(1)}s` : ""}
-      </p>
-    </div>
-  );
 }
 
 export function UploadSection({
@@ -99,6 +44,7 @@ export function UploadSection({
   onUploaded: () => void;
   onToast: (msg: string) => void;
 }) {
+  const { t } = useI18n();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [cover, setCover] = useState<Cover | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -115,6 +61,7 @@ export function UploadSection({
       });
       const c = coverRef.current;
       if (c?.mode === "file") URL.revokeObjectURL(c.url);
+      if (c?.mode === "frame" && c.preview) URL.revokeObjectURL(c.preview);
     };
   }, []);
 
@@ -127,6 +74,10 @@ export function UploadSection({
       url: URL.createObjectURL(file),
     }));
     setItems((prev) => [...prev, ...next]);
+    const firstVideo = next.find((item) => item.kind === "video");
+    if (firstVideo) {
+      setCover((prev) => prev ?? { mode: "frame", id: firstVideo.id, time: 0, blob: new Blob(), preview: "" });
+    }
     for (const item of next) {
       if (item.kind !== "video") continue;
       void capturePosterFromFile(item.file).then((blob) => {
@@ -169,12 +120,17 @@ export function UploadSection({
 
   function pickMediaCover(item: MediaItem) {
     if (item.kind === "image") {
-      setCover({ mode: "media", id: item.id });
+      setCover((prev) => {
+        if (prev?.mode === "file") URL.revokeObjectURL(prev.url);
+        if (prev?.mode === "frame" && prev.preview) URL.revokeObjectURL(prev.preview);
+        return { mode: "media", id: item.id };
+      });
       return;
     }
     setCover((prev) => {
       if (prev?.mode === "frame" && prev.id === item.id) return prev;
-      return { mode: "frame", id: item.id, time: 0, blob: new Blob() };
+      if (prev?.mode === "frame" && prev.preview) URL.revokeObjectURL(prev.preview);
+      return { mode: "frame", id: item.id, time: 0, blob: new Blob(), preview: "" };
     });
   }
 
@@ -184,6 +140,7 @@ export function UploadSection({
       if (item.posterPreview) URL.revokeObjectURL(item.posterPreview);
     });
     if (cover?.mode === "file") URL.revokeObjectURL(cover.url);
+    if (cover?.mode === "frame" && cover.preview) URL.revokeObjectURL(cover.preview);
     setItems([]);
     setCover(null);
   }
@@ -191,6 +148,7 @@ export function UploadSection({
   function clearCover() {
     setCover((prev) => {
       if (prev?.mode === "file") URL.revokeObjectURL(prev.url);
+      if (prev?.mode === "frame" && prev.preview) URL.revokeObjectURL(prev.preview);
       return null;
     });
   }
@@ -199,6 +157,7 @@ export function UploadSection({
     if (!cover) return "";
     if (cover.mode === "file") return cover.url;
     if (cover.mode === "media") return items.find((item) => item.id === cover.id)?.url || "";
+    if (cover.mode === "frame") return cover.preview;
     return "";
   }
 
@@ -290,12 +249,20 @@ export function UploadSection({
       };
 
       const res = await api.createProject(payload, token);
-      if (res.ok) {
-        onToast("Yeni iş vitrinə əlavə edildi.");
-        (e.target as HTMLFormElement).reset();
-        resetMedia();
-        onUploaded();
+      if (!res.ok) {
+        let msg = "Layihə yaradıla bilmədi.";
+        try {
+          const data = await res.json();
+          if (data?.message) msg = String(data.message);
+        } catch {
+          /* ignore */
+        }
+        throw new Error(msg);
       }
+      onToast("Yeni iş vitrinə əlavə edildi.");
+      (e.target as HTMLFormElement).reset();
+      resetMedia();
+      onUploaded();
     } catch (err) {
       onToast(err instanceof Error ? err.message : "Xəta baş verdi.");
     } finally {
@@ -308,7 +275,7 @@ export function UploadSection({
 
   return (
     <AdminCard
-      title="Yeni iş"
+      title={t("sec.upload")}
       hint="İstədiyin qədər şəkil və video seç. Sonra kapak üçün şəkil, video kadrı və ya yeni şəkil seçə bilərsən."
     >
       <form onSubmit={onSubmit} className="space-y-4">
@@ -391,12 +358,15 @@ export function UploadSection({
           <div className="rounded-2xl border border-line bg-void p-4">
             <p className="text-[11px] uppercase tracking-[0.18em] text-mist">Kapak (opsional)</p>
             <p className="mt-1 text-sm text-mist">
-              Şəkillərdən birini seç, videonun kadrını götür, və ya ayrı şəkil yüklə.
+              Videonu sürüşdürüb kadr seç, &quot;Bu kadrı kapak et&quot; ilə təsdiqlə. İstəsən ayrı şəkil də yüklə.
             </p>
             {imageCoverSrc ? (
               <div className="mt-3 overflow-hidden rounded-xl border border-line bg-surface">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={imageCoverSrc} alt="" className="max-h-48 w-full object-contain" />
+                {cover?.mode === "frame" && cover.blob.size > 0 ? (
+                  <p className="px-3 py-2 text-xs text-mist">Kapak təsdiqləndi.</p>
+                ) : null}
               </div>
             ) : null}
             {frameItem && cover?.mode === "frame" ? (
@@ -404,7 +374,12 @@ export function UploadSection({
                 key={frameItem.id}
                 src={frameItem.url}
                 time={cover.time}
-                onFrame={(time, blob) => setCover({ mode: "frame", id: frameItem.id, time, blob })}
+                onFrame={(time, blob) =>
+                  setCover((prev) => {
+                    if (prev?.mode === "frame" && prev.preview) URL.revokeObjectURL(prev.preview);
+                    return { mode: "frame", id: frameItem.id, time, blob, preview: URL.createObjectURL(blob) };
+                  })
+                }
               />
             ) : null}
             <div className="mt-3 flex flex-wrap items-center gap-2">

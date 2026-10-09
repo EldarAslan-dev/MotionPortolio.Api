@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminCard, adminBtnGhost, adminBtnQuiet } from "@/components/admin/ui";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import type { Testimonial } from "@/lib/types";
 
@@ -15,9 +16,10 @@ export function TestimonialsSection({
   onChanged: () => void;
   onToast: (msg: string) => void;
 }) {
-  async function publish(t: Testimonial) {
+  const { t } = useI18n();
+  async function publish(item: Testimonial) {
     const res = await api.createTestimonial(
-      { clientName: t.clientName, company: t.company, comment: t.comment, rating: t.rating },
+      { clientName: item.clientName, company: item.company, comment: item.comment, rating: item.rating },
       token,
     );
     if (res.ok) onToast("Rəy vitrinə paylaşıldı.");
@@ -30,7 +32,7 @@ export function TestimonialsSection({
   }
 
   return (
-    <AdminCard title="Rəylər" hint="Müştəri rəylərini vitrinə çıxar və ya sil.">
+    <AdminCard title={t("sec.reviews")} hint={t("sec.reviewsHint")}>
       {testimonials.length === 0 ? (
         <p className="py-8 text-center text-sm text-mist">Hələ gələn rəy yoxdur.</p>
       ) : (

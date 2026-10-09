@@ -2,9 +2,11 @@
 
 import { FormEvent, useState } from "react";
 import { AdminCard, AdminField, adminBtn, adminFieldClass } from "@/components/admin/ui";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 
 export function PasswordSection({ token, onToast }: { token: string; onToast: (msg: string) => void }) {
+  const { t } = useI18n();
   const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -29,7 +31,7 @@ export function PasswordSection({ token, onToast }: { token: string; onToast: (m
   }
 
   return (
-    <AdminCard title="Şifrə" hint="Admin hesabının giriş şifrəsi.">
+    <AdminCard title={t("sec.password")} hint={t("sec.passwordHint")}>
       <form onSubmit={onSubmit} className="max-w-sm space-y-3">
         <AdminField label="Köhnə şifrə">
           <input name="old" type="password" required className={adminFieldClass} />

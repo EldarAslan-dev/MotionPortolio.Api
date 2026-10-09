@@ -2,6 +2,8 @@
 
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ClientFace } from "@/components/ClientFace";
+import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { getApiUrl } from "@/lib/config";
 import type { ChatMessage } from "@/lib/types";
@@ -9,6 +11,7 @@ import type { ChatMessage } from "@/lib/types";
 type Props = {
   clientId: string | null;
   clientName: string;
+  clientAvatar?: string;
   onNeedRegister: () => void;
 };
 
@@ -16,7 +19,8 @@ function keyOf(m: Pick<ChatMessage, "sender" | "content" | "id">) {
   return m.id ? `id:${m.id}` : `${m.sender}|${m.content}`;
 }
 
-export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
+export function ChatDock({ clientId, clientName, clientAvatar, onNeedRegister }: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -153,71 +157,68 @@ export function ChatDock({ clientId, clientName, onNeedRegister }: Props) {
         type="button"
         data-cursor="link"
         onClick={toggle}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-bone/20 bg-surface text-bone shadow-lg shadow-black/40 transition hover:border-cue hover:text-cue"
-        aria-label="Live desk"
+        className="chat-gold fixed bottom-6 right-6 z-[95] flex h-[58px] w-[58px] items-center justify-center rounded-full border shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+        aria-label="Open Live Chat"
       >
-        <span className="text-lg">✉</span>
+        <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden>
+          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z" />
+        </svg>
         {badge && !open ? (
-          <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-cue ring-2 ring-void" />
+          <span className="absolute right-0.5 top-0.5 h-3 w-3 rounded-full border-2 border-[var(--sf)] bg-[#22c55e]" />
         ) : null}
       </button>
 
       {open ? (
-        <div className="fixed bottom-24 right-6 z-40 flex h-[420px] w-[min(92vw,360px)] flex-col overflow-hidden border border-line bg-surface text-bone shadow-2xl shadow-black/50">
-          <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <div>
-              <p className="font-mono-tech text-xs uppercase tracking-[0.2em] text-mist">
-                Studio desk
-              </p>
-              <p className="font-display text-xl text-bone">Live desk</p>
+        <div className="pub-chat rounded-[20px] border border-[var(--bd)] bg-[var(--sf)] text-[rgb(var(--bone))] shadow-[var(--sh)]">
+          <div className="flex items-center justify-between border-b border-[var(--bd)] bg-[var(--s2)] px-4 py-4">
+            <div className="min-w-0">
+              <b className="block text-sm">Bilgeyis Mirzazada</b>
+              <small className="text-[11px] text-[#22c55e]">{t("chat.online")}</small>
+              {clientId ? (
+                <span className="mt-1 flex items-center gap-1.5 text-[11px] text-[rgb(var(--mist))]">
+                  <ClientFace name={clientName} src={clientAvatar} size={16} />
+                  <span className="truncate">{clientName}</span>
+                  <span className="truncate font-mono">{clientId}</span>
+                </span>
+              ) : null}
             </div>
-            <button type="button" onClick={() => setOpen(false)} className="text-2xl leading-none text-mist transition hover:text-bone">
-              ×
+            <button type="button" onClick={() => setOpen(false)} className="text-lg text-[rgb(var(--mist))]">
+              ✕
             </button>
           </div>
-          <div ref={boxRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
+          <div ref={boxRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
             {!loaded ? (
-              <p className="pt-16 text-center text-sm text-mist">Loading messages…</p>
+              <p className="pt-16 text-center text-sm text-[rgb(var(--mist))]">{t("chat.loading")}</p>
             ) : messages.length === 0 ? (
-              <p className="pt-16 text-center text-sm text-mist">
-                Write a message — replies stay here.
-              </p>
+              <div className="max-w-[80%] self-start rounded-[14px] rounded-bl bg-[var(--s2)] px-3.5 py-2.5 text-[13.5px]">
+                {t("chat.hello")}
+              </div>
             ) : (
               messages.map((m) => {
                 const mine = m.sender === "Client";
                 return (
                   <div
                     key={keyOf(m) + m.sentAt}
-                    className={`max-w-[82%] px-3 py-2 text-sm ${
-                      mine
-                        ? "ml-auto border border-cue/40 bg-cue/10 text-bone"
-                        : "border border-line bg-void text-bone"
+                    className={`max-w-[80%] rounded-[14px] px-3.5 py-2.5 text-[13.5px] ${
+                      mine ? "chat-gold self-end rounded-br" : "self-start rounded-bl bg-[var(--s2)]"
                     }`}
                   >
-                    <p className="mb-1 font-mono-tech text-[10px] uppercase tracking-wider text-mist">
-                      {mine ? "You" : "Studio"}
-                    </p>
                     <p className="whitespace-pre-wrap">{m.content}</p>
                   </div>
                 );
               })
             )}
           </div>
-          <div className="flex gap-2 border-t border-line p-3">
+          <div className="pub-chat-form border-t border-[var(--bd)] bg-[var(--sf)] p-3">
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Write a message…"
-              className="flex-1 border border-line bg-void px-4 py-2 text-sm text-bone placeholder:text-mist outline-none transition focus:border-cue"
+              placeholder={t("chat.placeholder")}
+              className="rounded-full border border-[var(--bd)] bg-[rgb(var(--void))] px-3.5 py-2.5 text-[13.5px] text-[rgb(var(--bone))] outline-none placeholder:text-[rgb(var(--mist))] focus:border-[var(--g2)]"
             />
-            <button
-              type="button"
-              data-cursor="link"
-              onClick={send}
-              className="border border-bone/30 px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.1em] text-bone transition hover:border-cue hover:text-cue"
-            >
-              Send
+            <button type="button" data-cursor="link" onClick={send} className="gold-btn">
+              {t("chat.send")}
             </button>
           </div>
         </div>

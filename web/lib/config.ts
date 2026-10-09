@@ -17,7 +17,12 @@ export function mediaUrl(path: string | null | undefined): string {
   if (!path) return "";
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
   const origin = getApiUrl().replace(/\/$/, "");
-  return path.startsWith("/") ? `${origin}${path}` : `${origin}/${path}`;
+  const url = path.startsWith("/") ? `${origin}${path}` : `${origin}/${path}`;
+  const file = path.split("?")[0];
+  if (/\.(png|jpe?g|webp)$/i.test(file) && !/[?&]w=/.test(url)) {
+    return `${url}${url.includes("?") ? "&" : "?"}w=1600`;
+  }
+  return url;
 }
 
 const VIDEO_EXTENSIONS = [".mp4", ".mov", ".webm"];
@@ -54,7 +59,20 @@ export function parseGallery(json: string | null | undefined): GalleryItem[] {
         const rawPoster =
           (entry as { posterUrl?: unknown }).posterUrl || (entry as { PosterUrl?: unknown }).PosterUrl;
         const posterUrl = typeof rawPoster === "string" && rawPoster ? rawPoster : undefined;
-        items.push(posterUrl ? { url, type, posterUrl } : { url, type });
+        const raw = entry as { width?: unknown; height?: unknown; radius?: unknown; fit?: unknown };
+        const width = heroMeasure(raw.width, 100, 480);
+        const height = heroMeasure(raw.height, 120, 620);
+        const radius = heroMeasure(raw.radius, 0, 160);
+        const fit = raw.fit === "contain" || raw.fit === "cover" ? raw.fit : undefined;
+        items.push({
+          url,
+          type,
+          ...(posterUrl ? { posterUrl } : {}),
+          ...(width != null ? { width } : {}),
+          ...(height != null ? { height } : {}),
+          ...(radius != null ? { radius } : {}),
+          ...(fit ? { fit } : {}),
+        });
       }
     }
     return items;
@@ -105,7 +123,7 @@ export function normalizeProject(
 
 /** Dedicated hero-gallery media from the profile field — never mixed with project covers. */
 export function parseHeroGallery(json: string | null | undefined): GalleryItem[] {
-  return parseGallery(json);
+  return parseGallery(json).slice(0, 4);
 }
 
 export function isVideoMedia(item: Pick<GalleryItem, "url" | "type">): boolean {
@@ -143,6 +161,12 @@ export function parseTools(json: string | null | undefined): ToolItem[] {
 export function resolveTools(json: string | null | undefined): ToolItem[] {
   const items = parseTools(json);
   return items.length > 0 ? items : DEFAULT_TOOLS;
+}
+
+function heroMeasure(value: unknown, min: number, max: number) {
+  const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+  if (!Number.isFinite(n)) return undefined;
+  return Math.min(max, Math.max(min, Math.round(n)));
 }
 
 function isImagePath(path: string) {

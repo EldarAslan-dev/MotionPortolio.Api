@@ -12,11 +12,11 @@ export function AdminCard({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
+    <section className="admin-glass p-5">
       {title ? (
         <header className="mb-5">
-          <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-bone">{title}</h2>
-          {hint ? <p className="mt-1 max-w-xl text-sm leading-relaxed text-mist">{hint}</p> : null}
+          <h2 className="text-[15px] font-semibold text-bone">{title}</h2>
+          {hint ? <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-mist">{hint}</p> : null}
         </header>
       ) : null}
       {children}
@@ -33,26 +33,57 @@ export function AdminField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] uppercase tracking-[0.18em] text-mist">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-bone">{label}</span>
       {children}
     </label>
   );
 }
 
 export const adminFieldClass =
-  "w-full rounded-xl border border-line bg-void px-3.5 py-2.5 text-sm text-bone outline-none placeholder:text-mist/70 transition focus:border-bone/35";
+  "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-bone outline-none placeholder:text-mist/70 transition focus:border-cue focus:shadow-[0_0_0_3px_rgb(227_185_92_/_0.22)]";
 
 export const adminSelectClass =
-  "rounded-lg border border-line bg-void px-2.5 py-1.5 text-xs text-bone outline-none";
+  "rounded-lg border border-line bg-surface px-3 py-1.5 text-xs text-bone outline-none";
 
 export const adminBtn =
-  "rounded-xl bg-bone px-4 py-2.5 text-sm font-semibold text-void disabled:opacity-50";
+  "admin-gold-btn rounded-lg px-3.5 py-2 text-sm disabled:opacity-50";
 
 export const adminBtnGhost =
-  "rounded-xl border border-line px-3.5 py-2 text-xs font-semibold text-mist transition hover:border-bone/30 hover:text-bone";
+  "rounded-lg border border-line bg-surface px-3.5 py-2 text-sm font-medium text-bone transition hover:border-cue";
 
 export const adminBtnQuiet =
-  "rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-mist transition hover:text-bone";
+  "rounded-lg border border-line bg-surface px-2.5 py-1 text-[13px] font-medium text-mist transition hover:border-cue hover:text-bone";
+
+export function reorderList<T>(list: T[], fromId: number, toId: number, idOf: (item: T) => number) {
+  const from = list.findIndex((item) => idOf(item) === fromId);
+  const to = list.findIndex((item) => idOf(item) === toId);
+  if (from < 0 || to < 0 || from === to) return null;
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+export function OrderButtons({
+  index,
+  total,
+  onMove,
+}: {
+  index: number;
+  total: number;
+  onMove: (dir: number) => void;
+}) {
+  return (
+    <>
+      <button type="button" disabled={index === 0} onClick={() => onMove(-1)} className={adminBtnQuiet}>
+        ↑
+      </button>
+      <button type="button" disabled={index >= total - 1} onClick={() => onMove(1)} className={adminBtnQuiet}>
+        ↓
+      </button>
+    </>
+  );
+}
 
 export function AdminFilePick({
   id,

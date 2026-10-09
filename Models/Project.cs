@@ -19,4 +19,5 @@ public class Project
     public string? Year { get; set; }
     public string? ProcessNotes { get; set; }
     public string GalleryJson { get; set; } = "[]";
+    public int SortOrder { get; set; }
 }

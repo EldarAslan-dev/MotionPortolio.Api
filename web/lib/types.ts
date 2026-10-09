@@ -13,12 +13,18 @@ export type StudioProfile = {
   announcementText: string;
   showAnnouncement: boolean;
   notesJson?: string;
+  siteDesignJson?: string;
+  offersJson?: string;
 };
 
 export type GalleryItem = {
   url: string;
   type: "image" | "video";
   posterUrl?: string;
+  width?: number;
+  height?: number;
+  radius?: number;
+  fit?: "cover" | "contain";
 };
 
 export type ToolItem = {
@@ -93,10 +99,72 @@ export type OrderMessage = {
 export type Conversation = {
   clientId: string;
   clientName: string;
+  clientEmail?: string;
+  avatarUrl?: string | null;
   lastMessage: string | null;
   lastSender: string | null;
   lastAt: string | null;
   hasMessages: boolean;
+};
+
+export type MyOrder = {
+  id: number;
+  orderNumber: string;
+  status: string;
+  selectedProjectTitle: string | null;
+  budget: string;
+  message: string;
+  createdAt: string;
+  deliveredFileUrl: string | null;
+  clientId: string;
+  clientName: string;
+  receiptUploaded?: boolean;
+};
+
+export type SiteAccount = {
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  avatarUrl: string;
+  createdAt: string;
+};
+
+export type MemberGift = {
+  id: number;
+  kind: string;
+  title: string;
+  detail: string;
+  createdAt: string;
+};
+
+export type MemberAccount = {
+  clientId: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  hasPassword: boolean;
+  orders: number;
+  paid: { currency: string; amount: number }[];
+  ledger: {
+    id: number;
+    orderNumber: string;
+    status: string;
+    budget: string;
+    title: string;
+    createdAt: string;
+  }[];
+  gifts: MemberGift[];
+};
+
+export type TrackOrder = {
+  order_id: string;
+  client_name: string;
+  package_name: string;
+  amount: string;
+  status: string;
+  receipt_uploaded: boolean;
+  payment?: { m10: string; card: string; bank: string } | null;
+  download_url?: string | null;
 };
 
 export type Inquiry = {
@@ -104,12 +172,18 @@ export type Inquiry = {
   clientId: string;
   clientName: string;
   clientEmail: string;
+  clientAvatarUrl?: string | null;
   budget: string;
   message: string;
   selectedProjectTitle: string | null;
   status: string;
   orderNumber: string;
   deliveredFileUrl: string | null;
+  trackToken: string;
+  deliverableLink: string | null;
+  receiptAt: string | null;
+  hasReceipt: boolean;
+  hasDeliverable: boolean;
   createdAt: string;
   assignedStaffUsername: string | null;
   staffFileUrl: string | null;

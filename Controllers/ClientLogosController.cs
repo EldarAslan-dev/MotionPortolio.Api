@@ -27,6 +27,27 @@ public class ClientLogosController : ControllerBase
         return Ok(logos);
     }
 
+    public class OrderBody
+    {
+        public List<int> Ids { get; set; } = new();
+    }
+
+    [HttpPut("order")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Reorder([FromBody] OrderBody body)
+    {
+        if (body?.Ids == null || body.Ids.Count == 0)
+            return BadRequest(new { message = "Sıra boşdur." });
+        var logos = await _context.ClientLogos.ToListAsync();
+        for (var i = 0; i < body.Ids.Count; i++)
+        {
+            var logo = logos.FirstOrDefault(l => l.Id == body.Ids[i]);
+            if (logo != null) logo.SortOrder = i;
+        }
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Sıra yeniləndi." });
+    }
+
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ClientLogo>> Create([FromBody] ClientLogo item)

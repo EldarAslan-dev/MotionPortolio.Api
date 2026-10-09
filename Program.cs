@@ -5,8 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MotionPortfolio.Api.Data;
 using MotionPortfolio.Api.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 200L * 1024 * 1024);
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+    options.MultipartBodyLengthLimit = 200L * 1024 * 1024);
 
 // 1. Verilənlər Bazası
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -159,6 +167,27 @@ using (var scope = app.Services.CreateScope())
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'ClientChatEnabled' AND Object_ID = Object_ID(N'Inquiries'))
             ALTER TABLE Inquiries ADD ClientChatEnabled BIT NOT NULL DEFAULT 0;
 
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'TrackToken' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD TrackToken NVARCHAR(80) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'DownloadToken' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD DownloadToken NVARCHAR(80) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'DownloadExpires' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD DownloadExpires DATETIME2 NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'DeliverablePath' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD DeliverablePath NVARCHAR(500) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'DeliverableLink' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD DeliverableLink NVARCHAR(1000) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'ReceiptPath' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD ReceiptPath NVARCHAR(500) NULL;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'ReceiptAt' AND Object_ID = Object_ID(N'Inquiries'))
+            ALTER TABLE Inquiries ADD ReceiptAt DATETIME2 NULL;
+
             -- Müştəri şəxsiyyəti cədvəli: mesajlar silinsə belə bu qalır,
             -- ona görə admin panelindəki söhbətlər siyahısından müştəri itmir
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ChatClients' and xtype='U')
@@ -172,6 +201,32 @@ using (var scope = app.Services.CreateScope())
             -- Avtomatik salamlamanın hər müştəriyə yalnız bir dəfə getməsi üçün bayraq
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AutoReplySent' AND Object_ID = Object_ID(N'ChatClients'))
             ALTER TABLE ChatClients ADD AutoReplySent BIT NOT NULL DEFAULT 0;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'ClientEmail' AND Object_ID = Object_ID(N'ChatClients'))
+            ALTER TABLE ChatClients ADD ClientEmail NVARCHAR(320) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'AvatarUrl' AND Object_ID = Object_ID(N'ChatClients'))
+            ALTER TABLE ChatClients ADD AvatarUrl NVARCHAR(500) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'PasswordHash' AND Object_ID = Object_ID(N'ChatClients'))
+            ALTER TABLE ChatClients ADD PasswordHash NVARCHAR(200) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ClientGifts' and xtype='U')
+            CREATE TABLE ClientGifts (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                ClientId NVARCHAR(100) NOT NULL,
+                Kind NVARCHAR(20) NOT NULL DEFAULT '',
+                Title NVARCHAR(200) NOT NULL DEFAULT '',
+                Detail NVARCHAR(500) NOT NULL DEFAULT '',
+                CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+            );
+
+            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ClientProjectLikes' and xtype='U')
+            CREATE TABLE ClientProjectLikes (
+                Id INT IDENTITY(1,1) PRIMARY KEY,
+                ClientId NVARCHAR(100) NOT NULL,
+                ProjectId INT NOT NULL
+            );
 
             -- Ümumi dəstək çatının (offline mesajlaşma) mesajları
             IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Messages' and xtype='U')
@@ -213,6 +268,12 @@ using (var scope = app.Services.CreateScope())
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'HeroGalleryJson' AND Object_ID = Object_ID(N'StudioProfiles'))
             ALTER TABLE StudioProfiles ADD HeroGalleryJson NVARCHAR(MAX) NOT NULL DEFAULT '[]';
 
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'SiteDesignJson' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD SiteDesignJson NVARCHAR(MAX) NOT NULL DEFAULT '';
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'OffersJson' AND Object_ID = Object_ID(N'StudioProfiles'))
+            ALTER TABLE StudioProfiles ADD OffersJson NVARCHAR(MAX) NOT NULL DEFAULT '';
+
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE Name = N'CardImageUrl' AND Object_ID = Object_ID(N'Projects'))
             ALTER TABLE Projects ADD CardImageUrl NVARCHAR(MAX) NOT NULL DEFAULT '';
 
@@ -244,6 +305,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("frontend");
+app.Use(ServeDisplayImage);
 app.UseDefaultFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -312,6 +374,98 @@ using (var scope = app.Services.CreateScope())
     {
         // Bağlantı həmən qurulmasa ötürür
     }
+}
+
+static async Task ServeDisplayImage(HttpContext context, RequestDelegate next)
+{
+    var path = context.Request.Path.Value ?? "";
+    if (!path.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase) || !context.Request.Query.ContainsKey("w"))
+    {
+        await next(context);
+        return;
+    }
+
+    var name = Path.GetFileName(path);
+    var ext = Path.GetExtension(name).ToLowerInvariant();
+    if (name.Contains("..", StringComparison.Ordinal) || ext is not (".jpg" or ".jpeg" or ".png" or ".webp"))
+    {
+        await next(context);
+        return;
+    }
+
+    var root = context.RequestServices.GetRequiredService<IWebHostEnvironment>().WebRootPath
+        ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+    var source = Path.Combine(root, "uploads", name);
+    if (!System.IO.File.Exists(source))
+    {
+        await next(context);
+        return;
+    }
+
+    var cacheDir = Path.Combine(root, "uploads", ".sized");
+    Directory.CreateDirectory(cacheDir);
+    var stem = Path.GetFileNameWithoutExtension(name);
+    var jpg = Path.Combine(cacheDir, stem + ".w1600.jpg");
+    var png = Path.Combine(cacheDir, stem + ".w1600.png");
+    var sourceTime = System.IO.File.GetLastWriteTimeUtc(source);
+    string? cached = null;
+    if (System.IO.File.Exists(png) && System.IO.File.GetLastWriteTimeUtc(png) >= sourceTime) cached = png;
+    else if (System.IO.File.Exists(jpg) && System.IO.File.GetLastWriteTimeUtc(jpg) >= sourceTime) cached = jpg;
+    if (cached == null)
+    {
+        try
+        {
+            using var image = await Image.LoadAsync<Rgba32>(source);
+            image.Mutate(op => op.AutoOrient());
+            if (image.Width > 1600 || image.Height > 1600)
+            {
+                image.Mutate(op => op.Resize(new ResizeOptions
+                {
+                    Size = new Size(1600, 1600),
+                    Mode = ResizeMode.Max
+                }));
+            }
+
+            var keepPng = ext == ".png" && HasTransparency(image);
+            cached = keepPng ? png : jpg;
+            var tmp = cached + ".tmp";
+            if (keepPng)
+                await image.SaveAsPngAsync(tmp, new PngEncoder { CompressionLevel = PngCompressionLevel.Level6 });
+            else
+                await image.SaveAsJpegAsync(tmp, new JpegEncoder { Quality = 76 });
+            System.IO.File.Move(tmp, cached, true);
+        }
+        catch
+        {
+            await next(context);
+            return;
+        }
+    }
+
+    context.Response.ContentType = cached.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? "image/png" : "image/jpeg";
+    context.Response.Headers.CacheControl = "public, max-age=2592000";
+    await context.Response.SendFileAsync(cached);
+}
+
+static bool HasTransparency(Image<Rgba32> image)
+{
+    var transparent = false;
+    image.ProcessPixelRows(accessor =>
+    {
+        for (var y = 0; y < accessor.Height && !transparent; y += 3)
+        {
+            var row = accessor.GetRowSpan(y);
+            for (var x = 0; x < row.Length; x += 3)
+            {
+                if (row[x].A < 250)
+                {
+                    transparent = true;
+                    return;
+                }
+            }
+        }
+    });
+    return transparent;
 }
 
 app.Run();

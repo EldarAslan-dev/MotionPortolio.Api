@@ -16,4 +16,6 @@ public class StudioProfile
     public string AnnouncementText { get; set; } = "";
     public bool ShowAnnouncement { get; set; } = true;
     public string NotesJson { get; set; } = "[]";
+    public string SiteDesignJson { get; set; } = "";
+    public string OffersJson { get; set; } = "";
 }

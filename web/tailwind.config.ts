@@ -39,6 +39,13 @@ export default {
           "BlinkMacSystemFont",
           "sans-serif",
         ],
+        serif: [
+          "SF Pro Display",
+          "SF Pro Text",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "sans-serif",
+        ],
       },
     },
   },

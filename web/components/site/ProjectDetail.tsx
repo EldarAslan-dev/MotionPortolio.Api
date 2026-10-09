@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { PostStats } from "@/components/site/PostStats";
-import { LazyVideo } from "@/components/motion/LazyVideo";
-import { MaskReveal } from "@/components/motion/MaskReveal";
 import { api } from "@/lib/api";
-import { mediaUrl, normalizeProject, parseGallery, projectCover, projectPoster } from "@/lib/config";
+import { mediaUrl, normalizeProject, parseGallery } from "@/lib/config";
 import { useStudio } from "@/lib/site/StudioContext";
 import type { GalleryItem, Project, ProjectComment } from "@/lib/types";
 
@@ -59,7 +57,7 @@ function projectMedia(project: Project): GalleryItem[] {
 }
 
 export function ProjectDetail({ id }: { id: number }) {
-  const { projects, openInquiry } = useStudio();
+  const { projects, openInquiry, clientId, clientName } = useStudio();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -108,8 +106,77 @@ export function ProjectDetail({ id }: { id: number }) {
         ? projects[(idx + 1) % projects.length]
         : projects[0]
       : null;
-  const nextCover = next ? projectCover(next) : null;
-  const nextPoster = next ? projectPoster(next) : "";
+  const washSrc = mediaUrl(
+    current?.posterUrl ||
+      (current?.type === "image" ? current.url : "") ||
+      project?.cardImageUrl ||
+      project?.thumbnailUrl ||
+      "",
+  );
+  const [tone, setTone] = useState("#16130f");
+
+  useEffect(() => {
+    if (clientName) setAuthor(clientName);
+  }, [clientName]);
+
+  useEffect(() => {
+    document.documentElement.classList.add("reel-on");
+    return () => {
+      document.documentElement.classList.remove("reel-on");
+      document.documentElement.style.removeProperty("--reel-bg");
+    };
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--reel-bg", tone);
+  }, [tone]);
+
+  useEffect(() => {
+    if (!washSrc) return;
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => {
+      if (cancelled) return;
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 12;
+        canvas.height = 12;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, 12, 12);
+        const data = ctx.getImageData(0, 0, 12, 12).data;
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        let n = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] < 24) continue;
+          r += data[i];
+          g += data[i + 1];
+          b += data[i + 2];
+          n += 1;
+        }
+        if (!n) return;
+        const rr = r / n;
+        const gg = g / n;
+        const bb = b / n;
+        const y = (0.2126 * rr + 0.7152 * gg + 0.0722 * bb) / 255;
+        const scale = y > 0.78 ? 0.86 : y < 0.16 ? 0.5 : 0.7;
+        const br = Math.round(rr * scale);
+        const bgc = Math.round(gg * scale);
+        const bl = Math.round(bb * scale);
+        const by = (0.2126 * br + 0.7152 * bgc + 0.0722 * bl) / 255;
+        setTone(`rgb(${br}, ${bgc}, ${bl})`);
+        document.documentElement.style.setProperty("--reel-ink", by > 0.62 ? "#1c1814" : "#f7f3ea");
+      } catch {
+        /* poster oxunmasa fon qalır */
+      }
+    };
+    img.src = washSrc;
+    return () => {
+      cancelled = true;
+    };
+  }, [washSrc]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -136,12 +203,13 @@ export function ProjectDetail({ id }: { id: number }) {
     setLikes(data.likesCount ?? data.LikesCount ?? likes + 1);
     setLiked(true);
     window.localStorage.setItem(`bm-like-${id}`, "1");
+    if (clientId) api.saveLike(clientId, id).catch(() => {});
   }
 
   async function onComment(e: FormEvent) {
     e.preventDefault();
     const content = commentText.trim();
-    const name = author.trim();
+    const name = author.trim() || clientName.trim();
     if (!content || !name) return;
     setSending(true);
     try {
@@ -193,191 +261,117 @@ export function ProjectDetail({ id }: { id: number }) {
 
   return (
     <article>
-      <div className="mx-auto max-w-[1100px] px-5 pb-20 pt-28 md:px-10 md:pb-28 md:pt-32">
-        <Link
-          href="/#work"
-          data-cursor="link"
-          className="font-mono-tech text-xs uppercase tracking-[0.15em] text-mist transition hover:text-bone"
-        >
+      <div className="reel-post">
+        <Link href="/#work" data-cursor="link" className="reel-back">
           ← Work
         </Link>
 
-        <header className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <h1 className="font-display max-w-3xl text-[clamp(2rem,6vw,4.25rem)] uppercase leading-[0.95] text-bone">
-            {project.title}
-          </h1>
-          <div className="flex shrink-0 flex-wrap gap-x-5 gap-y-1 font-mono-tech text-[11px] uppercase tracking-[0.18em] text-mist">
-            {project.category ? <span>{project.category}</span> : null}
-            {project.year ? <span>{project.year}</span> : null}
-          </div>
-        </header>
-
         {current ? (
-          <div className="mt-10">
-            <div className="piece-frame">
-              <div className="piece-stage relative">
-                <WatchMedia item={current} />
-                {media.length > 1 ? (
-                  <>
-                    <button
-                      type="button"
-                      className="piece-nav prev"
-                      aria-label="Previous"
-                      onClick={() => setActive((i) => (i - 1 + media.length) % media.length)}
-                    >
-                      ‹
-                    </button>
-                    <button
-                      type="button"
-                      className="piece-nav next"
-                      aria-label="Next"
-                      onClick={() => setActive((i) => (i + 1) % media.length)}
-                    >
-                      ›
-                    </button>
-                  </>
-                ) : null}
+          <div className="reel-stage">
+            <WatchMedia item={current} />
+            {media.length > 1 ? (
+              <>
                 <button
                   type="button"
-                  onClick={() => setFull(true)}
-                  className="absolute right-3 top-3 rounded-full border border-line bg-void/80 px-3 py-1 font-mono-tech text-[10px] uppercase tracking-[0.16em] text-mist backdrop-blur-sm hover:text-bone"
+                  className="piece-nav prev"
+                  aria-label="Previous"
+                  onClick={() => setActive((i) => (i - 1 + media.length) % media.length)}
                 >
-                  Full
+                  ‹
                 </button>
-              </div>
-              <PostStats
-                likes={likes}
-                comments={comments.length}
-                liked={liked}
-                onLike={onLike}
-                onComments={() => document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" })}
-              />
-            </div>
-            {media.length > 1 ? (
-              <div className="piece-thumbs mt-4">
-                {media.map((item, i) => (
-                  <button
-                    key={`${item.url}-${i}`}
-                    type="button"
-                    data-cursor="view"
-                    data-cursor-label="VIEW"
-                    onClick={() => setActive(i)}
-                    className={`piece-thumb ${i === active ? "is-on" : ""}`}
-                    aria-label={`Media ${i + 1}`}
-                    aria-current={i === active}
-                  >
-                    <ThumbMedia item={item} />
-                  </button>
-                ))}
-              </div>
+                <button
+                  type="button"
+                  className="piece-nav next"
+                  aria-label="Next"
+                  onClick={() => setActive((i) => (i + 1) % media.length)}
+                >
+                  ›
+                </button>
+              </>
             ) : null}
+            <button
+              type="button"
+              onClick={() => setFull(true)}
+              className="absolute right-3 top-3 rounded-full border border-white/20 bg-black/40 px-3 py-1 text-[11px] text-white"
+            >
+              Full
+            </button>
           </div>
         ) : null}
+
+        <div className="reel-cap">
+          <h1>{project.title}</h1>
+          <span>{[project.category, project.year].filter(Boolean).join(" · ")}</span>
+        </div>
+
+        <div className="reel-actions">
+          <PostStats likes={likes} comments={comments.length} liked={liked} onLike={onLike} />
+          <button type="button" className="reel-touch" onClick={() => openInquiry(project.title)}>
+            Get in touch
+          </button>
+        </div>
 
         {project.description ? (
-          <MaskReveal as="p" className="mt-12 max-w-2xl" innerClassName="text-base leading-relaxed text-mist md:text-lg">
+          <p className="reel-copy">
+            <b>{project.title}</b>
             {project.description}
-          </MaskReveal>
+          </p>
         ) : null}
+        {project.processNotes ? <p className="reel-copy">{project.processNotes}</p> : null}
 
-        {project.processNotes ? (
-          <div className="mt-12 grid gap-4 border-t border-line pt-10 md:grid-cols-[160px_1fr]">
-            <span className="font-mono-tech text-[11px] uppercase tracking-[0.2em] text-mist">
-              Process
-            </span>
-            <MaskReveal as="p" innerClassName="text-lg leading-snug text-bone md:text-xl">
-              {project.processNotes}
-            </MaskReveal>
+        {media.length > 1 ? (
+          <div className="piece-thumbs mt-4">
+            {media.map((item, i) => (
+              <button
+                key={`${item.url}-${i}`}
+                type="button"
+                onClick={() => setActive(i)}
+                className={`piece-thumb ${i === active ? "is-on" : ""}`}
+                aria-label={`Media ${i + 1}`}
+                aria-current={i === active}
+              >
+                <ThumbMedia item={item} />
+              </button>
+            ))}
           </div>
         ) : null}
 
-        <div id="comments" className="mt-14 border-t border-line pt-10">
-          <div className="space-y-5">
-              {comments.length === 0 ? (
-                <p className="text-sm text-mist">No comments yet.</p>
-              ) : (
-                comments.map((c) => (
-                  <div key={c.id} className="border-b border-line pb-4">
-                    <p className="font-semibold text-bone">{c.authorName}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-mist">{c.content}</p>
-                  </div>
-                ))
-              )}
-            </div>
-            <form onSubmit={onComment} className="mt-8 max-w-lg space-y-3">
+        <div id="comments" className="reel-thread">
+          {comments.map((c) => (
+            <p key={c.id}>
+              <b>{c.authorName}</b>
+              {c.content}
+            </p>
+          ))}
+          <form onSubmit={onComment} className="reel-compose">
+            {clientName ? null : (
               <input
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 required
-                placeholder="Name"
-                className="w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-bone outline-none placeholder:text-mist"
+                placeholder="Ad"
+                className="reel-name"
               />
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                required
-                rows={3}
-                placeholder="Write a comment"
-                className="w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-bone outline-none placeholder:text-mist"
-              />
-              <button
-                type="submit"
-                disabled={sending}
-                className="rounded-full border border-bone/30 px-5 py-2.5 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone disabled:opacity-50"
-              >
-                {sending ? "Sending…" : "Post comment"}
-              </button>
-            </form>
+            )}
+            <input
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              required
+              placeholder="Şərh yaz…"
+            />
+            <button type="submit" disabled={sending || !commentText.trim()}>
+              {sending ? "…" : "Paylaş"}
+            </button>
+          </form>
         </div>
 
-        <div className="mt-14">
-          <button
-            type="button"
-            data-cursor="link"
-            onClick={() => openInquiry(project.title)}
-            className="rounded-full border border-bone/30 px-6 py-3 font-mono-tech text-xs uppercase tracking-[0.15em] text-bone transition hover:border-cue hover:text-cue"
-          >
-            Get in touch
-          </button>
-        </div>
+        {next && next.id !== project.id ? (
+          <Link href={`/work/${next.id}`} data-cursor="link" className="reel-next">
+            <small>Next</small>
+            <b>{next.title}</b>
+          </Link>
+        ) : null}
       </div>
-
-      {next && next.id !== project.id ? (
-        <Link
-          href={`/work/${next.id}`}
-          data-cursor="view"
-          data-cursor-label="NEXT"
-          className="group relative block h-[42vh] w-full overflow-hidden border-t border-line bg-surface"
-        >
-          {nextPoster ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={mediaUrl(nextPoster)}
-              alt=""
-              className="h-full w-full object-cover opacity-35 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-            />
-          ) : nextCover?.type === "video" ? (
-            <LazyVideo
-              src={mediaUrl(nextCover.url)}
-              className="h-full w-full object-cover opacity-35 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-            />
-          ) : nextCover ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={mediaUrl(nextCover.url)}
-              alt=""
-              className="h-full w-full object-cover opacity-35 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-            />
-          ) : null}
-          <div className="absolute inset-0 bg-void/45" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="font-mono-tech text-[11px] uppercase tracking-[0.2em] text-mist">
-              Next
-            </span>
-            <h3 className="mt-2 font-display text-3xl uppercase text-bone md:text-5xl">{next.title}</h3>
-          </div>
-        </Link>
-      ) : null}
 
       {full && current ? (
         <div
