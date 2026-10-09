@@ -28,7 +28,7 @@ export function About() {
 
   return (
     <section id="about" className="pub-sec relative z-[1]">
-      <div className="pub-wrap about-grid">
+      <div className="pub-wrap about-grid rise">
         <div className="about-photo">
           {ready && aboutPhoto ? (
             // eslint-disable-next-line @next/next/no-img-element

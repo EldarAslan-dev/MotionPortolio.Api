@@ -50,14 +50,13 @@ function ClientCard({ logo }: { logo: ClientLogo }) {
   }, [src]);
 
   return (
-    <div className={`cc${plate ? ` ${plate}` : ""}`}>
+    <div className={`cc rise${plate ? ` ${plate}` : ""}`}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           ref={imgRef}
           src={src}
           alt=""
-          loading="lazy"
           decoding="async"
           onLoad={(event) => measure(event.currentTarget)}
         />
@@ -77,7 +76,7 @@ export function Clients() {
   return (
     <section id="clients" className="pub-sec relative z-[1] pt-0">
       <div className="pub-wrap">
-        <span className="pub-lab mb-7" style={{ fontSize: `clamp(22px, 6vw, ${design.clientsSize}px)` }}>
+        <span className="pub-lab rise mb-7" style={{ fontSize: `clamp(22px, 6vw, ${design.clientsSize}px)` }}>
           {design.clientsLabel}
         </span>
         <div className="client-cards">

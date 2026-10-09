@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { AdminCard, AdminFilePick, adminBtn, adminBtnQuiet, adminFieldClass, reorderList } from "@/components/admin/ui";
+import { AdminCard, AdminFilePick, adminBtn, adminBtnQuiet, adminFieldClass, moveToIndex, OrderField, reorderList } from "@/components/admin/ui";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { mediaUrl } from "@/lib/config";
@@ -33,6 +33,16 @@ export function SiteImagesSection({
   useEffect(() => {
     setRows(logos);
   }, [logos]);
+
+  function placeAt(id: number, position: number) {
+    const next = moveToIndex(rows, id, position, (logo) => logo.id);
+    if (!next) return;
+    setRows(next);
+    void api.reorderLogos(next.map((logo) => logo.id), token).then((res) => {
+      if (!res.ok) onToast("Could not save the order.");
+      else onLogosChanged();
+    });
+  }
 
   function dropOn(targetId: number) {
     if (dragId == null) return;
@@ -167,23 +177,26 @@ export function SiteImagesSection({
           </button>
         </form>
         <div className="space-y-3">
-          {rows.map((logo) => (
+          {rows.map((logo, index) => (
             <div
               key={logo.id}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => dropOn(logo.id)}
               className="flex flex-col gap-3 rounded-xl border border-line bg-void p-3 sm:flex-row sm:items-center"
             >
-              <button
-                type="button"
-                draggable
-                aria-label="Drag to reorder"
-                onDragStart={() => setDragId(logo.id)}
-                onDragEnd={() => setDragId(null)}
-                className="cursor-grab px-1 text-lg leading-none text-mist"
-              >
-                ⋮⋮
-              </button>
+              <div className="flex items-center gap-2">
+                <OrderField index={index} total={rows.length} onPlace={(position) => placeAt(logo.id, position)} />
+                <button
+                  type="button"
+                  draggable
+                  aria-label="Drag to reorder"
+                  onDragStart={() => setDragId(logo.id)}
+                  onDragEnd={() => setDragId(null)}
+                  className="hidden cursor-grab px-1 text-lg leading-none text-mist md:inline"
+                >
+                  ⋮⋮
+                </button>
+              </div>
               <div className="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface">
                 {logo.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element

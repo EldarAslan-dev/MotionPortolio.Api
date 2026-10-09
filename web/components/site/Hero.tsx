@@ -1,9 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { isVideoMedia, mediaUrl, parseHeroGallery } from "@/lib/config";
 import { parseDesign } from "@/lib/site/design";
 import { useStudio } from "@/lib/site/StudioContext";
+
+function fanBox(cards: { width?: number; height?: number }[]) {
+  const list = cards.length ? cards : [{ width: 250, height: 350 }];
+  const mid = (list.length - 1) / 2;
+  const maxW = Math.max(...list.map((card) => card.width || 250));
+  const spread = Math.round(maxW * 0.53);
+  let halfW = 1;
+  let above = 1;
+  let below = 1;
+  list.forEach((card, index) => {
+    const w = card.width || 250;
+    const h = card.height || 350;
+    const o = index - mid;
+    const tx = Math.abs(o) * spread;
+    const ty = o * o * 14;
+    const ang = Math.abs(o) * 6.5 * (Math.PI / 180);
+    const cos = Math.abs(Math.cos(ang));
+    const sin = Math.abs(Math.sin(ang));
+    const hw = (w / 2) * cos + (h / 2) * sin;
+    const hh = (w / 2) * sin + (h / 2) * cos;
+    halfW = Math.max(halfW, tx + hw + 10);
+    above = Math.max(above, hh + ty + 24);
+    below = Math.max(below, hh + ty + 24);
+  });
+  return { width: halfW * 2, height: Math.ceil((above + below) * 1.28), spread };
+}
 
 export function Hero() {
   const { profile } = useStudio();
@@ -11,33 +37,46 @@ export function Hero() {
   const headline = design.headline;
   const deckRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [fit, setFit] = useState(0.36);
+  const [fit, setFit] = useState(1);
   const cards = useMemo(() => parseHeroGallery(profile?.heroGalleryJson), [profile?.heroGalleryJson]);
   const mid = (Math.max(cards.length, 1) - 1) / 2;
-  const maxW = Math.max(250, ...cards.map((item) => item.width || 250));
-  const maxH = Math.max(350, ...cards.map((item) => item.height || 350));
+  const fan = useMemo(() => fanBox(cards), [cards]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setOpen(true), 500);
     return () => window.clearTimeout(id);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const apply = () => {
-      const vw = window.innerWidth;
-      if (vw > 700) {
-        setFit(1);
-        return;
-      }
-      const room = Math.max(200, vw - 32) / 2;
-      const spread = Math.round(maxW * 0.53);
-      const edge = maxW / 2 + spread * 0.96;
-      setFit(Math.min(0.5, Math.max(0.24, room / edge)));
+      const room = Math.min(1120, window.innerWidth - (window.innerWidth > 700 ? 48 : 28));
+      setFit(Math.min(1, room / fan.width));
     };
     apply();
     window.addEventListener("resize", apply);
     return () => window.removeEventListener("resize", apply);
-  }, [maxW]);
+  }, [fan.width]);
+
+  useLayoutEffect(() => {
+    const deck = deckRef.current;
+    if (!deck || !open) return;
+    const grow = () => {
+      const boxes = [...deck.querySelectorAll(".deck-card")];
+      if (!boxes.length) return;
+      let minTop = Infinity;
+      let maxBottom = -Infinity;
+      boxes.forEach((node) => {
+        const box = node.getBoundingClientRect();
+        minTop = Math.min(minTop, box.top);
+        maxBottom = Math.max(maxBottom, box.bottom);
+      });
+      const need = Math.ceil(maxBottom - minTop + 36);
+      if (need > deck.getBoundingClientRect().height + 1) deck.style.height = `${need}px`;
+    };
+    grow();
+    const id = window.setTimeout(grow, 1100);
+    return () => window.clearTimeout(id);
+  }, [fit, open, cards.length, fan.height]);
 
   useEffect(() => {
     const deck = deckRef.current;
@@ -86,8 +125,8 @@ export function Hero() {
         className={`deck ${open ? "in" : ""}`}
         style={{
           ["--mid" as string]: mid,
-          ["--deck-h" as string]: maxH + 100,
-          ["--spread" as string]: Math.round(maxW * 0.53),
+          ["--deck-h" as string]: fan.height,
+          ["--spread" as string]: fan.spread,
           ["--fit" as string]: fit,
         }}
       >

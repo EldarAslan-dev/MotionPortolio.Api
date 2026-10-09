@@ -33,7 +33,7 @@ function WorkCard({ project }: { project: Project }) {
     if (!frame || !video) return;
     const io = new IntersectionObserver(
       ([entry]) => setActive(entry.isIntersecting),
-      { rootMargin: "120px", threshold: 0.2 },
+      { rootMargin: "800px", threshold: 0.2 },
     );
     io.observe(frame);
     return () => io.disconnect();
@@ -49,7 +49,7 @@ function WorkCard({ project }: { project: Project }) {
     <a
       href={`/work/${project.id}`}
       onClick={(e) => goToWork(router, project.id, e)}
-      className="wc"
+      className="wc rise"
     >
       <div className="th" ref={frameRef}>
         {video && active ? (
@@ -61,11 +61,11 @@ function WorkCard({ project }: { project: Project }) {
             loop
             playsInline
             autoPlay
-            preload="none"
+            preload="auto"
           />
         ) : poster ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={poster} alt="" loading="lazy" decoding="async" />
+          <img src={poster} alt="" decoding="async" />
         ) : null}
         <div className="wc-bar">
           <b>{project.title}</b>
@@ -105,7 +105,7 @@ export function Work() {
   return (
     <section id="work" className="pub-sec relative z-[1]">
       <div className="pub-wrap">
-        <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+        <div className="rise mb-9 flex flex-wrap items-end justify-between gap-4">
           <span className="pub-lab" style={{ fontSize: `clamp(22px, 6vw, ${design.worksSize}px)` }}>
             {design.worksLabel}
           </span>
@@ -149,7 +149,7 @@ export function Work() {
                       key={p.id}
                       href={`/work/${p.id}`}
                       onClick={(e) => goToWork(router, p.id, e)}
-                      className="work-row"
+                      className="work-row rise"
                     >
                       <div>
                         <h3>{p.title}</h3>

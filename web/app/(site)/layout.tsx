@@ -51,6 +51,34 @@ function CursorGlow() {
 }
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.querySelectorAll(".rise").forEach((node) => node.classList.add("is-in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-in");
+          io.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.16, rootMargin: "0px 0px -8% 0px" },
+    );
+    const watch = () => {
+      document.querySelectorAll(".rise:not(.is-in)").forEach((node) => io.observe(node));
+    };
+    watch();
+    const changes = new MutationObserver(watch);
+    const main = document.querySelector("main");
+    if (main) changes.observe(main, { childList: true, subtree: true });
+    return () => {
+      io.disconnect();
+      changes.disconnect();
+    };
+  }, []);
+
   const studioData = useStudioData();
   const inquiryFlow = useInquiryFlow({ setTestimonials: studioData.setTestimonials });
   const value = { ...studioData, ...inquiryFlow };

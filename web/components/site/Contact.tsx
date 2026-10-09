@@ -11,7 +11,7 @@ export function Contact() {
 
   return (
     <section id="contact" className="relative z-[1] px-6 py-[110px] text-center">
-      <div className="mx-auto max-w-[860px]">
+      <div className="rise mx-auto max-w-[860px]">
         <h2
           className="mb-10 font-extrabold leading-[1.02] tracking-[-0.045em]"
           style={{ fontSize: `clamp(32px, 7vw, ${design.contactSize}px)` }}

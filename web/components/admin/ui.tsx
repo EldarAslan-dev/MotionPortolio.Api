@@ -54,6 +54,41 @@ export const adminBtnGhost =
 export const adminBtnQuiet =
   "rounded-lg border border-line bg-surface px-2.5 py-1 text-[13px] font-medium text-mist transition hover:border-cue hover:text-bone";
 
+export function moveToIndex<T>(list: T[], id: number, position: number, idOf: (item: T) => number) {
+  const from = list.findIndex((item) => idOf(item) === id);
+  const to = Math.max(0, Math.min(list.length - 1, Math.round(position) - 1));
+  if (from < 0 || from === to) return null;
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+export function OrderField({
+  index,
+  total,
+  onPlace,
+}: {
+  index: number;
+  total: number;
+  onPlace: (position: number) => void;
+}) {
+  return (
+    <select
+      aria-label="Order"
+      value={index + 1}
+      onChange={(e) => onPlace(Number(e.target.value))}
+      className="w-14 shrink-0 rounded-lg border border-line bg-surface px-1 py-2 text-center text-sm text-bone outline-none"
+    >
+      {Array.from({ length: total }, (_, item) => (
+        <option key={item + 1} value={item + 1}>
+          {item + 1}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function reorderList<T>(list: T[], fromId: number, toId: number, idOf: (item: T) => number) {
   const from = list.findIndex((item) => idOf(item) === fromId);
   const to = list.findIndex((item) => idOf(item) === toId);

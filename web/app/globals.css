@@ -1065,23 +1065,25 @@ html[data-theme="night"] .theme-toggle-knob {
   to { transform: none; }
 }
 .deck {
-  --sp: 132px;
+  --sp: calc(var(--spread, 132) * var(--fit, 1) * 1px);
   --mid: 2;
+  --fit: 1;
   position: relative;
-  height: calc(var(--deck-h, 450) * 1px);
+  height: calc(var(--deck-h, 450) * var(--fit, 1) * 1px);
   margin-top: 30px;
   display: grid;
   place-items: center;
   perspective: 1400px;
+  overflow: visible;
 }
 .deck-card {
   --o: calc(var(--i) - var(--mid));
   --k: 0;
   --r: 1;
   position: absolute;
-  width: calc(var(--card-w, 250) * 1px);
-  height: calc(var(--card-h, 350) * 1px);
-  border-radius: calc(var(--card-r, 24) * 1px);
+  width: calc(var(--card-w, 250) * var(--fit, 1) * 1px);
+  height: calc(var(--card-h, 350) * var(--fit, 1) * 1px);
+  border-radius: calc(var(--card-r, 24) * var(--fit, 1) * 1px);
   overflow: hidden;
   border: 1px solid var(--bd);
   box-shadow: var(--sh);
@@ -1747,18 +1749,7 @@ html[data-theme="night"] .pub-lab { color: var(--g2); }
     white-space: nowrap;
   }
   .pub-who { display: none; }
-  .deck {
-    --fit: 0.36;
-    overflow: clip;
-    height: calc(var(--deck-h, 450) * var(--fit) * 1px);
-    margin-top: 8px;
-    --sp: calc(var(--spread, 132) * var(--fit) * 0.62px);
-  }
-  .deck-card {
-    width: calc(var(--card-w, 250) * var(--fit) * 1px);
-    height: calc(var(--card-h, 350) * var(--fit) * 1px);
-    border-radius: calc(var(--card-r, 24) * var(--fit) * 1px);
-  }
+  .deck { margin-top: 8px; }
   .deck.in:hover .deck-card { --k: 1; }
   .deck.in .deck-card:hover { --l: 0px; --r: 1; }
   .pub-sec { padding: 48px 0; }
@@ -1792,6 +1783,21 @@ html[data-theme="night"] .pub-lab { color: var(--g2); }
 }
 @media (max-width: 520px) {
   .client-cards { grid-template-columns: repeat(2, 1fr); }
+}
+html.js .rise {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.js .rise.is-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.js .rise {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 html[data-theme="obsidian"] {

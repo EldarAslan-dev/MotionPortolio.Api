@@ -10,6 +10,8 @@ import {
   adminBtnGhost,
   adminBtnQuiet,
   adminFieldClass,
+  moveToIndex,
+  OrderField,
   reorderList,
 } from "@/components/admin/ui";
 import { api } from "@/lib/api";
@@ -64,6 +66,16 @@ export function PortfolioSection({
   useEffect(() => {
     setRows(projects);
   }, [projects]);
+
+  function placeAt(id: number, position: number) {
+    const next = moveToIndex(rows, id, position, (project) => project.id);
+    if (!next) return;
+    setRows(next);
+    void api.reorderProjects(next.map((project) => project.id), token).then((res) => {
+      if (!res.ok) onToast("Could not save the order.");
+      else onChanged();
+    });
+  }
 
   function dropOn(targetId: number) {
     if (dragId == null) return;
@@ -228,14 +240,14 @@ export function PortfolioSection({
       ) : (
         <>
           <div className="flex flex-col gap-3 md:hidden">
-            {rows.map((p) => (
+            {rows.map((p, index) => (
               <div
                 key={p.id}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => dropOn(p.id)}
                 className="flex gap-3 rounded-2xl border border-line bg-void p-3"
               >
-                <button type="button" draggable aria-label="Drag to reorder" onDragStart={() => setDragId(p.id)} onDragEnd={() => setDragId(null)} className="cursor-grab self-center px-1 text-lg leading-none text-mist">⋮⋮</button>
+                <OrderField index={index} total={rows.length} onPlace={(position) => placeAt(p.id, position)} />
                 <div className="flex h-[64px] w-[92px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-surface">
                   <CoverThumb project={p} />
                 </div>
@@ -271,10 +283,13 @@ export function PortfolioSection({
                 </tr>
               </thead>
               <tbody>
-                {rows.map((p) => (
+                {rows.map((p, index) => (
                   <tr key={p.id} onDragOver={(e) => e.preventDefault()} onDrop={() => dropOn(p.id)} className="border-b border-line text-bone">
                     <td className="px-3 py-3">
-                      <button type="button" draggable aria-label="Drag to reorder" onDragStart={() => setDragId(p.id)} onDragEnd={() => setDragId(null)} className="cursor-grab px-1 text-lg leading-none text-mist">⋮⋮</button>
+                      <div className="flex items-center gap-2">
+                        <OrderField index={index} total={rows.length} onPlace={(position) => placeAt(p.id, position)} />
+                        <button type="button" draggable aria-label="Drag to reorder" onDragStart={() => setDragId(p.id)} onDragEnd={() => setDragId(null)} className="cursor-grab px-1 text-lg leading-none text-mist">⋮⋮</button>
+                      </div>
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex h-[70px] w-[110px] items-center justify-center overflow-hidden rounded-xl border border-line bg-void">
