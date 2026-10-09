@@ -1,12 +1,9 @@
-# Bilgeyis Mirzazada — Motion Portfolio
+<img width="1200" height="420" alt="banner" src="https://github.com/user-attachments/assets/9a5a2a1e-0353-4829-b18c-ba82f66f83ab" />
 
-The public studio site, client account, and admin workspace for [bilgeyismirzazada.com](https://bilgeyismirzazada.com/).
+<img width="1000" height="300" alt="inquiry-flow" src="https://github.com/user-attachments/assets/e06a384b-fd70-4b78-9ea9-437474710e16" />
+<img width="1260" height="600" alt="architecture" src="https://github.com/user-attachments/assets/a82388ec-2f64-4061-a22b-4118783b9f58" />
 
-**Live site:** https://bilgeyismirzazada.com/
 
-![Bilgeyis Mirzazada](docs/banner.svg)
-
-![Architecture](docs/architecture.svg)
 
 Visitors browse the portfolio. Clients send a brief, sign in, follow an order, and chat. The studio runs the same system from `/admin`: content, inquiries, accounts, and delivery.
 
@@ -50,39 +47,3 @@ Inquiries move through New, In progress, Awaiting payment, Completed, and Cancel
 ## Team — `/team`
 
 Team members sign in and see the jobs assigned to them, upload finished files, and chat with that client.
-
-## Repository
-
-```
-Controllers/     ASP.NET Core API
-Services/        RabbitMQ consumer and mail
-web/             Next.js site, admin, team, and account
-docker-compose.yml
-```
-
-The live snapshot of this studio is the `studio-updates` branch.
-
-## Run locally
-
-API (SQL Server and RabbitMQ need to be reachable with the connection settings in `appsettings` or environment variables):
-
-```bash
-dotnet run
-```
-
-Site:
-
-```bash
-cd web
-npm install
-npm run dev
-```
-
-The browser calls relative `/api/...` paths. In production Nginx routes those to the API. For a local Next server, proxy `/api` to the API or open the site through the same host setup used in production.
-
-Production containers:
-
-```bash
-docker compose build
-docker compose up -d
-```
